@@ -25,6 +25,7 @@ export const storeRelations = relations(store, ({ one, many }) => ({
   user: one(user, {
     fields: [store.userId],
     references: [user.id],
+    relationName: "fk_users_stores",
   }),
   products: many(product),
 }));

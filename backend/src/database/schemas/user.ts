@@ -24,5 +24,7 @@ export const user = sqliteTable(
 );
 
 export const userRelations = relations(store, ({ many }) => ({
-  stores: many(store),
+  stores: many(store, {
+    relationName: "fk_users_stores",
+  }),
 }));
