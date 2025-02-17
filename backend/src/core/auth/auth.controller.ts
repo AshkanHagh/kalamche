@@ -1,9 +1,17 @@
-import { Controller, Get, Param, Query, Res } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Req,
+  Res,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { GetOAuthUrlDto, getOAuthUrlDto } from "./dto/get-oauth-url.dto";
 import { AuthService } from "./auth.service";
 import { OAuthCallbackDto, oAuthCallbackDto } from "./dto/oauth-callback.dto";
 import { TokenService } from "./services/token/jwt";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { buildCookie } from "./utils/cookie";
 import { ZodValidationPipe } from "src/common/utils/zod-validation.pipe";
 
@@ -48,5 +56,35 @@ export class AuthController {
   ) {
     const url = this.authService.getOAuthUrl(params.oauth);
     return { url };
+  }
+
+  @Get("/token/refresh")
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    // @eslint-disable-line
+    const reqRefreshToken = req.cookies[REFRESH_TOKEN_COOKIE_NAME] as
+      | string
+      | undefined;
+
+    if (!reqRefreshToken) {
+      throw new UnauthorizedException();
+    }
+
+    const userId = this.tokenService.decodeRefreshToken(reqRefreshToken);
+    await this.authService.isRefreshTokenMatchHash(userId, reqRefreshToken);
+
+    const user = await this.authService.findUserById(userId);
+
+    const accessToken = this.tokenService.signAccessToken(user.id);
+    const refreshToken = this.tokenService.signRefreshToken(user.id);
+
+    await this.authService.updateUserRefreshToken(user.id, refreshToken);
+
+    const cookie = buildCookie();
+    res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookie);
+
+    res.status(201).json({
+      success: true,
+      accessToken,
+    });
   }
 }

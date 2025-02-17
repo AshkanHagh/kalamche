@@ -26,4 +26,12 @@ export class TokenService {
       audience: this.AUDIENCE,
     });
   }
+
+  public decodeRefreshToken(token: string): string {
+    const tokenPayload = jwt.verify(token, this.refreshTokenSecret) as {
+      userId: string;
+    };
+
+    return tokenPayload.userId;
+  }
 }

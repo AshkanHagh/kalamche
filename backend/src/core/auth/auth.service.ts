@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import {
   OAuthPlatforms,
   OAuthStrategy,
@@ -54,7 +58,7 @@ export class AuthService {
     }
   }
 
-  public async findUserById(email: string): Promise<UserRecord | undefined> {
+  public async findUserByEmail(email: string): Promise<UserRecord | undefined> {
     try {
       const user = await this.userRepository.findUserByEmail(email);
       if (user) {
@@ -67,7 +71,7 @@ export class AuthService {
 
   public async register(user: OauthUser): Promise<UserRecord> {
     try {
-      const existingUser = await this.findUserById(user.email);
+      const existingUser = await this.findUserByEmail(user.email);
       if (!existingUser) {
         const insertUserDto: InsertUserDto = {
           email: user.email,
@@ -93,5 +97,26 @@ export class AuthService {
     } catch (error: unknown) {
       throw CatchError(error);
     }
+  }
+
+  public async isRefreshTokenMatchHash(
+    userId: string,
+    token: string,
+  ): Promise<void> {
+    try {
+      const userRefreshToken =
+        await this.userRepository.findRefreshToken(userId);
+      const isMatch = await argon2.verify(userRefreshToken, token);
+
+      if (!isMatch) {
+        throw new ForbiddenException();
+      }
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
+
+  public async findUserById(userId: string): Promise<UserRecord> {
+    return await this.userRepository.findUserById(userId);
   }
 }

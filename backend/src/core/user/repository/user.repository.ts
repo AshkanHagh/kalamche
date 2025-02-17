@@ -1,4 +1,11 @@
-import { Inject, Injectable } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "src/database/schemas";
 import { user } from "src/database/schemas";
@@ -36,8 +43,7 @@ export class UserRepository {
   public async insert(dto: InsertUserDto): Promise<UserRecord> {
     const newUser = await this.db.insert(user).values(dto).returning();
     if (newUser.length === 0) {
-      // TODO: throw some error
-      throw new Error("fake error fix me");
+      throw new HttpException("Faild to insert user", HttpStatus.BAD_REQUEST);
     }
 
     return this.intoRecord(newUser[0]);
@@ -51,5 +57,36 @@ export class UserRepository {
       .update(user)
       .set({ refreshTokenHash })
       .where(eq(user.id, userId));
+  }
+
+  public async findRefreshToken(userId: string): Promise<string> {
+    const refreshToken = await this.db.query.user.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, userId),
+      columns: {
+        refreshTokenHash: true,
+      },
+    });
+
+    if (!refreshToken) {
+      throw new NotFoundException();
+    }
+
+    if (!refreshToken.refreshTokenHash) {
+      throw new UnauthorizedException();
+    }
+
+    return refreshToken.refreshTokenHash;
+  }
+
+  public async findUserById(userId: string): Promise<UserRecord> {
+    const user = await this.db.query.user.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, userId),
+    });
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    return this.intoRecord(user);
   }
 }
