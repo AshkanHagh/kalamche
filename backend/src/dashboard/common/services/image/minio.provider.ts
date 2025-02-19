@@ -12,7 +12,7 @@ export class MinioProvider implements ImageProvider {
 
   constructor(private readonly config: ConfigService) {
     this.s3 = new AWS.S3({
-      endpoint: "localhost:9000",
+      endpoint: "http://localhost:9000",
       accessKeyId: this.config.get<string>("MINIO_USER_NAME"),
       secretAccessKey: this.config.get<string>("MINIO_PASSWORD"),
       s3ForcePathStyle: true,
@@ -20,13 +20,13 @@ export class MinioProvider implements ImageProvider {
     });
   }
 
-  async upload(file: Express.Multer.File): Promise<ImageResource> {
+  async upload(buffer: Buffer): Promise<ImageResource> {
     try {
       const params: AWS.S3.PutObjectRequest = {
         Bucket: this.bucketName,
         Key: uuid(),
-        Body: file.buffer,
-        ContentType: file.mimetype,
+        Body: buffer,
+        ContentType: "image/jpeg",
       };
 
       const result = await this.s3.upload(params).promise();

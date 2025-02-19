@@ -32,4 +32,12 @@ export class StoreService {
       throw CatchError(error);
     }
   }
+
+  public async findById(storeId: string): Promise<StoreRecord> {
+    try {
+      return await this.repository.findById(storeId);
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
 }

@@ -1,10 +1,17 @@
-import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { InferInsertModel } from "drizzle-orm";
 import { storeSchema } from "src/database/schemas";
 import { Sqlite } from "src/database/types";
 import { Store, StoreRecord } from "./types/store";
 import { DATABASE_CONNECTION } from "src/database";
 import { Image } from "../image/types/image";
+import { CatchError } from "src/common/utils/error";
 
 export type InsertStoreDto = InferInsertModel<typeof storeSchema>;
 
@@ -49,5 +56,25 @@ export class StoreRepository {
     }
 
     return this.intoRecord(store[0], storeImage);
+  }
+
+  public async findById(storeId: string): Promise<StoreRecord> {
+    try {
+      const result = await this.db.query.storeSchema.findFirst({
+        where: (table, funcs) => funcs.eq(table.id, storeId),
+        with: {
+          image: true,
+        },
+      });
+
+      if (!result) {
+        throw new NotFoundException();
+      }
+
+      const { image, ...store } = result;
+      return this.intoRecord(store, image);
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
   }
 }

@@ -1,4 +1,9 @@
-import { MiddlewareConsumer, Module, NestModule } from "@nestjs/common";
+import {
+  MiddlewareConsumer,
+  Module,
+  NestModule,
+  RequestMethod,
+} from "@nestjs/common";
 import { StoreController } from "./store.controller";
 import { StoreService } from "./store.service";
 import { MinioProvider } from "../common/services/image/minio.provider";
@@ -15,6 +20,9 @@ import { AuthModule } from "src/core/auth/auth.module";
 })
 export class StoreModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthorizationMiddleware).forRoutes("store");
+    consumer.apply(AuthorizationMiddleware).forRoutes({
+      path: "store",
+      method: RequestMethod.POST,
+    });
   }
 }

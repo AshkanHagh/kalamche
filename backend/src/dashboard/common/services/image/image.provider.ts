@@ -4,6 +4,6 @@ export type ImageResource = {
 };
 
 export abstract class ImageProvider {
-  abstract upload(file: Express.Multer.File): Promise<ImageResource>;
+  abstract upload(buffer: Buffer): Promise<ImageResource>;
   abstract delete(id: string): Promise<void>;
 }
