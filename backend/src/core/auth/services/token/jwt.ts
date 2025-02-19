@@ -34,4 +34,12 @@ export class TokenService {
 
     return tokenPayload.userId;
   }
+
+  public decodeAccessToken(token: string): string {
+    const tokenPayload = jwt.verify(token, this.accessTokenSecret) as {
+      userId: string;
+    };
+
+    return tokenPayload.userId;
+  }
 }

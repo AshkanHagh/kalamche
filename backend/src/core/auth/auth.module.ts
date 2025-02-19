@@ -10,5 +10,6 @@ import { UserModule } from "../user/user.module";
   imports: [ConfigModule, UserModule],
   providers: [AuthService, GithubOauthSterategy, TokenService],
   controllers: [AuthController],
+  exports: [AuthService, TokenService],
 })
 export class AuthModule {}

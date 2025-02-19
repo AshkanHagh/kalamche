@@ -11,5 +11,7 @@ export default function envValidation() {
     JWT_REFRESH_SECRET: z.string(),
     JWT_ACCESS_EXPIRATION: z.string(),
     JWT_REFRESH_EXPIRATION: z.string(),
+    MINIO_USER_NAME: z.string(),
+    MINIO_PASSWORD: z.string(),
   });
 }

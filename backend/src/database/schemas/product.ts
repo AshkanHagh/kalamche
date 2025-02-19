@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { v4 as uuid } from "uuid";
-import { store } from "./store";
+import { storeSchema } from "./store";
 import { Image } from "./types";
 
 export type ProductDetail = {
@@ -15,7 +15,7 @@ export const product = sqliteTable("products", {
     .$default(() => uuid()),
   store_id: text("store_id")
     .notNull()
-    .references(() => store.id),
+    .references(() => storeSchema.id),
   name: text("name", { length: 255 }).notNull(),
   description: text("description", { length: 255 }).notNull(),
   specifications: text("specifications", { mode: "json" })
@@ -33,8 +33,8 @@ export const product = sqliteTable("products", {
 });
 
 export const productRelations = relations(product, ({ one }) => ({
-  store: one(store, {
+  storeSchema: one(storeSchema, {
     fields: [product.store_id],
-    references: [store.id],
+    references: [storeSchema.id],
   }),
 }));

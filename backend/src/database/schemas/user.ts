@@ -1,7 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import { index, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { v4 as uuid } from "uuid";
-import { store } from "./store";
+import { storeSchema } from "./store";
 
 export const user = sqliteTable(
   "users",
@@ -23,8 +23,8 @@ export const user = sqliteTable(
   }),
 );
 
-export const userRelations = relations(store, ({ many }) => ({
-  stores: many(store, {
+export const userRelations = relations(user, ({ many }) => ({
+  stores: many(storeSchema, {
     relationName: "fk_users_stores",
   }),
 }));
