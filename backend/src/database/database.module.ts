@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { DATABASE_CONNECTION } from ".";
-import * as Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schemas";
+import { Pool } from "pg";
 
 @Module({
   imports: [ConfigModule],
@@ -14,9 +14,17 @@ import * as schema from "./schemas";
       useFactory: (config: ConfigService) => {
         const db_url = config.get<string>("DATABASE_URL")!;
 
-        const sqliteClient = new Database(db_url);
+        const pool = new Pool({
+          connectionString: db_url,
+          min: 10,
+          max: 100,
+          connectionTimeoutMillis: 1000 * 8,
+          idleTimeoutMillis: 1000 * 8,
+          maxLifetimeSeconds: 8,
+        });
+
         return drizzle({
-          client: sqliteClient,
+          client: pool,
           schema,
           logger: true,
           casing: "snake_case",

@@ -2,16 +2,13 @@ import { HttpException, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ImageProvider } from "../common/services/image/image.provider";
 import { MinioProvider } from "../common/services/image/minio.provider";
 import { CatchError } from "src/common/utils/error";
-import { Image, UploadType } from "./types/image";
-import { ImageRepository, InsertImageDto } from "./image.repository";
+import { UploadType } from "./types/image";
 import * as sharp from "sharp";
+import { Image } from "src/database/schemas/types";
 
 @Injectable()
 export class ImageService {
-  constructor(
-    @Inject(MinioProvider) private imageProvider: ImageProvider,
-    private readonly repository: ImageRepository,
-  ) {}
+  constructor(@Inject(MinioProvider) private imageProvider: ImageProvider) {}
 
   private async resizeImage(
     buffer: Buffer,
@@ -55,12 +52,10 @@ export class ImageService {
       const resizedImage = await this.resizeImage(buffer, uploadType);
       const imageResource = await this.imageProvider.upload(resizedImage);
 
-      const insertImageDto: InsertImageDto = {
-        url: imageResource.url,
+      return {
         id: imageResource.id,
+        url: imageResource.url,
       };
-
-      return await this.repository.insert(insertImageDto);
     } catch (error: unknown) {
       throw CatchError(error);
     }

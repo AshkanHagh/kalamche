@@ -3,7 +3,10 @@ import z from "zod";
 export const createStoreDto = z.object({
   name: z.string(),
   description: z.string(),
-  imageId: z.string().uuid(),
+  image: z.object({
+    id: z.string().uuid(),
+    url: z.string().url(),
+  }),
   siteUrl: z.string().url(),
 });
 

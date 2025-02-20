@@ -1,29 +1,24 @@
-import { relations, sql } from "drizzle-orm";
-import { index, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { v4 as uuid } from "uuid";
+import { relations } from "drizzle-orm";
 import { storeSchema } from "./store";
+import { index, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
-export const user = sqliteTable(
+export const userSchema = pgTable(
   "users",
   {
-    id: text("id")
-      .primaryKey()
-      .$default(() => uuid()),
-    name: text("name", { length: 255 }).notNull(),
-    email: text("email", { length: 255 }).notNull().unique(),
-    avatarUrl: text("avatar_url", { length: 300 }).notNull(),
-    refreshTokenHash: text("refresh_token_hash", { length: 300 }),
-    createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-    updatedAt: text("updated_at")
-      .default(sql`(CURRENT_TIMESTAMP)`)
-      .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull().unique(),
+    avatarUrl: varchar("avatar_url", { length: 300 }).notNull(),
+    refreshTokenHash: varchar("refresh_token_hash", { length: 300 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   },
   (table) => ({
     idx_user_email: index("idx_user_email").on(table.email),
   }),
 );
 
-export const userRelations = relations(user, ({ many }) => ({
+export const userRelations = relations(userSchema, ({ many }) => ({
   stores: many(storeSchema, {
     relationName: "fk_users_stores",
   }),

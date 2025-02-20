@@ -1,39 +1,27 @@
-import { relations, sql } from "drizzle-orm";
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { v4 as uuid } from "uuid";
-import { user } from "./user";
-import { image } from "./image";
-import { product } from "./product";
+import { relations } from "drizzle-orm";
+import { userSchema } from "./user";
+import { productSchema } from "./product";
+import { jsonb, pgTable, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+import { Image } from "./types";
 
-export const storeSchema = sqliteTable("stores", {
-  id: text("id")
-    .primaryKey()
-    .$default(() => uuid()),
-  userId: text("user_id")
+export const storeSchema = pgTable("stores", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id")
     .notNull()
-    .references(() => user.id),
-  name: text("name", { length: 255 }).notNull().unique(),
-  description: text("description", { length: 500 }).notNull(),
-  imageId: text()
-    .notNull()
-    .references(() => image.id),
-  siteUrl: text("site_url", { length: 300 }).notNull(),
-  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text("updated_at")
-    .default(sql`(CURRENT_TIMESTAMP)`)
-    .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
+    .references(() => userSchema.id),
+  name: varchar("name", { length: 255 }).notNull().unique(),
+  description: varchar("description", { length: 500 }).notNull(),
+  image: jsonb().notNull().$type<Image>(),
+  siteUrl: varchar("site_url", { length: 300 }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 export const storeRelations = relations(storeSchema, ({ one, many }) => ({
-  user: one(user, {
+  user: one(userSchema, {
     fields: [storeSchema.userId],
-    references: [user.id],
+    references: [userSchema.id],
     relationName: "fk_users_stores",
   }),
-  image: one(image, {
-    fields: [storeSchema.imageId],
-    references: [image.id],
-    relationName: "fk_images_stores",
-  }),
-  products: many(product),
+  products: many(productSchema),
 }));

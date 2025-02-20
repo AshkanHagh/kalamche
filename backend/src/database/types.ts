@@ -1,4 +1,4 @@
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 import * as schema from "./schemas";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
 
-export type Sqlite = BetterSQLite3Database<typeof schema>;
+export type Postgres = NodePgDatabase<typeof schema>;

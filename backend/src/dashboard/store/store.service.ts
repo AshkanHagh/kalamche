@@ -24,7 +24,7 @@ export class StoreService {
       const insertDto: InsertStoreDto = {
         name: createDto.name,
         description: createDto.description,
-        imageId: createDto.imageId,
+        image: createDto.image,
         siteUrl: createDto.siteUrl,
         userId,
       };
@@ -37,7 +37,7 @@ export class StoreService {
 
   public async findById(storeId: string): Promise<StoreRecord> {
     try {
-      return await this.repository.findByIdWithImage(storeId);
+      return await this.repository.findById(storeId);
     } catch (error: unknown) {
       throw CatchError(error);
     }
@@ -49,23 +49,24 @@ export class StoreService {
     }
   }
 
+  // TODO: filter site url
   public async updateStore(
     storeId: string,
     userId: string,
     updateDto: UpdateStoreDto,
   ): Promise<unknown> {
     try {
-      const result = await this.repository.findImageId(storeId);
+      const result = await this.repository.findImage(storeId);
       this.checkStoreUserId(userId, result.userId);
 
-      if (updateDto.imageId) {
+      if (updateDto.image) {
         await this.imageProvider.checkImageExists(result.imageId);
       }
 
       const storeUpdateDto: RepoUpdateStoreDto = {
         name: updateDto.name,
         description: updateDto.description,
-        imageId: updateDto.imageId,
+        image: updateDto.image,
         siteUrl: updateDto.siteUrl,
       };
       const store = await this.repository.update(storeId, storeUpdateDto);
@@ -78,7 +79,7 @@ export class StoreService {
 
   public async deleteStore(userId: string, storeId: string): Promise<void> {
     try {
-      const result = await this.repository.findImageId(storeId);
+      const result = await this.repository.findImage(storeId);
       await this.imageProvider.delete(result.imageId);
 
       this.checkStoreUserId(userId, result.userId);

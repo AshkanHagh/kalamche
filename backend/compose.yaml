@@ -1,4 +1,14 @@
 services:
+  # postgres:
+  #   image: postgres:16.4-alpine
+  #   restart: always
+  #   env_file:
+  #     - ./.env
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - 5432:5432
+
   minio:
     image: quay.io/minio/minio:latest
     ports:
@@ -22,3 +32,4 @@ services:
 
 volumes:
   minio-data:
+  postgres_data:

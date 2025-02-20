@@ -3,7 +3,12 @@ import z from "zod";
 export const updateStoreDto = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
-  imageId: z.string().uuid().optional(),
+  image: z
+    .object({
+      id: z.string().uuid(),
+      url: z.string().url(),
+    })
+    .optional(),
   siteUrl: z.string().url().optional(),
 });
 

@@ -77,8 +77,5 @@ export class StoreController {
     @Param("storeId", new ParseUUIDPipe()) storeId: string,
   ) {
     await this.service.deleteStore(req.userId!, storeId);
-    return {
-      success: true,
-    };
   }
 }

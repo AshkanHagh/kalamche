@@ -6,20 +6,19 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
-import { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
-import * as schema from "src/database/schemas";
-import { user } from "src/database/schemas";
 import { eq, InferInsertModel } from "drizzle-orm";
 import { User, UserRecord } from "../types";
 import { DATABASE_CONNECTION } from "src/database";
+import { Postgres } from "src/database/types";
+import { userSchema } from "src/database/schemas";
 
-export type InsertUserDto = InferInsertModel<typeof user>;
+export type InsertUserDto = InferInsertModel<typeof userSchema>;
 
 @Injectable()
 export class UserRepository {
   constructor(
     @Inject(DATABASE_CONNECTION)
-    private readonly db: BetterSQLite3Database<typeof schema>,
+    private readonly db: Postgres,
   ) {}
 
   public intoRecord(model: User): UserRecord {
@@ -33,7 +32,7 @@ export class UserRepository {
   }
 
   public async findUserByEmail(email: string): Promise<User | undefined> {
-    const user = await this.db.query.user.findFirst({
+    const user = await this.db.query.userSchema.findFirst({
       where: (table, func) => func.eq(table.email, email),
     });
 
@@ -41,7 +40,7 @@ export class UserRepository {
   }
 
   public async insert(dto: InsertUserDto): Promise<UserRecord> {
-    const newUser = await this.db.insert(user).values(dto).returning();
+    const newUser = await this.db.insert(userSchema).values(dto).returning();
     if (newUser.length === 0) {
       throw new HttpException("Faild to insert user", HttpStatus.BAD_REQUEST);
     }
@@ -54,13 +53,13 @@ export class UserRepository {
     refreshTokenHash: string,
   ): Promise<void> {
     await this.db
-      .update(user)
+      .update(userSchema)
       .set({ refreshTokenHash })
-      .where(eq(user.id, userId));
+      .where(eq(userSchema.id, userId));
   }
 
   public async findRefreshToken(userId: string): Promise<string> {
-    const refreshToken = await this.db.query.user.findFirst({
+    const refreshToken = await this.db.query.userSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.id, userId),
       columns: {
         refreshTokenHash: true,
@@ -79,7 +78,7 @@ export class UserRepository {
   }
 
   public async findUserById(userId: string): Promise<UserRecord> {
-    const user = await this.db.query.user.findFirst({
+    const user = await this.db.query.userSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.id, userId),
     });
 

@@ -6,18 +6,20 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { eq, InferInsertModel } from "drizzle-orm";
-import { storeSchema } from "src/database/schemas";
-import { Sqlite } from "src/database/types";
 import { Store, StoreRecord } from "./types/store";
 import { DATABASE_CONNECTION } from "src/database";
-import { Image } from "../image/types/image";
+import { storeSchema } from "src/database/schemas";
+import { Postgres } from "src/database/types";
 
 export type InsertStoreDto = InferInsertModel<typeof storeSchema>;
 
 export type UpdateStoreDto = {
   name?: string;
   description?: string;
-  imageId?: string;
+  image?: {
+    id: string;
+    url: string;
+  };
   siteUrl?: string;
 };
 
@@ -25,15 +27,15 @@ export type UpdateStoreDto = {
 export class StoreRepository {
   constructor(
     @Inject(DATABASE_CONNECTION)
-    private readonly db: Sqlite,
+    private readonly db: Postgres,
   ) {}
 
-  private intoRecord(storeModel: Store, imageModel: Image): StoreRecord {
+  private intoRecord(storeModel: Store): StoreRecord {
     return {
       id: storeModel.id,
       name: storeModel.name,
       description: storeModel.description,
-      image: imageModel,
+      image: storeModel.image,
       userId: storeModel.userId,
       siteUrl: storeModel.siteUrl,
       createdAt: storeModel.createdAt,
@@ -53,41 +55,32 @@ export class StoreRepository {
       );
     }
 
-    const storeImage = await this.db.query.image.findFirst({
-      where: (table, funcs) => funcs.eq(table.id, store[0].imageId),
-    });
-
-    if (!storeImage) {
-      throw new HttpException("Store have no image", HttpStatus.NOT_FOUND);
-    }
-
-    return this.intoRecord(store[0], storeImage);
+    return this.intoRecord(store[0]);
   }
 
-  public async findByIdWithImage(storeId: string): Promise<StoreRecord> {
-    const result = await this.db.query.storeSchema.findFirst({
+  public async findById(storeId: string): Promise<StoreRecord> {
+    const store = await this.db.query.storeSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.id, storeId),
-      with: {
-        image: true,
+      columns: {
+        updatedAt: false,
       },
     });
 
-    if (!result) {
+    if (!store) {
       throw new NotFoundException();
     }
 
-    const { image, ...store } = result;
-    return this.intoRecord(store, image);
+    return store;
   }
 
-  public async findImageId(storeId: string): Promise<{
+  public async findImage(storeId: string): Promise<{
     userId: string;
     imageId: string;
   }> {
     const result = await this.db.query.storeSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.id, storeId),
       columns: {
-        imageId: true,
+        image: true,
         userId: true,
       },
     });
@@ -96,7 +89,10 @@ export class StoreRepository {
       throw new NotFoundException();
     }
 
-    return result;
+    return {
+      imageId: result.image.id,
+      userId: result.userId,
+    };
   }
 
   public async update(

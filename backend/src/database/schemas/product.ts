@@ -1,40 +1,47 @@
-import { relations, sql } from "drizzle-orm";
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { v4 as uuid } from "uuid";
+import { relations } from "drizzle-orm";
 import { storeSchema } from "./store";
-import { Image } from "./types";
+import {
+  index,
+  jsonb,
+  pgTable,
+  real,
+  timestamp,
+  uuid,
+  varchar,
+} from "drizzle-orm/pg-core";
+import { Image, ProductDetails } from "./types";
 
-export type ProductDetail = {
-  title: string;
-  description: string;
-};
+export const productSchema = pgTable(
+  "products",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    storeId: uuid("store_id")
+      .notNull()
+      .references(() => storeSchema.id),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: varchar("description", { length: 255 }).notNull(),
+    details: jsonb().array().notNull().$type<ProductDetails[]>(),
+    price: real("price").notNull(),
+    images: jsonb().notNull().array().$type<Image[]>(),
+    category: jsonb().array().notNull().$type<string>(),
+    callbackUrl: varchar("callback_url", { length: 300 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    idxCategory: index("idx_products_category").using("gin", table.category),
+    idxDetails: index("idx_products_details").using("gin", table.details),
+    idxStoreId: index("idx_products_store_id").on(table.storeId),
+    idxNameAndDescription: index("idx_products_name_and_description").on(
+      table.name,
+      table.description,
+    ),
+  }),
+);
 
-export const product = sqliteTable("products", {
-  id: text("id")
-    .primaryKey()
-    .$default(() => uuid()),
-  store_id: text("store_id")
-    .notNull()
-    .references(() => storeSchema.id),
-  name: text("name", { length: 255 }).notNull(),
-  description: text("description", { length: 255 }).notNull(),
-  specifications: text("specifications", { mode: "json" })
-    .$type<ProductDetail[]>()
-    .notNull(),
-  price: integer("price").notNull(),
-  images: text("images", { mode: "json" }).notNull().$type<Image[]>(),
-  category: text("category").notNull(),
-  callbackUrl: text("callback_url", { length: 300 }).notNull(),
-  createdAt: text("created_at").default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text("updated_at")
-    .default(sql`(CURRENT_TIMESTAMP)`)
-    .$onUpdate(() => sql`(CURRENT_TIMESTAMP)`),
-  // quantity: integer("quantity").notNull(),
-});
-
-export const productRelations = relations(product, ({ one }) => ({
+export const productRelations = relations(productSchema, ({ one }) => ({
   storeSchema: one(storeSchema, {
-    fields: [product.store_id],
+    fields: [productSchema.storeId],
     references: [storeSchema.id],
   }),
 }));
