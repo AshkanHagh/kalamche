@@ -3,7 +3,7 @@ import { ImageProvider, ImageResource } from "./image.provider";
 import * as AWS from "aws-sdk";
 import { v4 as uuid } from "uuid";
 import { CatchError } from "src/common/utils/error";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 
 @Injectable()
 export class MinioProvider implements ImageProvider {
@@ -35,6 +35,25 @@ export class MinioProvider implements ImageProvider {
         url: result.Location,
         id: result.Key,
       };
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
+
+  // NOTE: if image exists that means user used api to update there store/product
+  async checkImageExists(id: string): Promise<void> {
+    try {
+      const result = await this.s3
+        .headObject({
+          Bucket: this.bucketName,
+          Key: id,
+        })
+        .promise()
+        .catch(() => false);
+
+      if (result) {
+        throw new BadRequestException();
+      }
     } catch (error: unknown) {
       throw CatchError(error);
     }

@@ -1,25 +1,27 @@
 import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
   HttpException,
   HttpStatus,
-  Injectable,
-  NestMiddleware,
   UnauthorizedException,
 } from "@nestjs/common";
-import { NextFunction, Response } from "express";
 import { CatchError } from "src/common/utils/error";
 import { AuthService } from "src/core/auth/auth.service";
 import { TokenService } from "src/core/auth/services/token/jwt";
 import { CustomeRequest } from "../types/req";
 
 @Injectable()
-export class AuthorizationMiddleware implements NestMiddleware {
+export class AuthorizationGuard implements CanActivate {
   constructor(
     private readonly tokenService: TokenService,
     private readonly userService: AuthService,
   ) {}
 
-  async use(req: CustomeRequest, res: Response, next: NextFunction) {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     try {
+      const req = context.switchToHttp().getRequest<CustomeRequest>();
+
       const accessToken = req.headers.authorization;
       if (!accessToken) {
         throw new UnauthorizedException();
@@ -35,7 +37,8 @@ export class AuthorizationMiddleware implements NestMiddleware {
       const user = await this.userService.findUserById(userId);
 
       req.userId = user.id;
-      next();
+
+      return true;
     } catch (error: unknown) {
       throw CatchError(error);
     }

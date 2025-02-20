@@ -48,6 +48,9 @@ function clientError(status: number): string {
     case 401: {
       return "Unauthorized";
     }
+    case 403: {
+      return "Forbidden";
+    }
     case 400: {
       return "Bad request";
     }

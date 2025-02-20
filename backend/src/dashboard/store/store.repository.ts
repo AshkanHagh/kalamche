@@ -5,15 +5,21 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { InferInsertModel } from "drizzle-orm";
+import { eq, InferInsertModel } from "drizzle-orm";
 import { storeSchema } from "src/database/schemas";
 import { Sqlite } from "src/database/types";
 import { Store, StoreRecord } from "./types/store";
 import { DATABASE_CONNECTION } from "src/database";
 import { Image } from "../image/types/image";
-import { CatchError } from "src/common/utils/error";
 
 export type InsertStoreDto = InferInsertModel<typeof storeSchema>;
+
+export type UpdateStoreDto = {
+  name?: string;
+  description?: string;
+  imageId?: string;
+  siteUrl?: string;
+};
 
 @Injectable()
 export class StoreRepository {
@@ -58,23 +64,62 @@ export class StoreRepository {
     return this.intoRecord(store[0], storeImage);
   }
 
-  public async findById(storeId: string): Promise<StoreRecord> {
-    try {
-      const result = await this.db.query.storeSchema.findFirst({
-        where: (table, funcs) => funcs.eq(table.id, storeId),
-        with: {
-          image: true,
-        },
-      });
+  public async findByIdWithImage(storeId: string): Promise<StoreRecord> {
+    const result = await this.db.query.storeSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, storeId),
+      with: {
+        image: true,
+      },
+    });
 
-      if (!result) {
-        throw new NotFoundException();
-      }
-
-      const { image, ...store } = result;
-      return this.intoRecord(store, image);
-    } catch (error: unknown) {
-      throw CatchError(error);
+    if (!result) {
+      throw new NotFoundException();
     }
+
+    const { image, ...store } = result;
+    return this.intoRecord(store, image);
+  }
+
+  public async findImageId(storeId: string): Promise<{
+    userId: string;
+    imageId: string;
+  }> {
+    const result = await this.db.query.storeSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, storeId),
+      columns: {
+        imageId: true,
+        userId: true,
+      },
+    });
+
+    if (!result) {
+      throw new NotFoundException();
+    }
+
+    return result;
+  }
+
+  public async update(
+    storeId: string,
+    storeDto: UpdateStoreDto,
+  ): Promise<Store> {
+    const store = await this.db
+      .update(storeSchema)
+      .set(storeDto)
+      .where(eq(storeSchema.id, storeId))
+      .returning();
+
+    if (store.length === 0) {
+      throw new HttpException(
+        "Faild to update store",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return store[0];
+  }
+
+  public async delete(storeId: string): Promise<void> {
+    await this.db.delete(storeSchema).where(eq(storeSchema.id, storeId));
   }
 }
