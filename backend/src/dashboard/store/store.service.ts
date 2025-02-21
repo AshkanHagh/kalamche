@@ -59,6 +59,7 @@ export class StoreService {
       const result = await this.repository.findImage(storeId);
       this.checkStoreUserId(userId, result.userId);
 
+      // updateDto.image always contains new image url and id
       if (updateDto.image) {
         await this.imageProvider.checkImageExists(result.imageId);
       }
@@ -77,6 +78,8 @@ export class StoreService {
     }
   }
 
+  // FIXME: store id in products is ON DELETE cascade all products will delete as well as store
+  // and their images remain in s3
   public async deleteStore(userId: string, storeId: string): Promise<void> {
     try {
       const result = await this.repository.findImage(storeId);

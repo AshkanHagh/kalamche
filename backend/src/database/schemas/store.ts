@@ -8,7 +8,7 @@ export const storeSchema = pgTable("stores", {
   id: uuid("id").primaryKey().defaultRandom(),
   userId: uuid("user_id")
     .notNull()
-    .references(() => userSchema.id),
+    .references(() => userSchema.id, { onDelete: "cascade" }),
   name: varchar("name", { length: 255 }).notNull().unique(),
   description: varchar("description", { length: 500 }).notNull(),
   image: jsonb().notNull().$type<Image>(),

@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   Req,
@@ -16,6 +18,7 @@ import { ZodValidationPipe } from "src/common/utils/zod-validation.pipe";
 import { CreateProductDto, createProductDto } from "./dto/create-product";
 import { ProductService } from "./product.service";
 import { CustomeRequest } from "../types/req";
+import { UpdateProductDto, updateProductDto } from "./dto/update-product";
 
 @Controller("product")
 export class ProductController {
@@ -46,6 +49,48 @@ export class ProductController {
       product,
       similerProductStores,
     };
+  }
+
+  @Patch("/:storeId/:productId")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthorizationGuard)
+  public async updateProduct(
+    @Req() req: CustomeRequest,
+    @Param() params: { storeId: string; productId: string },
+    @Body(new ZodValidationPipe(updateProductDto)) payload: UpdateProductDto,
+  ) {
+    if (payload.images) {
+      await this.service.checkOldImagesHasDeleted(
+        params.productId,
+        payload.images,
+      );
+    }
+
+    const store = await this.service.updateProduct(
+      params.productId,
+      params.storeId,
+      req.userId!,
+      payload,
+    );
+
+    return {
+      success: true,
+      store,
+    };
+  }
+
+  @Delete("/:storeId/:productId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthorizationGuard)
+  public async deleteProduct(
+    @Req() req: CustomeRequest,
+    @Param() params: { storeId: string; productId: string },
+  ) {
+    await this.service.deleteProduct(
+      req.userId!,
+      params.productId,
+      params.storeId,
+    );
   }
 
   @Get("/search/filters")

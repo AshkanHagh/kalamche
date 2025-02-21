@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -17,7 +18,6 @@ import { StoreService } from "./store.service";
 import { CustomeRequest } from "../types/req";
 import { UpdateStoreDto, updateStoreDto } from "./dto/update-store";
 import { AuthorizationGuard } from "../guards/authorization";
-import { HttpStatusCode } from "axios";
 
 @Controller("store")
 export class StoreController {
@@ -25,7 +25,7 @@ export class StoreController {
 
   @Post("/")
   @UseGuards(AuthorizationGuard)
-  @HttpCode(HttpStatusCode.Created)
+  @HttpCode(HttpStatus.CREATED)
   public async createStore(
     @Req() req: CustomeRequest,
     @Body(new ZodValidationPipe(createStoreDto)) body: CreateStoreDto,
@@ -38,7 +38,7 @@ export class StoreController {
   }
 
   @Get("/:storeId")
-  @HttpCode(HttpStatusCode.Ok)
+  @HttpCode(HttpStatus.OK)
   public async getStore(
     @Param("storeId", new ParseUUIDPipe()) storeId: string,
   ) {
@@ -51,7 +51,7 @@ export class StoreController {
 
   @Patch("/:storeId")
   @UseGuards(AuthorizationGuard)
-  @HttpCode(HttpStatusCode.Ok)
+  @HttpCode(HttpStatus.OK)
   public async updateStore(
     @Req() req: CustomeRequest,
     @Param("storeId", new ParseUUIDPipe()) storeId: string,
@@ -71,7 +71,7 @@ export class StoreController {
 
   @Delete("/:storeId")
   @UseGuards(AuthorizationGuard)
-  @HttpCode(HttpStatusCode.NoContent)
+  @HttpCode(HttpStatus.NO_CONTENT)
   public async deleteStore(
     @Req() req: CustomeRequest,
     @Param("storeId", new ParseUUIDPipe()) storeId: string,

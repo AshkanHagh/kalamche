@@ -5,14 +5,16 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { InferInsertModel } from "drizzle-orm";
+import { eq, InferInsertModel } from "drizzle-orm";
 import { DATABASE_CONNECTION } from "src/database";
 import { productSchema } from "src/database/schemas";
 import { Postgres } from "src/database/types";
 import { Product, ProductRecord } from "./types/product";
 import { SimilarProductStores } from "./types/repository";
+import { Image } from "src/database/schemas/types";
 
 export type InsertProductDto = InferInsertModel<typeof productSchema>;
+export type UpdateProductDto = Partial<InsertProductDto>;
 
 @Injectable()
 export class ProductRepository {
@@ -103,5 +105,34 @@ export class ProductRepository {
           id: product.id,
         },
       }));
+  }
+
+  public async update(productId: string, payload: UpdateProductDto) {
+    const product = await this.db
+      .update(productSchema)
+      .set(payload)
+      .where(eq(productSchema.id, productId))
+      .returning();
+
+    return this.intoRecord(product[0]);
+  }
+
+  public async findProductImages(productId: string): Promise<Image[]> {
+    const images = await this.db.query.productSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, productId),
+      columns: {
+        images: true,
+      },
+    });
+
+    if (!images || !images.images) {
+      throw new NotFoundException();
+    }
+
+    return images.images;
+  }
+
+  public async deleteProduct(productId: string) {
+    await this.db.delete(productSchema).where(eq(productSchema.id, productId));
   }
 }

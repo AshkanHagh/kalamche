@@ -1,5 +1,10 @@
 import {
   Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseUUIDPipe,
   Post,
   Query,
   UploadedFile,
@@ -23,5 +28,11 @@ export class ImageController {
     @Query("type") uploadType: UploadType,
   ) {
     return await this.service.uploadImage(uploadType, file.buffer);
+  }
+
+  @Delete("/:imageId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteImage(@Param("imageId", new ParseUUIDPipe()) imageId: string) {
+    await this.service.deleteImage(imageId);
   }
 }

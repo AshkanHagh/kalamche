@@ -60,4 +60,12 @@ export class ImageService {
       throw CatchError(error);
     }
   }
+
+  public async deleteImage(id: string): Promise<void> {
+    try {
+      await this.imageProvider.delete(id);
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
 }

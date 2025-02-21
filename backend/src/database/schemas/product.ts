@@ -17,7 +17,7 @@ export const productSchema = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     storeId: uuid("store_id")
       .notNull()
-      .references(() => storeSchema.id),
+      .references(() => storeSchema.id, { onDelete: "cascade" }),
     name: varchar("name", { length: 255 }).notNull(),
     originalName: varchar("original_name", { length: 255 }).notNull(),
     description: varchar("description", { length: 255 }).notNull(),
