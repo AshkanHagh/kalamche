@@ -118,4 +118,20 @@ export class StoreRepository {
   public async delete(storeId: string): Promise<void> {
     await this.db.delete(storeSchema).where(eq(storeSchema.id, storeId));
   }
+
+  public async findByUserId(storeId: string, userId: string): Promise<boolean> {
+    const storeExists = await this.db.query.storeSchema.findFirst({
+      where: (table, funcs) =>
+        funcs.and(funcs.eq(table.id, storeId), funcs.eq(table.userId, userId)),
+      columns: {
+        id: true,
+      },
+    });
+
+    if (!storeExists) {
+      return false;
+    }
+
+    return true;
+  }
 }

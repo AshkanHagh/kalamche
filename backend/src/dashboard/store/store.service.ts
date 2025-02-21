@@ -89,4 +89,11 @@ export class StoreService {
       throw CatchError(error);
     }
   }
+
+  public async isUserStoreOwner(
+    storeId: string,
+    userId: string,
+  ): Promise<boolean> {
+    return await this.repository.findByUserId(storeId, userId);
+  }
 }

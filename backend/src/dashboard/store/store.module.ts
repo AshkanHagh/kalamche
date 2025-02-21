@@ -11,5 +11,6 @@ import { AuthModule } from "src/core/auth/auth.module";
   imports: [ConfigModule, DatabaseModule, AuthModule],
   controllers: [StoreController],
   providers: [StoreService, MinioProvider, StoreRepository],
+  exports: [StoreService],
 })
 export class StoreModule {}
