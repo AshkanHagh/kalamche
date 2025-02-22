@@ -19,10 +19,24 @@ import { CreateProductDto, createProductDto } from "./dto/create-product";
 import { ProductService } from "./product.service";
 import { CustomeRequest } from "../types/req";
 import { UpdateProductDto, updateProductDto } from "./dto/update-product";
+import { productSearchDto, ProductSearchDto } from "./dto/search-product";
 
 @Controller("product")
 export class ProductController {
   constructor(private readonly service: ProductService) {}
+
+  @Get("/search")
+  public async searchProducts(
+    @Query(new ZodValidationPipe(productSearchDto)) query: ProductSearchDto,
+  ) {
+    const products = await this.service.searchProducts(
+      query.limit,
+      query.offset,
+      query.name,
+    );
+
+    return { products };
+  }
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
@@ -32,10 +46,7 @@ export class ProductController {
     @Body(new ZodValidationPipe(createProductDto)) payload: CreateProductDto,
   ) {
     const store = await this.service.createProduct(req.userId!, payload);
-    return {
-      success: true,
-      store,
-    };
+    return { store };
   }
 
   @Get("/:productId")
@@ -44,11 +55,8 @@ export class ProductController {
   ) {
     const { product, similerProductStores } =
       await this.service.getProduct(productId);
-    return {
-      success: true,
-      product,
-      similerProductStores,
-    };
+
+    return { product, similerProductStores };
   }
 
   @Patch("/:storeId/:productId")
@@ -73,10 +81,7 @@ export class ProductController {
       payload,
     );
 
-    return {
-      success: true,
-      store,
-    };
+    return { store };
   }
 
   @Delete("/:storeId/:productId")
@@ -91,14 +96,5 @@ export class ProductController {
       params.productId,
       params.storeId,
     );
-  }
-
-  @Get("/search/filters")
-  public getProductFilters(@Query("q") query: string) {
-    const filters = this.service.getSearchFilters(query);
-    return {
-      success: true,
-      filters,
-    };
   }
 }

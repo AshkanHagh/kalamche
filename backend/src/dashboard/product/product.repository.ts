@@ -135,4 +135,26 @@ export class ProductRepository {
   public async deleteProduct(productId: string) {
     await this.db.delete(productSchema).where(eq(productSchema.id, productId));
   }
+
+  // TODO: add thumbnile image for product
+  public async findPaginated(limit: number, offset: number, name: string) {
+    const products = await this.db.query.productSchema.findMany({
+      where: (table, funcs) =>
+        funcs.or(
+          funcs.ilike(table.name, `%${name}%`),
+          funcs.ilike(table.originalName, `%${name}%`),
+        ),
+      limit: limit + offset,
+      offset,
+      columns: {
+        price: true,
+        images: true,
+        name: true,
+        originalName: true,
+        id: true,
+      },
+    });
+
+    return products;
+  }
 }

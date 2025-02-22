@@ -44,7 +44,6 @@ export class AuthController {
     res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookie);
 
     res.status(201).json({
-      success: true,
       user,
       accessToken,
     });
@@ -83,7 +82,6 @@ export class AuthController {
     res.cookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookie);
 
     res.status(201).json({
-      success: true,
       accessToken,
     });
   }

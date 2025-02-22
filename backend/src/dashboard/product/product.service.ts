@@ -15,18 +15,6 @@ import { Image } from "src/database/schemas/types";
 
 @Injectable()
 export class ProductService {
-  private readonly productKeywords = {
-    laptop: ["laptop", "لپتاپ", "لپ تاپ", "loptop", "macbook", "notebook"],
-    mobile: ["mobile", "گوشی", "smartphone", "تلفن", "موبایل", "cellphone"],
-    pc: ["pc", "کامپیوتر", "desktop", "پی سی", "رایانه"],
-  };
-
-  private readonly filtersByProductType = {
-    laptop: ["brand", "cpu", "ram", "gpu", "screenSize"],
-    mobile: ["brand", "ram", "storage", "camera"],
-    pc: ["brand", "cpu", "ram", "gpu"],
-  };
-
   constructor(
     private readonly repository: ProductRepository,
     private readonly storeService: StoreService,
@@ -75,33 +63,6 @@ export class ProductService {
     } catch (error: unknown) {
       throw CatchError(error);
     }
-  }
-
-  private productSearchType(query: string): string | null {
-    const lowerCaseQuery = query.toLowerCase();
-
-    for (const [productType, keywords] of Object.entries(
-      this.productKeywords,
-    )) {
-      for (const keyword of keywords) {
-        if (lowerCaseQuery.includes(keyword)) {
-          return productType;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  public getSearchFilters(query: string): string[] {
-    const productType = this.productSearchType(query);
-
-    if (productType && this.filtersByProductType[productType]) {
-      // eslint-disable-next-line
-      return this.filtersByProductType[productType];
-    }
-
-    return [];
   }
 
   public async checkOldImagesHasDeleted(productId: string, newImages: Image[]) {
@@ -161,6 +122,14 @@ export class ProductService {
       );
 
       await this.repository.deleteProduct(productId);
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
+
+  public async searchProducts(limit: number, offset: number, name: string) {
+    try {
+      return await this.repository.findPaginated(limit, offset, name);
     } catch (error: unknown) {
       throw CatchError(error);
     }

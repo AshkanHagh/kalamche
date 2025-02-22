@@ -31,10 +31,7 @@ export class StoreController {
     @Body(new ZodValidationPipe(createStoreDto)) body: CreateStoreDto,
   ) {
     const store = await this.service.insertStore(req.userId!, body);
-    return {
-      success: true,
-      store,
-    };
+    return { store };
   }
 
   @Get("/:storeId")
@@ -43,10 +40,7 @@ export class StoreController {
     @Param("storeId", new ParseUUIDPipe()) storeId: string,
   ) {
     const store = await this.service.findById(storeId);
-    return {
-      success: true,
-      store,
-    };
+    return { store };
   }
 
   @Patch("/:storeId")
@@ -63,10 +57,7 @@ export class StoreController {
       storeDto,
     );
 
-    return {
-      success: true,
-      store,
-    };
+    return { store };
   }
 
   @Delete("/:storeId")
