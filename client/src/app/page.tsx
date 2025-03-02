@@ -1,9 +1,3 @@
-import Link from "next/link"
-
-export default function Home() {
-  return (
-    <div>
-      <Link href="#">Hello!</Link>
-    </div>
-  )
+export default function LandingPage() {
+  return <div className="flex min-h-screen flex-col">Hello</div>
 }
