@@ -6,6 +6,7 @@ import {
 import HeroSection from "./_components/HeroSection"
 import ProductCarousel from "./_components/ProductCarousel"
 import SearchBar from "./_components/SearchBar"
+import ComparePricesSection from "./_components/ComparePricesSection"
 
 export default function HomePage() {
   return (
@@ -29,6 +30,8 @@ export default function HomePage() {
           description="Latest tech at competitive prices"
           products={computersAndAccessories}
         />
+
+        <ComparePricesSection />
       </main>
     </div>
   )
