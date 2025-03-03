@@ -1,4 +1,4 @@
-import { Navbar, NavLink } from "@/components/ui/Navbar"
+import { Navbar, NavLink } from "@/components/layout/Navbar"
 import { navLinks } from "@/data/navLinks"
 
 type MainLayoutProps = {
