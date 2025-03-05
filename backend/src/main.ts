@@ -1,10 +1,19 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import * as cookieParser from "cookie-parser";
+import { migration } from "./drizzle/migration";
+import { ValidationPipe } from "@nestjs/common";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
-  await app.listen(process.env.PORT ?? 7175);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      forbidUnknownValues: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
+  await app.listen(process.env.PORT ?? 6399);
 }
+
+migration();
 bootstrap();

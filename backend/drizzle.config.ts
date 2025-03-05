@@ -1,13 +1,14 @@
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  schema: "./src/database/schemas",
-  out: "./src/database/migrations",
+  out: "./src/drizzle/migrations",
+  schema: "./src/drizzle/schema/index.ts",
   dialect: "postgresql",
-  casing: "snake_case",
   dbCredentials: {
     url: process.env.DATABASE_URL!,
   },
-  strict: true,
   verbose: true,
+  breakpoints: true,
+  casing: "snake_case",
+  strict: true,
 });
