@@ -1,14 +1,8 @@
-type LogoProps = {
-  height?: string
-  width?: string
-}
-
-const Logo = ({ height = "50px", width = "50px" }: LogoProps) => {
+const Logo = ({ className }: { className: string }) => {
   return (
     <svg
       fill="#109f00"
-      height={height}
-      width={width}
+      className={className}
       version="1.1"
       id="Capa_1"
       xmlns="http://www.w3.org/2000/svg"

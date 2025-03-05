@@ -1,5 +1,6 @@
 import { Navbar, NavLink } from "@/components/layout/Navbar"
 import { navLinks } from "@/data/navLinks"
+import Footer from "./Footer"
 
 type MainLayoutProps = {
   children: React.ReactNode
@@ -15,7 +16,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           </NavLink>
         ))}
       </Navbar>
+
       {children}
+
+      <Footer />
     </div>
   )
 }

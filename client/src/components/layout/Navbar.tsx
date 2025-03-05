@@ -18,7 +18,7 @@ export const Navbar = ({ children }: NavbarProps) => {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
-            <Logo height="35px" width="35px" />
+            <Logo className="size-9" />
             <span className="hidden font-bold sm:inline-block">Kalamche</span>
           </Link>
           <nav className="hidden gap-6 md:flex">{children}</nav>
