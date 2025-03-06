@@ -38,6 +38,7 @@ export type Specification = {
 }
 
 export type OtherSeller = {
+  id: string
   name: string
   logo: string
   rating: number

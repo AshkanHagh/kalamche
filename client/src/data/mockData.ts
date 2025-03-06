@@ -177,7 +177,7 @@ export const product = {
   priceHistory: [
     { date: "2023-01-01", price: 180 },
     { date: "2023-02-15", price: 190 },
-    { date: "2023-03-10", price: 185 },
+    { date: "2023-03-10", price: 56 },
     { date: "2023-04-05", price: 195 },
     { date: "2023-05-20", price: 199 },
     { date: "2023-06-01", price: 199.99 }
@@ -195,44 +195,50 @@ export const product = {
 
   otherSellers: [
     {
+      id: "1",
       name: "ElectroHub",
-      logo: "/placeholder.svg?height=48&width=48",
+      logo: "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj",
       rating: 4.5,
       price: 204.99,
       description: "Free shipping on orders over $200"
     },
     {
+      id: "2",
       name: "SoundMasters",
-      logo: "/placeholder.svg?height=48&width=48",
+      logo: "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj",
       rating: 4.7,
       price: 199.99,
       description:
         "Includes 3-month subscription to premium music streaming service"
     },
     {
+      id: "3",
       name: "TechDeals",
-      logo: "/placeholder.svg?height=48&width=48",
+      logo: "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj",
       rating: 4.3,
       price: 194.99,
       description: "Extended 3-year warranty available"
     },
     {
+      id: "4",
       name: "AudioPhiles",
-      logo: "/placeholder.svg?height=48&width=48",
+      logo: "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj",
       rating: 4.6,
       price: 209.99,
       description: "Includes premium carry case"
     },
     {
+      id: "5",
       name: "GadgetWorld",
-      logo: "/placeholder.svg?height=48&width=48",
+      logo: "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj",
       rating: 4.4,
       price: 197.99,
       description: "30-day money-back guarantee"
     },
     {
+      id: "6",
       name: "MusicMart",
-      logo: "/placeholder.svg?height=48&width=48",
+      logo: "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj",
       rating: 4.2,
       price: 189.99,
       description: "Refurbished - Excellent condition"
@@ -242,7 +248,8 @@ export const product = {
     {
       name: "Wireless Earbuds",
       price: 89.99,
-      image: "/placeholder.svg?height=200&width=200"
+      image:
+        "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj"
     },
     {
       name: "Bluetooth Speaker",

@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "cdn.dummyjson.com"
+      },
+      {
+        protocol: "https",
+        hostname: "yt3.googleusercontent.com"
       }
     ]
   }
