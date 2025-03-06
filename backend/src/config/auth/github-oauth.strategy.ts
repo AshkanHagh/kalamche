@@ -1,27 +1,18 @@
-import { ConfigService } from "@nestjs/config";
 import { AuthorizationCode } from "simple-oauth2";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { BadRequestException, HttpException, Injectable } from "@nestjs/common";
-import { CatchError } from "src/shared/catch-error";
-import {
-  OAuthProvider,
-  OAuthUser,
-} from "src/core/interfaces/oauth-provider.interface";
+import { OAuthProvider, OAuthUser } from "./oauth.strategy";
+import { CatchError } from "src/common/error/catch-error";
 
 @Injectable()
 export class GithubOAuthProvider implements OAuthProvider {
   private readonly client: AuthorizationCode;
 
-  constructor(private readonly config: ConfigService) {
-    const CLIENT_ID: string = this.config.getOrThrow("GITHUB_CLIENT_ID");
-    const CLIENT_SECRET: string = this.config.getOrThrow(
-      "GITHUB_CLIENT_SECRET",
-    );
-
+  constructor(clientId: string, clientSecret: string) {
     this.client = new AuthorizationCode({
       client: {
-        id: CLIENT_ID,
-        secret: CLIENT_SECRET,
+        id: clientId,
+        secret: clientSecret,
       },
       auth: {
         tokenHost: "https://github.com",

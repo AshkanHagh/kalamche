@@ -1,18 +1,15 @@
 import { Module } from "@nestjs/common";
 import { DATABASE_CONNECTION } from ".";
-import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schema";
 
 @Module({
-  imports: [ConfigModule],
   providers: [
     {
       provide: DATABASE_CONNECTION,
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        const url: string = config.getOrThrow("DATABASE_URL");
+      useFactory: () => {
+        const url: string = process.env.DATABASE_URL!;
         const pool = new Pool({
           connectionString: url,
           max: 100,

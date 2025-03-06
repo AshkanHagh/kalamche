@@ -15,6 +15,7 @@ export type JsonCompatible<T> = {
 
 export interface CacheStrategy {
   get<T extends JsonCompatible<T>>(key: string): Promise<T | undefined>;
+
   set<T extends JsonCompatible<T>>(
     key: string,
     value: T,
