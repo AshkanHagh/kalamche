@@ -1,6 +1,7 @@
 import { HttpException } from "@nestjs/common";
 
 export function CatchError(error: unknown) {
+  console.log(error);
   if (error instanceof HttpException) {
     return error;
   } else if (error instanceof Error) {

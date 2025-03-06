@@ -23,6 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       errorMessage = exception.message;
     }
 
+    // TODO: add complete log
     console.log(
       `ERROR: error in req ${req.url} Client ${req.ip} err: ${JSON.stringify(errorMessage)}`,
     );
@@ -39,6 +40,9 @@ function clientError(statusCode: number): string {
   switch (statusCode) {
     case 400: {
       return "BAD REQUEST";
+    }
+    case 404: {
+      return "NOT FOUND";
     }
     case 500: {
       return "INTERNAL SERVER ERROR";

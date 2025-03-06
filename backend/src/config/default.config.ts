@@ -2,6 +2,7 @@ import { RedisCacheStrategy } from "src/cache/redis-cache.strategy";
 import { RuntimeAppConfig } from "./app.config";
 import { GithubOAuthProvider } from "./auth/github-oauth.strategy";
 import { Argon2PasswordStrategy } from "./auth/argon2-password.strategy";
+import { JwtTokenStrategy } from "./auth/jwt-token.strategy";
 
 export const defaultConfig: RuntimeAppConfig = {
   authOptions: {
@@ -14,13 +15,9 @@ export const defaultConfig: RuntimeAppConfig = {
       process.env.GITHUB_CLIENT_ID!,
       process.env.GITHUB_CLIENT_SECRET!,
     ),
-    tokenOptions: {
-      refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET!,
-      accessTokenSecret: process.env.ACCESS_TOKEN_SECRET!,
-      refreshTokenDuration: "2", // in jwt converts to 2 days
-      accessTokenDuration: "15", // in jwt converts to 15m
-    },
     passwordStrategy: new Argon2PasswordStrategy(),
+    tokenCacheDuration: 60 * 60 * 24 * 7,
+    tokenStrategy: new JwtTokenStrategy(),
   },
 
   systemOpitons: {
