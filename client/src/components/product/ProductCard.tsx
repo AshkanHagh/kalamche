@@ -3,14 +3,21 @@ import { Card, CardContent, CardFooter } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
 import type { ProductCardType } from "@/types"
+import { cn } from "@/lib/utils"
 
 type ProductCardProps = {
   product: ProductCardType
+  className?: string
 }
 
-const ProductCard = ({ product }: ProductCardProps) => {
+const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
-    <Card className="min-w-[252px] max-w-[250px] overflow-hidden flex flex-col">
+    <Card
+      className={cn(
+        "min-w-[252px] max-w-[250px] overflow-hidden flex flex-col",
+        className
+      )}
+    >
       <div className="relative aspect-square">
         <Image
           src={product.image}

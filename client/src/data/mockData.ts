@@ -246,25 +246,100 @@ export const product = {
   ],
   relatedProducts: [
     {
-      name: "Wireless Earbuds",
-      price: 89.99,
-      image:
-        "https://yt3.googleusercontent.com/ytc/AIdro_n3imu9phINHcHMX98dOj0gDrk8zpUUkiNoS8-tEL8dGQ=s160-c-k-c0x00ffffff-no-rj"
+      id: 3,
+      name: "Portable Bluetooth Speaker Waterproof",
+      price: 59.99,
+      seller: "SoundWave",
+      image: "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg"
     },
     {
-      name: "Bluetooth Speaker",
+      id: 4,
+      name: "Ultra HD 4K Smart TV 55-inch",
+      price: 499.99,
+      originalPrice: 649.99,
+      discount: 20,
+      seller: "VisionPlus",
+      image: "https://fakestoreapi.com/img/71YXzeOuslL._AC_UY879_.jpg"
+    },
+    {
+      id: 5,
+      name: "Robot Vacuum Cleaner with Mapping",
+      price: 299.99,
+      seller: "CleanTech",
+      image: "https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg"
+    },
+    {
+      id: 6,
+      name: "Professional Blender with Multiple Attachments",
       price: 129.99,
-      image: "/placeholder.svg?height=200&width=200"
+      originalPrice: 159.99,
+      discount: 10,
+      seller: "KitchenPro",
+      image: "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg"
     },
     {
-      name: "Noise-Cancelling Headphones",
-      price: 249.99,
-      image: "/placeholder.svg?height=200&width=200"
+      id: 1324,
+      name: "Portable Bluetooth Speaker Waterproof",
+      price: 59.99,
+      seller: "SoundWave",
+      image: "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg"
     },
     {
-      name: "Gaming Headset",
-      price: 159.99,
-      image: "/placeholder.svg?height=200&width=200"
+      id: 1532532,
+      name: "Ultra HD 4K Smart TV 55-inch",
+      price: 499.99,
+      originalPrice: 649.99,
+      discount: 20,
+      seller: "VisionPlus",
+      image: "https://fakestoreapi.com/img/71YXzeOuslL._AC_UY879_.jpg"
+    },
+    {
+      id: 123413521325,
+      name: "Robot Vacuum Cleaner with Mapping",
+      price: 299.99,
+      seller: "CleanTech",
+      image: "https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg"
+    },
+    {
+      id: 123512351235,
+      name: "Professional Blender with Multiple Attachments",
+      price: 129.99,
+      originalPrice: 159.99,
+      discount: 10,
+      seller: "KitchenPro",
+      image: "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg"
+    },
+    {
+      id: 123412351235,
+      name: "Portable Bluetooth Speaker Waterproof",
+      price: 59.99,
+      seller: "SoundWave",
+      image: "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg"
+    },
+    {
+      id: 1234123415,
+      name: "Ultra HD 4K Smart TV 55-inch",
+      price: 499.99,
+      originalPrice: 649.99,
+      discount: 20,
+      seller: "VisionPlus",
+      image: "https://fakestoreapi.com/img/71YXzeOuslL._AC_UY879_.jpg"
+    },
+    {
+      id: 123512342134,
+      name: "Robot Vacuum Cleaner with Mapping",
+      price: 299.99,
+      seller: "CleanTech",
+      image: "https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg"
+    },
+    {
+      id: 123512345235,
+      name: "Professional Blender with Multiple Attachments",
+      price: 129.99,
+      originalPrice: 159.99,
+      discount: 10,
+      seller: "KitchenPro",
+      image: "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg"
     }
   ]
 }
