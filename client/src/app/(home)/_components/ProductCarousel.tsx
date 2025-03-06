@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button"
 import ProductCard from "@/components/product/ProductCard"
-import type { Product } from "@/types"
+import type { ProductCardType } from "@/types"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 
 type ProductCarouselProps = {
   title: string
   description: string
-  products: Product[]
+  products: ProductCardType[]
 }
 
 const ProductCarousel = ({

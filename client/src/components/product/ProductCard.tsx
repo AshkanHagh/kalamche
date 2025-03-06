@@ -2,10 +2,10 @@ import Image from "next/image"
 import { Card, CardContent, CardFooter } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
-import type { Product } from "@/types"
+import type { ProductCardType } from "@/types"
 
 type ProductCardProps = {
-  product: Product
+  product: ProductCardType
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {

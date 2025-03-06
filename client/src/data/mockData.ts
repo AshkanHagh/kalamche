@@ -154,3 +154,110 @@ export const computersAndAccessories = [
     image: "https://fakestoreapi.com/img/71z3kpMAYsL._AC_UY879_.jpg"
   }
 ]
+
+export const product = {
+  id: 1,
+  name: "Premium Wireless Headphones",
+  price: 199.99,
+  description:
+    "Experience crystal-clear audio with our premium wireless headphones. Featuring advanced noise-cancellation technology and long-lasting battery life.",
+  likes: 1280,
+  views: 2340,
+  images: [
+    "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
+    "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
+    "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
+    "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
+    "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg"
+  ],
+  seller: {
+    name: "AudioTech",
+    rating: 4.8
+  },
+  priceHistory: [
+    { date: "2023-01-01", price: 180 },
+    { date: "2023-02-15", price: 190 },
+    { date: "2023-03-10", price: 185 },
+    { date: "2023-04-05", price: 195 },
+    { date: "2023-05-20", price: 199 },
+    { date: "2023-06-01", price: 199.99 }
+  ],
+  specifications: [
+    { label: "Brand", value: "AudioTech" },
+    { label: "Model", value: "AT-2000" },
+    { label: "Color", value: "Midnight Black" },
+    { label: "Connectivity", value: "Bluetooth 5.0" },
+    { label: "Battery Life", value: "Up to 30 hours" },
+    { label: "Noise Cancellation", value: "Active" },
+    { label: "Weight", value: "250g" },
+    { label: "Warranty", value: "2 years" }
+  ],
+
+  otherSellers: [
+    {
+      name: "ElectroHub",
+      logo: "/placeholder.svg?height=48&width=48",
+      rating: 4.5,
+      price: 204.99,
+      description: "Free shipping on orders over $200"
+    },
+    {
+      name: "SoundMasters",
+      logo: "/placeholder.svg?height=48&width=48",
+      rating: 4.7,
+      price: 199.99,
+      description:
+        "Includes 3-month subscription to premium music streaming service"
+    },
+    {
+      name: "TechDeals",
+      logo: "/placeholder.svg?height=48&width=48",
+      rating: 4.3,
+      price: 194.99,
+      description: "Extended 3-year warranty available"
+    },
+    {
+      name: "AudioPhiles",
+      logo: "/placeholder.svg?height=48&width=48",
+      rating: 4.6,
+      price: 209.99,
+      description: "Includes premium carry case"
+    },
+    {
+      name: "GadgetWorld",
+      logo: "/placeholder.svg?height=48&width=48",
+      rating: 4.4,
+      price: 197.99,
+      description: "30-day money-back guarantee"
+    },
+    {
+      name: "MusicMart",
+      logo: "/placeholder.svg?height=48&width=48",
+      rating: 4.2,
+      price: 189.99,
+      description: "Refurbished - Excellent condition"
+    }
+  ],
+  relatedProducts: [
+    {
+      name: "Wireless Earbuds",
+      price: 89.99,
+      image: "/placeholder.svg?height=200&width=200"
+    },
+    {
+      name: "Bluetooth Speaker",
+      price: 129.99,
+      image: "/placeholder.svg?height=200&width=200"
+    },
+    {
+      name: "Noise-Cancelling Headphones",
+      price: 249.99,
+      image: "/placeholder.svg?height=200&width=200"
+    },
+    {
+      name: "Gaming Headset",
+      price: 159.99,
+      image: "/placeholder.svg?height=200&width=200"
+    }
+  ]
+}
