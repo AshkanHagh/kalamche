@@ -165,7 +165,7 @@ export const product = {
   views: 2340,
   images: [
     "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
-    "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
+    "https://fakestoreapi.com/img/51UDEzMJVpL._AC_UL640_QL65_ML3_.jpg",
     "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
     "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg",
     "https://fakestoreapi.com/img/61mtL65D4cL._AC_SX679_.jpg"
@@ -175,12 +175,12 @@ export const product = {
     rating: 4.8
   },
   priceHistory: [
-    { date: "2023-01-01", price: 180 },
-    { date: "2023-02-15", price: 190 },
-    { date: "2023-03-10", price: 56 },
-    { date: "2023-04-05", price: 195 },
-    { date: "2023-05-20", price: 199 },
-    { date: "2023-06-01", price: 199.99 }
+    { month: "January", price: 186 },
+    { month: "February", price: 305 },
+    { month: "March", price: 237 },
+    { month: "April", price: 73 },
+    { month: "May", price: 209 },
+    { month: "June", price: 214 }
   ],
   specifications: [
     { label: "Brand", value: "AudioTech" },

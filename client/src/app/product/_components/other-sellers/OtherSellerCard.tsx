@@ -30,13 +30,13 @@ const OtherSellerCard = ({ seller }: OtherSellerCardProps) => {
           <p className="mt-4 text-2xl font-bold text-primary">
             ${seller.price.toFixed(2)}
           </p>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="sm:mt-2 text-sm text-muted-foreground">
             {seller.description}
           </p>
         </div>
       </CardContent>
       <CardFooter>
-        <Button variant="outline" className="w-full mt-4">
+        <Button variant="outline" className="w-full sm:mt-4">
           Go to
           <span className="border-b border-black/30">{seller.name}</span>
         </Button>

@@ -28,7 +28,7 @@ export type Seller = {
 }
 
 export type PriceHistory = {
-  date: string
+  month: string
   price: number
 }
 

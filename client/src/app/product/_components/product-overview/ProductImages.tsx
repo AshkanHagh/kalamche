@@ -29,8 +29,8 @@ const ProductImages = ({ images, name }: ProductImagesProps) => {
           </CarouselItem>
         ))}
       </CarouselContent>
-      <CarouselPrevious />
-      <CarouselNext />
+      <CarouselPrevious className="-left-3 size-14 sm:size-9 lg:-left-12" />
+      <CarouselNext className="-right-3 size-14 sm:size-9 lg:-right-12" />
     </Carousel>
   )
 }
