@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-config = { path = "../config" }
+utils = { path = "../utils" }
 migration = { path = "../migration" }
 sea-orm = { workspace = true }
 tokio = { workspace = true }

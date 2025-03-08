@@ -1,21 +1,22 @@
 use database::connection::Database;
 use reqwest::Client;
 use std::sync::Arc;
-
-use crate::containter::AdaptersContainer;
+use utils::utils::{cache::RedisCache, oauth::GithubOAuth};
 
 pub struct KalamcheContext {
   pub pool: Database,
   pub client: Arc<Client>,
-  pub adapters: Arc<AdaptersContainer>,
+  pub cache: Arc<RedisCache>,
+  pub oauth: Arc<GithubOAuth>,
 }
 
 impl KalamcheContext {
-  pub fn new(pool: Database, client: Client, adapters: AdaptersContainer) -> Self {
+  pub fn new(pool: Database, client: Client, cache: RedisCache, oauth: GithubOAuth) -> Self {
     Self {
       client: Arc::new(client.clone()),
+      cache: Arc::new(cache),
+      oauth: Arc::new(oauth),
       pool,
-      adapters: Arc::new(adapters),
     }
   }
 

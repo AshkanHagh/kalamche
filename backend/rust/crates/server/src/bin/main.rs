@@ -1,5 +1,5 @@
-use config::error::KalamcheResult;
 use server::strat_server;
+use utils::error::KalamcheResult;
 
 #[actix_web::main]
 async fn main() -> KalamcheResult<()> {

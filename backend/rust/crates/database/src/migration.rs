@@ -1,5 +1,5 @@
-use config::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
 use migration::{Migrator, MigratorTrait};
+use utils::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
 
 use crate::connection::Database;
 

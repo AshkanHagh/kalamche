@@ -1,6 +1,6 @@
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-pub struct CreateAuthUrlResponse {
+pub struct GetAuthUrlResponse {
   pub url: String,
 }

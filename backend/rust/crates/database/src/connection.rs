@@ -1,15 +1,15 @@
-use config::{error::KalamcheResult, setting::structs::Settings};
 use sea_orm::{ConnectOptions, Database as SeaOrmDatabase, DatabaseConnection};
 use std::{ops::Deref, sync::Arc, time::Duration};
+use utils::{error::KalamcheResult, setting::structs::DatabaseConfig};
 
 pub struct Database(pub Arc<DatabaseConnection>);
 
 impl Database {
-  pub async fn new(settings: &Settings) -> KalamcheResult<Self> {
-    let mut ops = ConnectOptions::new(settings.database.connection.clone());
+  pub async fn new(config: &DatabaseConfig) -> KalamcheResult<Self> {
+    let mut ops = ConnectOptions::new(config.connection.clone());
 
     ops
-      .max_connections(settings.database.pool_size as u32)
+      .max_connections(config.pool_size as u32)
       .max_lifetime(Duration::from_secs(10))
       .connect_timeout(Duration::from_secs(10))
       .acquire_timeout(Duration::from_secs(10))

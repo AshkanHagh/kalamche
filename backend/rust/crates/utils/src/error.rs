@@ -6,7 +6,8 @@ use strum::{Display, EnumIter};
 #[serde(tag = "error", content = "message", rename_all = "snake_case")]
 pub enum KalamcheErrorType {
   NotFound,
-  OAuthProviderNotInit,
+  OAuthNotConfigured,
+  RedisNotConfigured,
   FaildToMigrate,
   Unknown(String),
 }

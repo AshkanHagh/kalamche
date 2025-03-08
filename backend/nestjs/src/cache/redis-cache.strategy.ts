@@ -34,7 +34,7 @@ export class RedisCacheStrategy implements CacheStrategy {
         return;
       }
 
-      await this.client.set(key, stringifyValue, "EX", ttl);
+      await this.client.set(this.namespace(key), stringifyValue, "EX", ttl);
     } catch (error: unknown) {
       if (error instanceof Error) {
         console.log(`ERROR: could not set cache item ${key}: ${error.message}`);
@@ -48,5 +48,9 @@ export class RedisCacheStrategy implements CacheStrategy {
 
   delete(key: string): Promise<void> {
     throw new Error();
+  }
+
+  private namespace(key: string) {
+    return `kalamche:${key}`;
   }
 }

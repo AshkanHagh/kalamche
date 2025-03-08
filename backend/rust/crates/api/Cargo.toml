@@ -4,9 +4,8 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-config = { path = "../config" }
+utils = { path = "../utils" }
 database = { path = "../database" }
-adapters = { path = "../adapters" }
 tokio = { workspace = true }
 chrono = { workspace = true }
 serde_json = { workspace = true }
