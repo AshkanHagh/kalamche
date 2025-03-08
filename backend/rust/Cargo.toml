@@ -1,6 +1,41 @@
-[package]
-name = "kalamche"
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
 
-[dependencies]
+[workspace]
+members = [
+  "crates/adapters",
+  "crates/api",
+  "crates/config",
+  "crates/database",
+  "crates/server",
+  "crates/migration", "crates/entity",
+]
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "1.43.0", features = ["full"] }
+actix-web = "4.9.0"
+sea-orm = { version = "1.1.7", features = [
+  "sqlx-postgres",
+  "runtime-tokio-rustls",
+  "with-chrono",
+  "with-json",
+  "with-uuid",
+  "macros",
+] }
+chrono = "0.4.39"
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.135"
+uuid = { version = "1.12.0", features = ["v4", "serde"] }
+anyhow = "1.0.95"
+jsonwebtoken = "9.3.0"
+dotenvy = "0.15.7"
+env_logger = "0.11.6"
+log = "0.4.25"
+reqwest = { version = "0.12.12", features = ["multipart", "json"] }
+oauth2 = "4.4.2"
+argon2 = "0.5.3"
+lazy-regex = "3.4.1"
+strum = { version = "0.27", features = ["derive"] }
+async-trait = "0.1"

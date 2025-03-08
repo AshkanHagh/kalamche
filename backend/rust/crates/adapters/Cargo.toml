@@ -1,0 +1,19 @@
+[package]
+name = "adapters"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+config = { path = "../config" }
+tokio = { workspace = true }
+chrono = { workspace = true }
+serde_json = { workspace = true }
+jsonwebtoken = { workspace = true }
+log = { workspace = true }
+reqwest = { workspace = true }
+oauth2 = { workspace = true }
+argon2 = { workspace = true }
+lazy-regex = { workspace = true }
+async-trait = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
