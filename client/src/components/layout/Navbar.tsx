@@ -1,12 +1,20 @@
 "use client"
 
-import { User } from "lucide-react"
+import { Menu, User } from "lucide-react"
 import Logo from "../svgs/logo"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "../ui/dropdown-menu"
+import { Children } from "react"
 
 type NavbarProps = {
   children: React.ReactNode
@@ -17,12 +25,17 @@ export const Navbar = ({ children }: NavbarProps) => {
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="items-center space-x-2 hidden sm:flex">
             <Logo className="size-9" />
             <span className="hidden font-bold sm:inline-block">Kalamche</span>
           </Link>
+
+          <div className="md:hidden">
+            <HamburgerMenu>{children}</HamburgerMenu>
+          </div>
           <nav className="hidden gap-6 md:flex">{children}</nav>
         </div>
+
         <div className="flex items-center gap-4">
           {false ? (
             <Avatar className="h-8 w-8">
@@ -59,5 +72,32 @@ export const NavLink = ({ children, href }: NavLinkProps) => {
     >
       {children}
     </Link>
+  )
+}
+
+type HamburgerMenuProps = {
+  children: React.ReactNode
+}
+
+const HamburgerMenu = ({ children }: HamburgerMenuProps) => {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" className="p-3 focus-visible:ring-0">
+          <Menu />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="bg-background/90">
+        <DropdownMenuGroup>
+          {Children.map(children, (child, index) => {
+            return (
+              <DropdownMenuItem className="pl-4" key={index}>
+                {child}
+              </DropdownMenuItem>
+            )
+          })}
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
