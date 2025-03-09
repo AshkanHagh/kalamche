@@ -247,7 +247,7 @@ export const product = {
   relatedProducts: [
     {
       id: 3,
-      name: "Portable Bluetooth Speaker Waterproof",
+      name: "Portable Bluetooth",
       price: 59.99,
       seller: "SoundWave",
       image: "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg"

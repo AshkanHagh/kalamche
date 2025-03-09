@@ -5,7 +5,7 @@ import { Search } from "lucide-react"
 
 const SearchBar = () => {
   return (
-    <section className="container py-8 md:py-12">
+    <section className="py-8 md:py-12">
       <div className="relative mx-auto max-w-3xl">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />

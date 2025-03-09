@@ -3,7 +3,7 @@ import Image from "next/image"
 
 const HeroSection = () => {
   return (
-    <section className="container py-6 md:py-8">
+    <section className="py-6 md:py-8">
       <div className="relative overflow-hidden rounded-lg">
         <div className="absolute inset-0">
           <Image
@@ -22,17 +22,17 @@ const HeroSection = () => {
             <p className="mx-auto max-w-[600px] text-white md:text-xl">
               Discover the best prices from multiple retailers in one place.
             </p>
-            <div className="space-x-4">
+            <div className="flex flex-col justify-center items-center gap-2 xs:flex-row">
               <Button
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90"
+                className="bg-white text-primary w-full max-w-[80%] xs:max-w-max xs:w-auto hover:bg-background/90"
               >
                 Shop Now
               </Button>
               <Button
                 size="lg"
                 variant="outline"
-                className="bg-white transition-opacity hover:opacity-90"
+                className="bg-background transition-opacity w-full max-w-[80%] xs:max-w-max xs:w-auto hover:opacity-90"
               >
                 Learn More
               </Button>

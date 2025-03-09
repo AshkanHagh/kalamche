@@ -79,6 +79,12 @@ module.exports = {
           "var(--font-geist-mono)",
           "var(--font-geist-sans)"
         ]
+      },
+      screens: {
+        xs: "480px"
+      },
+      height: {
+        "product-carousel": "450px"
       }
     }
   },

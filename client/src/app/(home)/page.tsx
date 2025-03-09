@@ -10,7 +10,7 @@ import ComparePricesSection from "./_components/ComparePricesSection"
 
 export default function HomePage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex container min-h-screen flex-col">
       <main>
         <SearchBar />
         <HeroSection />

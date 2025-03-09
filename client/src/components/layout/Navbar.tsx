@@ -83,7 +83,7 @@ const HamburgerMenu = ({ children }: HamburgerMenuProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="p-3 focus-visible:ring-0">
+        <Button variant="outline" className="p-3 py-0 focus-visible:ring-0">
           <Menu />
         </Button>
       </DropdownMenuTrigger>

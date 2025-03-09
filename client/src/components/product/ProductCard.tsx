@@ -14,7 +14,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Card
       className={cn(
-        "min-w-[252px] max-w-[250px] overflow-hidden flex flex-col",
+        "min-w-[252px] max-w-[250px] overflow-hidden flex h-full flex-col",
         className
       )}
     >
