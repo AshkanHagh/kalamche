@@ -18,7 +18,6 @@ impl MigrationTrait for Migration {
           .col(
             ColumnDef::new(User::LastLogin)
               .timestamp()
-              .not_null()
               .default(Expr::current_timestamp()),
           )
           .col(

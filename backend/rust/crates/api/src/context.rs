@@ -14,8 +14,8 @@ impl KalamcheContext {
   pub fn new(pool: Database, client: Client, cache: RedisCache, oauth: GithubOAuth) -> Self {
     Self {
       client: Arc::new(client.clone()),
-      cache: Arc::new(cache),
       oauth: Arc::new(oauth),
+      cache: Arc::new(cache),
       pool,
     }
   }

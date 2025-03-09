@@ -1,4 +1,4 @@
-use sea_orm_migration::{prelude::*, schema::*};
+use sea_orm_migration::prelude::*;
 
 use crate::{m20250307_203232_user::User, m20250307_204900_permission::Permission};
 

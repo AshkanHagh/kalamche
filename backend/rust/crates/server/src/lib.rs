@@ -1,10 +1,4 @@
-use std::env;
-
-use actix_web::{
-  middleware,
-  web::{scope, Data},
-  App, HttpServer,
-};
+use actix_web::{middleware, web::Data, App, HttpServer};
 use api::context::KalamcheContext;
 use database::{connection::Database, migration::run_migration};
 use reqwest::Client;

@@ -1,15 +1,23 @@
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::fmt::{self, Debug};
 use strum::{Display, EnumIter};
 
 #[derive(Display, EnumIter, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
-#[serde(tag = "error", content = "message", rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum KalamcheErrorType {
   NotFound,
+  InternalServerError,
+  EmailMissing,
+  InvalidCredentials,
+  InvalidFieldInRequestBody,
+  InvalidOAuthAuthorization,
+  OAuthLoginFailure,
+  OAuthRegistrationUnavailable,
+  OAuthNoVerifiedPrimaryEmail,
   OAuthNotConfigured,
   RedisNotConfigured,
   FaildToMigrate,
-  Unknown(String),
 }
 
 pub type KalamcheResult<T> = std::result::Result<T, KalamcheError>;
@@ -27,7 +35,7 @@ where
     let cause = t.into();
     let error_type = match cause.downcast_ref::<sea_orm::DbErr>() {
       Some(&sea_orm::DbErr::RecordNotFound(_)) => KalamcheErrorType::NotFound,
-      _ => KalamcheErrorType::Unknown(format!("{}", &cause)),
+      _ => KalamcheErrorType::InternalServerError,
     };
 
     KalamcheError {
@@ -58,12 +66,19 @@ impl actix_web::error::ResponseError for KalamcheError {
   fn status_code(&self) -> actix_web::http::StatusCode {
     match self.error_type {
       KalamcheErrorType::NotFound => actix_web::http::StatusCode::NOT_FOUND,
-      _ => actix_web::http::StatusCode::BAD_REQUEST,
+      KalamcheErrorType::InvalidFieldInRequestBody => actix_web::http::StatusCode::BAD_REQUEST,
+      KalamcheErrorType::InvalidOAuthAuthorization => actix_web::http::StatusCode::BAD_REQUEST,
+      _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
     }
   }
 
   fn error_response(&self) -> actix_web::HttpResponse {
-    actix_web::HttpResponse::build(self.status_code()).json(&self.error_type)
+    log::debug!("ERROR: {:?}", self);
+    actix_web::HttpResponse::build(self.status_code()).json(json!({
+      "success": false,
+      "statusCode": self.status_code().to_string(),
+      "message": &self.error_type
+    }))
   }
 }
 

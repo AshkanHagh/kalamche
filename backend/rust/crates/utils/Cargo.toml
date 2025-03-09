@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 actix-web = { workspace = true }
+tokio = { workspace = true }
 dotenvy = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }
@@ -14,6 +15,7 @@ strum = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 serde_json = { workspace = true }
+jsonwebtoken = { workspace = true }
 log = { workspace = true }
 reqwest = { workspace = true }
 oauth2 = { workspace = true }

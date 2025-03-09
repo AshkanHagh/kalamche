@@ -13,7 +13,7 @@ pub struct Model {
   pub email: String,
   pub avatar_url: String,
   pub refresh_token_hash: Option<String>,
-  pub last_login: DateTime,
+  pub last_login: Option<DateTime>,
   pub created_at: DateTime,
   pub updated_at: DateTime,
 }

@@ -6,9 +6,11 @@ edition.workspace = true
 [dependencies]
 utils = { path = "../utils" }
 migration = { path = "../migration" }
+entity = { path = "../entity" }
 sea-orm = { workspace = true }
 tokio = { workspace = true }
 chrono = { workspace = true }
 log = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true }
+anyhow = { workspace = true }
