@@ -1,5 +1,12 @@
-import { Controller, Get, Query, Res } from "@nestjs/common";
-import { Response } from "express";
+import {
+  Controller,
+  Get,
+  Query,
+  Req,
+  Res,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { Request, Response } from "express";
 import { ConfigService } from "src/config/config.service";
 import { AuthService } from "src/service/services/auth.service";
 
@@ -36,6 +43,27 @@ export class AuthController {
         success: true,
         accessToken: result.accessToken,
         user: result.user,
+      });
+  }
+
+  @Get("/token/refresh")
+  public async refreshToken(@Req() req: Request, @Res() res: Response) {
+    const refreshToken = req.cookies["refresh_token"] as string | undefined;
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+    const tokens = await this.authService.refreshToken(refreshToken);
+
+    res
+      .status(200)
+      .cookie(
+        "refresh_token",
+        tokens.refreshToken,
+        this.config.authOptions.cookieOptions,
+      )
+      .json({
+        success: true,
+        accessToken: tokens.accessToken,
       });
   }
 }

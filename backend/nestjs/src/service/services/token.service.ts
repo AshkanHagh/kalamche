@@ -1,7 +1,8 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { createCacheKey } from "src/common/cache-name";
 import { CatchError } from "src/common/error/catch-error";
+import { RefreshTokenClaims } from "src/config/auth/token.strategy";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle";
 import { UserSchema } from "src/drizzle/schema";
@@ -57,12 +58,33 @@ export class TokenService {
 
         await this.config.systemOpitons.cacheSterategy.set(
           rfHashCacheKey,
-          refreshTokenHash,
+          refreshToken,
           this.config.authOptions.tokenCacheDuration,
         ),
       ]);
     } catch (error: unknown) {
       throw CatchError(error);
+    }
+  }
+
+  public decodeRefreshToken(refreshToken: string): RefreshTokenClaims {
+    try {
+      const claims =
+        this.config.authOptions.tokenStrategy.verifyRefreshToken(refreshToken);
+
+      return claims;
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
+
+  public async isRTMatchUserRT(userRt: string, rt: string): Promise<void> {
+    const tokenMatches = await this.config.authOptions.passwordStrategy.check(
+      rt,
+      userRt || "",
+    );
+    if (!tokenMatches) {
+      throw new ForbiddenException();
     }
   }
 }

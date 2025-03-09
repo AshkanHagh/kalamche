@@ -1,4 +1,8 @@
-import { BadRequestException, Inject } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+} from "@nestjs/common";
 import { createCacheKey } from "src/common/cache-name";
 import { CatchError } from "src/common/error/catch-error";
 import { OAuthUser } from "src/config/auth/oauth.strategy";
@@ -79,7 +83,7 @@ export class AuthService {
     }
   }
 
-  public async addUserToCache(user: UserRecord) {
+  private async addUserToCache(user: UserRecord) {
     try {
       const userCacheKey = createCacheKey("user", user.id);
       const oneDay = 60 * 60 * 24;
@@ -92,5 +96,40 @@ export class AuthService {
     } catch (error: unknown) {
       throw CatchError(error);
     }
+  }
+
+  public async refreshToken(refreshToken: string) {
+    try {
+      const rtClaims = this.tokenService.decodeRefreshToken(refreshToken);
+      const user = await this.getUserWithPermissions(rtClaims.sub);
+
+      await this.tokenService.isRTMatchUserRT(
+        user.refreshTokenHash || "",
+        refreshToken,
+      );
+
+      const tokens = await this.tokenService.createAutnetiationTokens(
+        user.id,
+        user.permissions,
+      );
+
+      return tokens;
+    } catch (error: unknown) {
+      throw CatchError(error);
+    }
+  }
+
+  private async getUserWithPermissions(userId: string) {
+    const user = await this.connection.query.UserSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, userId),
+    });
+    if (!user) {
+      throw new ForbiddenException();
+    }
+
+    const userPermissions =
+      await this.permissionService.getUserPermissions(userId);
+
+    return { ...user, permissions: userPermissions };
   }
 }
