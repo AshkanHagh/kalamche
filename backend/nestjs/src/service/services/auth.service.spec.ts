@@ -13,7 +13,6 @@ import { migration } from "src/drizzle/migration";
 import { ConfigService } from "src/config/config.service";
 
 describe("AuthService", () => {
-  jest.setTimeout(5000);
   let app: TestingModule;
   let authService: AuthService;
   let connection: Postgres;
@@ -44,9 +43,9 @@ describe("AuthService", () => {
     await migration();
 
     await Promise.all([
-      await connection.execute(sql`TRUNCATE TABLE users CASCADE`),
-      await connection.execute(sql`TRUNCATE TABLE permissions CASCADE`),
-      await config.systemOpitons.cacheSterategy.clear(),
+      connection.execute(sql`TRUNCATE TABLE users CASCADE`),
+      connection.execute(sql`TRUNCATE TABLE permissions CASCADE`),
+      config.systemOpitons.cacheSterategy.clear(),
     ]);
 
     await seedDefaultPermissions();

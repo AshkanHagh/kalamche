@@ -1,4 +1,4 @@
-import { InferSelectModel, relations } from "drizzle-orm";
+import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 import { index, pgTable } from "drizzle-orm/pg-core";
 import { UserPermissionSchema } from "./user-permission.schema";
 
@@ -30,10 +30,10 @@ export const UserTableRelations = relations(UserSchema, ({ many }) => ({
 }));
 
 export type User = InferSelectModel<typeof UserSchema>;
-
 export type UserRecord = Omit<
   User,
   "refreshTokenHash" | "updatedAt" | "lastLogin"
 > & {
   permissions: string[];
 };
+export type InsertUser = InferInsertModel<typeof UserSchema>;

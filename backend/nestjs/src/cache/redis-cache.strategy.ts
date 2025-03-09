@@ -10,10 +10,16 @@ export class RedisCacheStrategy implements CacheStrategy {
   private readonly client: Redis;
 
   constructor(redisUrl: string) {
-    const redis = new Redis(redisUrl);
+    const redis = new Redis(redisUrl, {
+      autoResubscribe: false,
+      lazyConnect: true,
+      enableOfflineQueue: true,
+    });
+
     redis.on("error", (err) =>
       console.log(`ERROR: could not connect to redis: ${err}`),
     );
+
     this.client = redis;
   }
 
@@ -49,7 +55,7 @@ export class RedisCacheStrategy implements CacheStrategy {
   }
 
   public async clear() {
-    await this.client.del("*");
+    await this.client.flushdb();
   }
 
   private namespace(key: string) {

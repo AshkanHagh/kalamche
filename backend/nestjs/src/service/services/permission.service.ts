@@ -1,4 +1,8 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import {
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from "@nestjs/common";
 import { CatchError } from "src/common/error/catch-error";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle";
@@ -24,7 +28,7 @@ export class PermissionService {
         });
 
       if (defaultPermissions.length === 0) {
-        throw new BadRequestException("default permissions not found");
+        throw new InternalServerErrorException("default permissions not found");
       }
 
       await this.connection.insert(UserPermissionSchema).values(
@@ -49,6 +53,10 @@ export class PermissionService {
             },
           },
         });
+
+      if (!userPermissions || userPermissions.length === 0) {
+        throw new InternalServerErrorException("user has no permissions");
+      }
 
       return userPermissions.map((up) => up.permission.name);
     } catch (error: unknown) {
