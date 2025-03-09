@@ -4,10 +4,11 @@ import { Pool } from "pg";
 
 export const migration = async () => {
   try {
-    console.log("INFO: start migration");
-    await new Promise((resolve) => setTimeout(resolve, 15000));
+    await new Promise((resolve) => setTimeout(resolve, 200));
     const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
+      connectionString:
+        process.env.DATABASE_URL ??
+        "postgresql://test:password@localhost:7302/kalamche_test",
       max: 1,
     });
 

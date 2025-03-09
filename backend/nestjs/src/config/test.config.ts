@@ -1,10 +1,10 @@
 import { RedisCacheStrategy } from "src/cache/redis-cache.strategy";
 import { RuntimeAppConfig } from "./app.config";
-import { GithubOAuthProvider } from "./auth/github-oauth.strategy";
 import { Argon2PasswordStrategy } from "./auth/argon2-password.strategy";
+import { GithubOAuthProvider } from "./auth/github-oauth.strategy";
 import { JwtTokenStrategy } from "./auth/jwt-token.strategy";
 
-export const defaultConfig: RuntimeAppConfig = {
+export const testConfig: RuntimeAppConfig = {
   authOptions: {
     cookieOptions: {
       httpOnly: true,
@@ -12,20 +12,15 @@ export const defaultConfig: RuntimeAppConfig = {
       maxAge: 1000 * 60 * 60 * 24 * 2,
     },
     oauthProvider: new GithubOAuthProvider(
-      process.env.GITHUB_CLIENT_ID || "",
-      process.env.GITHUB_CLIENT_SECRET! || "",
+      "no_config_on_test",
+      "no_config_on_test",
     ),
     passwordStrategy: new Argon2PasswordStrategy(),
     tokenCacheDuration: 60 * 60 * 24 * 7,
-    tokenStrategy: new JwtTokenStrategy(
-      process.env.ACCESS_TOKEN_SECRET!,
-      process.env.REFRESH_TOKEN_SECRET!,
-    ),
+    tokenStrategy: new JwtTokenStrategy("atSecret", "rtSecret"),
   },
 
   systemOpitons: {
-    cacheSterategy: new RedisCacheStrategy(
-      process.env.REDIS_URL || "redis://localhost:7301",
-    ),
+    cacheSterategy: new RedisCacheStrategy("redis://localhost:7301"),
   },
 };

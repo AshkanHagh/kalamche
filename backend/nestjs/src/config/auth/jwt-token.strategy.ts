@@ -11,9 +11,9 @@ export class JwtTokenStrategy implements TokenStrategy {
   private readonly refreshTokenSecret: string;
   private readonly accessTokenSecret: string;
 
-  constructor() {
-    this.refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET!;
-    this.accessTokenSecret = process.env.ACCESS_TOKEN_SECRET!;
+  constructor(accessToken: string, refreshToken: string) {
+    this.refreshTokenSecret = accessToken;
+    this.accessTokenSecret = refreshToken;
   }
 
   signAccessToken(claims: AccessTokenClaims): string {

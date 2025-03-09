@@ -17,7 +17,7 @@ export class RedisCacheStrategy implements CacheStrategy {
     this.client = redis;
   }
 
-  async set<T>(key: string, value: T, expireIn?: number): Promise<void> {
+  public async set<T>(key: string, value: T, expireIn?: number): Promise<void> {
     try {
       const ttl = expireIn || DEFAULT_CACHE_TTL;
       const stringifyValue = JSON.stringify(value);
@@ -26,12 +26,6 @@ export class RedisCacheStrategy implements CacheStrategy {
         console.log(
           `ERROR: could not set cache item ${key} bytes exceeds limits`,
         );
-      }
-      if (Math.round(ttl) <= 0) {
-        console.log(
-          `ERROR: could not set cache item ${key}: ttl must be greater than 0 seconds`,
-        );
-        return;
       }
 
       await this.client.set(this.namespace(key), stringifyValue, "EX", ttl);
@@ -42,12 +36,20 @@ export class RedisCacheStrategy implements CacheStrategy {
     }
   }
 
-  get<T>(key: string): Promise<T | undefined> {
-    throw new Error();
+  public get<T>(key: string): Promise<T | undefined> {
+    throw new Error(key);
   }
 
-  delete(key: string): Promise<void> {
-    throw new Error();
+  public delete(key: string): Promise<void> {
+    throw new Error(key);
+  }
+
+  public async close() {
+    await this.client.quit();
+  }
+
+  public async clear() {
+    await this.client.del("*");
   }
 
   private namespace(key: string) {

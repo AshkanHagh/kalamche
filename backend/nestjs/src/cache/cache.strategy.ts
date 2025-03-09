@@ -4,4 +4,8 @@ export interface CacheStrategy {
   set<T>(key: string, value: T, expireIn: number): Promise<void>;
 
   delete(key: string): Promise<void>;
+
+  close(): Promise<void> | void;
+
+  clear(): Promise<void> | void;
 }

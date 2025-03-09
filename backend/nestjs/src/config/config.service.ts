@@ -6,13 +6,18 @@ import {
   SystemOptions,
 } from "./app.config";
 import { defaultConfig } from "./default.config";
+import { testConfig } from "./test.config";
 
 @Injectable()
 export class ConfigService implements AppConfig {
   private activeConfig: RuntimeAppConfig;
 
   constructor() {
-    this.activeConfig = defaultConfig;
+    if (process.env.KALAMCHE_INIT_WITH_TEST_ENV) {
+      this.activeConfig = defaultConfig;
+    } else {
+      this.activeConfig = testConfig;
+    }
   }
 
   get authOptions(): AuthOptions {
