@@ -1,11 +1,11 @@
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious
-} from "@/components/ui/carousel"
+"use client"
+
 import Image from "next/image"
+import { Navigation, Pagination } from "swiper/modules"
+import { Swiper, SwiperSlide } from "swiper/react"
+import "swiper/css"
+import "swiper/css/pagination"
+import "swiper/css/navigation"
 
 type ProductImagesProps = {
   name: string
@@ -14,11 +14,19 @@ type ProductImagesProps = {
 
 const ProductImages = ({ images, name }: ProductImagesProps) => {
   return (
-    <Carousel className="max-w-md mx-auto mb-7">
-      <CarouselContent>
+    <>
+      <Swiper
+        slidesPerView="auto"
+        pagination={{
+          type: "fraction"
+        }}
+        navigation={true}
+        modules={[Pagination, Navigation]}
+        className="max-w-sm mx-auto w-full md:max-w-md"
+      >
         {images.map((image, index) => (
-          <CarouselItem key={index}>
-            <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
+          <SwiperSlide key={index}>
+            <div className="aspect-square md:min-w-[26rem]">
               <Image
                 src={image}
                 alt={`${name} - Image ${index + 1}`}
@@ -26,12 +34,10 @@ const ProductImages = ({ images, name }: ProductImagesProps) => {
                 className="object-contain"
               />
             </div>
-          </CarouselItem>
+          </SwiperSlide>
         ))}
-      </CarouselContent>
-      <CarouselPrevious className="-left-3 size-14 sm:size-9 lg:-left-12" />
-      <CarouselNext className="-right-3 size-14 sm:size-9 lg:-right-12" />
-    </Carousel>
+      </Swiper>
+    </>
   )
 }
 export default ProductImages
