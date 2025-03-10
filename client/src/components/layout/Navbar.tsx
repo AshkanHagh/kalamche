@@ -43,9 +43,11 @@ export const Navbar = ({ children }: NavbarProps) => {
               <AvatarFallback>U</AvatarFallback>
             </Avatar>
           ) : (
-            <Button variant="outline" size="sm">
-              <User className="mr-2 h-4 w-4" />
-              Login / Register
+            <Button asChild variant="outline" size="sm">
+              <Link href="/auth/login">
+                <User className="mr-2 h-4 w-4" />
+                Login / Register
+              </Link>
             </Button>
           )}
         </div>
