@@ -14,7 +14,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Card
       className={cn(
-        "min-w-[252px] max-w-[250px] overflow-hidden flex h-full flex-col",
+        "max-w-product-card overflow-hidden flex h-full flex-col",
         className
       )}
     >
@@ -37,8 +37,8 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           <h3 className="font-medium leading-tight line-clamp-2">
             {product.name}
           </h3>
-          <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold">
+          <div className="flex flex-col xs:flex-row items-baseline gap-2">
+            <span className="text-base xs:text-lg font-bold">
               ${product.price.toFixed(2)}
             </span>
             {product.originalPrice && (
