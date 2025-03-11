@@ -1,13 +1,10 @@
 use entity::user;
 use sea_orm::{prelude::*, ActiveValue::Set};
-use utils::{
-  error::{KalamcheError, KalamcheResult},
-  utils::oauth::OAuthUser,
-};
+use utils::error::{KalamcheError, KalamcheResult};
 
 use crate::{
   connection::Database,
-  source::user::{User, UserRecord},
+  source::user::{InsertUserForm, User, UserRecord},
 };
 
 impl TryFrom<user::Model> for User {
@@ -19,8 +16,6 @@ impl TryFrom<user::Model> for User {
       name: model.name,
       email: model.email,
       avatar_url: model.avatar_url,
-      refresh_token_hash: model.refresh_token_hash,
-      last_login: model.last_login,
       created_at: model.created_at,
       updated_at: model.updated_at,
     })
@@ -49,12 +44,22 @@ impl User {
     Ok(user)
   }
 
-  pub async fn insert_by_oauth_detail(pool: &Database, payload: OAuthUser) -> KalamcheResult<User> {
+  pub async fn find_by_id(pool: &Database, id: Uuid) -> KalamcheResult<Option<User>> {
+    let user = user::Entity::find()
+      .filter(user::Column::Id.eq(id))
+      .into_model::<User>()
+      .one(&*pool.0)
+      .await?;
+
+    Ok(user)
+  }
+
+  pub async fn insert(pool: &Database, insert_form: InsertUserForm) -> KalamcheResult<User> {
     let model = user::ActiveModel {
       id: Set(Uuid::new_v4()),
-      name: Set(payload.name),
-      email: Set(payload.email),
-      avatar_url: Set(payload.avatar_url),
+      name: Set(insert_form.name),
+      email: Set(insert_form.email),
+      avatar_url: Set(insert_form.avatar_url),
       ..Default::default()
     };
 

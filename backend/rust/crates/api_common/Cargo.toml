@@ -1,14 +1,11 @@
 [package]
-name = "server"
+name = "api_common"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-api = { path = "../api" }
-api_common = { path = "../api_common" }
 utils = { path = "../utils" }
 database = { path = "../database" }
 actix-web = { workspace = true }
 reqwest = { workspace = true }
-env_logger = { workspace = true }
-log = { workspace = true }
+serde = { workspace = true }

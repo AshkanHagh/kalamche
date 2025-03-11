@@ -40,7 +40,19 @@ impl MigrationTrait for Migration {
           )
           .to_owned(),
       )
-      .await
+      .await?;
+
+    manager
+      .create_index(
+        Index::create()
+          .table(UserPermission::Table)
+          .name("idx_user_permission_user_id")
+          .col(UserPermission::UserId)
+          .to_owned(),
+      )
+      .await?;
+
+    Ok(())
   }
 
   async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
@@ -52,7 +64,36 @@ impl MigrationTrait for Migration {
           .restrict()
           .to_owned(),
       )
-      .await
+      .await?;
+
+    manager
+      .drop_index(
+        Index::drop()
+          .table(UserPermission::Table)
+          .name("idx_user_permission_user_id")
+          .to_owned(),
+      )
+      .await?;
+
+    manager
+      .drop_foreign_key(
+        ForeignKey::drop()
+          .name("fk_permissions_users")
+          .table(UserPermission::Table)
+          .to_owned(),
+      )
+      .await?;
+
+    manager
+      .drop_foreign_key(
+        ForeignKey::drop()
+          .name("fk_users_permissions")
+          .table(UserPermission::Table)
+          .to_owned(),
+      )
+      .await?;
+
+    Ok(())
   }
 }
 

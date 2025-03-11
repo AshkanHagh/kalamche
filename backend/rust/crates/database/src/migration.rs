@@ -3,7 +3,7 @@ use std::time::Duration;
 use migration::{Migrator, MigratorTrait};
 use utils::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
 
-use crate::{connection::Database, seed::seed_default_permissions};
+use crate::{connection::Database, seed::seed_default_permissions, source::permission::Permission};
 
 pub async fn run_migration(pool: &Database) -> KalamcheResult<()> {
   Migrator::fresh(&*pool.0)
@@ -12,5 +12,10 @@ pub async fn run_migration(pool: &Database) -> KalamcheResult<()> {
 
   std::thread::sleep(Duration::from_secs(5));
 
-  seed_default_permissions(pool).await
+  // returns error when permissions not exists
+  if Permission::find_default_permission(pool).await.is_err() {
+    seed_default_permissions(pool).await?;
+  };
+
+  Ok(())
 }

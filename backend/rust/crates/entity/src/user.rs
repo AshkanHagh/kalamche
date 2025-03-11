@@ -12,16 +12,30 @@ pub struct Model {
   #[sea_orm(unique)]
   pub email: String,
   pub avatar_url: String,
-  pub refresh_token_hash: Option<String>,
-  pub last_login: Option<DateTime>,
   pub created_at: DateTime,
   pub updated_at: DateTime,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
+  #[sea_orm(has_one = "super::login_token::Entity")]
+  LoginToken,
+  #[sea_orm(has_many = "super::oauth_account::Entity")]
+  OauthAccount,
   #[sea_orm(has_many = "super::user_permission::Entity")]
   UserPermission,
+}
+
+impl Related<super::login_token::Entity> for Entity {
+  fn to() -> RelationDef {
+    Relation::LoginToken.def()
+  }
+}
+
+impl Related<super::oauth_account::Entity> for Entity {
+  fn to() -> RelationDef {
+    Relation::OauthAccount.def()
+  }
 }
 
 impl Related<super::user_permission::Entity> for Entity {

@@ -16,6 +16,7 @@ pub enum KalamcheErrorType {
   OAuthRegistrationUnavailable,
   OAuthNoVerifiedPrimaryEmail,
   OAuthNotConfigured,
+  OAuthLoginFailed,
   RedisNotConfigured,
   FaildToMigrate,
 }

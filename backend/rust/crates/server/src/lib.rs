@@ -1,12 +1,12 @@
 use actix_web::{middleware, web::Data, App, HttpServer};
-use api::context::KalamcheContext;
+use api_common::{context::KalamcheContext, oauth_provider::OAuthManager};
 use database::{connection::Database, migration::run_migration};
 use reqwest::Client;
 use routes_v1::routes_v1;
 use utils::{
-  error::KalamcheResult,
+  error::{KalamcheErrorType, KalamcheResult},
   setting::SETTINGS,
-  utils::{cache::RedisCache, oauth::GithubOAuth},
+  utils::cache::RedisCache,
 };
 
 pub mod routes_v1;
@@ -19,8 +19,14 @@ pub async fn strat_server() -> KalamcheResult<()> {
   run_migration(&pool).await?;
 
   let client = Client::new();
-  let cache = RedisCache::new(&SETTINGS.get_cache()).await?;
-  let oauth = GithubOAuth::new(&SETTINGS.get_oauth(), client.clone())?;
+  let cache = RedisCache::new(SETTINGS.get_cache()).await?;
+  let oauth = OAuthManager::new(
+    SETTINGS
+      .get_oauth()
+      .as_ref()
+      .ok_or(KalamcheErrorType::OAuthNotConfigured)?,
+    client.clone(),
+  )?;
   let context = Data::new(KalamcheContext::new(pool, client, cache, oauth));
 
   let bind = (SETTINGS.bind, SETTINGS.port);

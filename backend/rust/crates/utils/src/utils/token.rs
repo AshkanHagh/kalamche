@@ -37,7 +37,7 @@ pub fn sign_access_token(
     aud: TOKEN_AUD.to_owned(),
     iss: TOKEN_ISS.to_owned(),
     t_type: "access".to_string(),
-    exp: config.at_expiry as usize,
+    exp: config.at_expiry,
   };
 
   let access_token = encode(
@@ -55,7 +55,7 @@ pub fn sign_refresh_token(config: &JwtConfig, sub: Uuid) -> KalamcheResult<Strin
     aud: TOKEN_AUD.to_owned(),
     iss: TOKEN_ISS.to_owned(),
     t_type: "refresh".to_string(),
-    exp: config.rt_expiry as usize,
+    exp: config.rt_expiry,
   };
 
   let refresh_token = encode(

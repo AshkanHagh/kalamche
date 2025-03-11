@@ -10,8 +10,6 @@ pub struct User {
   pub name: String,
   pub email: String,
   pub avatar_url: String,
-  pub refresh_token_hash: Option<String>,
-  pub last_login: Option<NaiveDateTime>,
   pub created_at: NaiveDateTime,
   pub updated_at: NaiveDateTime,
 }
@@ -25,4 +23,11 @@ pub struct UserRecord {
   pub avatar_url: String,
   pub permissions: Vec<String>,
   pub created_at: NaiveDateTime,
+}
+
+#[derive(Debug)]
+pub struct InsertUserForm {
+  pub name: String,
+  pub email: String,
+  pub avatar_url: String,
 }

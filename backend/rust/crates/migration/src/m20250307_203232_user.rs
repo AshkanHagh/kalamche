@@ -14,12 +14,6 @@ impl MigrationTrait for Migration {
           .col(ColumnDef::new(User::Name).string_len(255).not_null())
           .col(string_len_uniq(User::Email, 255).not_null())
           .col(ColumnDef::new(User::AvatarUrl).string_len(300).not_null())
-          .col(ColumnDef::new(User::RefreshTokenHash).string_len(300))
-          .col(
-            ColumnDef::new(User::LastLogin)
-              .timestamp()
-              .default(Expr::current_timestamp()),
-          )
           .col(
             ColumnDef::new(User::CreatedAt)
               .timestamp()
@@ -78,8 +72,6 @@ pub enum User {
   Name,
   Email,
   AvatarUrl,
-  RefreshTokenHash,
-  LastLogin,
   CreatedAt,
   UpdatedAt,
 }

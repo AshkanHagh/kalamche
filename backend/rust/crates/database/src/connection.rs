@@ -9,12 +9,11 @@ impl Database {
     let mut ops = ConnectOptions::new(config.connection.clone());
 
     ops
-      .max_connections(config.pool_size as u32)
-      .max_lifetime(Duration::from_secs(10))
-      .connect_timeout(Duration::from_secs(10))
-      .acquire_timeout(Duration::from_secs(10))
-      .idle_timeout(Duration::from_secs(10))
-      .max_lifetime(Duration::from_secs(30));
+      .max_connections(config.pool_size)
+      .max_lifetime(Duration::from_secs(config.max_lifetime))
+      .connect_timeout(Duration::from_secs(config.connect_timeout))
+      .acquire_timeout(Duration::from_secs(config.acquire_timeout))
+      .idle_timeout(Duration::from_secs(config.idle_timeout));
 
     let connection = Arc::new(SeaOrmDatabase::connect(ops).await?);
     Ok(Self(connection))

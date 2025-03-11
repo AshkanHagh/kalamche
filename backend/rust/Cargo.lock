@@ -336,6 +336,7 @@ name = "api"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "api_common",
  "chrono",
  "database",
  "jsonwebtoken",
@@ -347,6 +348,17 @@ dependencies = [
  "tokio",
  "utils",
  "uuid",
+]
+
+[[package]]
+name = "api_common"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "database",
+ "reqwest 0.12.12",
+ "serde",
+ "utils",
 ]
 
 [[package]]
@@ -3296,6 +3308,7 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "api",
+ "api_common",
  "database",
  "env_logger",
  "log",

@@ -1,65 +1,89 @@
 use actix_web::{
-  cookie::{self, Cookie, SameSite},
-  get,
-  web::{Data, Json, Query},
+  cookie, get,
+  web::{Data, Query},
   HttpResponse,
 };
-use database::source::{permission::Permission, user::User, user_permissin::UserPermission};
+use api_common::{
+  context::KalamcheContext, oauth_provider::AuthenticateWithOAuth, utils::build_cookie,
+};
+use database::source::{
+  login_token::{LoginToken, LoginTokenForm},
+  oauth_account::{OAuthAccount, OAuthAccountForm},
+  permission::Permission,
+  user::{InsertUserForm, User},
+  user_permissin::UserPermission,
+};
 use serde_json::json;
 use utils::{
-  error::KalamcheResult,
+  error::{KalamcheErrorType, KalamcheResult},
   setting::SETTINGS,
   utils::token::{sign_access_token, sign_refresh_token},
 };
 
-use crate::{
-  common::oauth::{AuthenticateWithOAuth, GetAuthUrlResponse},
-  context::KalamcheContext,
-};
-
 const RT_COOKIE_NAME: &str = "refresh_token";
-const RT_COOKIE_MAX_AGE: cookie::time::Duration = cookie::time::Duration::days(7);
+const RT_COOKIE_MAX_AGE: cookie::time::Duration = cookie::time::Duration::days(2);
 
-#[get("/oauth")]
-pub async fn create_auth_url(
-  context: Data<KalamcheContext>,
-) -> KalamcheResult<Json<GetAuthUrlResponse>> {
-  let url = context.oauth.create_auth_url();
-
-  Ok(Json(GetAuthUrlResponse { url }))
-}
-
-#[get("/oauth/callback1")]
+#[get("/oauth/callback")]
 pub async fn authenticate_with_oauth(
   context: Data<KalamcheContext>,
   Query(query): Query<AuthenticateWithOAuth>,
 ) -> KalamcheResult<HttpResponse> {
-  log::info!("req reached");
-  let oauth_user = context.oauth.authenticate(query.code).await?;
-  log::info!("oauth passed");
+  let oauth_user = context
+    .oauth()
+    .authenticate(&query.provider, query.code)
+    .await?;
 
-  let mut existing_user = User::find_user_by_email(context.pool(), &oauth_user.email).await?;
-
-  if existing_user.is_none() {
-    let user = User::insert_by_oauth_detail(context.pool(), oauth_user).await?;
-    let default_permissions = Permission::find_default_permission(context.pool()).await?;
-
-    UserPermission::insert_with_default_permission(context.pool(), user.id, default_permissions)
+  let user = match OAuthAccount::find_by_oauth_id(context.pool(), &oauth_user.id).await? {
+    Some(account) => User::find_by_id(context.pool(), account.user_id)
+      .await?
+      .ok_or(KalamcheErrorType::InvalidOAuthAuthorization)?,
+    None => {
+      let user = User::insert(
+        context.pool(),
+        InsertUserForm {
+          name: oauth_user.name,
+          email: oauth_user.email,
+          avatar_url: oauth_user.avatar_url,
+        },
+      )
       .await?;
 
-    existing_user = Some(user);
-  }
+      let default_permissions = Permission::find_default_permission(context.pool()).await?;
+      UserPermission::insert_with_default_permission(context.pool(), user.id, default_permissions)
+        .await?;
 
-  let user = existing_user.unwrap();
+      OAuthAccount::insert(
+        context.pool(),
+        OAuthAccountForm {
+          user_id: user.id,
+          oauth_user_id: oauth_user.id,
+        },
+      )
+      .await?;
+
+      user
+    }
+  };
+
   let user_permissions = UserPermission::find_user_permissions(context.pool(), user.id).await?;
 
   let (user_id, permission) = (user.id, user_permissions.clone());
-  let tokens = tokio::task::spawn_blocking(move || -> KalamcheResult<(String, String)> {
-    let access_token = sign_access_token(SETTINGS.get_jwt(), user_id, permission)?;
-    let refresh_token = sign_refresh_token(SETTINGS.get_jwt(), user_id)?;
-    Ok((access_token, refresh_token))
-  })
-  .await??;
+  let (access_token, refresh_token) =
+    tokio::task::spawn_blocking(move || -> KalamcheResult<(String, String)> {
+      let access_token = sign_access_token(SETTINGS.get_jwt(), user_id, permission)?;
+      let refresh_token = sign_refresh_token(SETTINGS.get_jwt(), user_id)?;
+      Ok((access_token, refresh_token))
+    })
+    .await??;
+
+  LoginToken::insert(
+    context.pool(),
+    LoginTokenForm {
+      user_id: user.id,
+      token_hash: refresh_token.to_owned(), //TODO: hash refresh token
+    },
+  )
+  .await?;
 
   let user_record = User::into_record(user, user_permissions);
   context
@@ -71,25 +95,10 @@ pub async fn authenticate_with_oauth(
     )
     .await?;
 
-  let cookie = config_cookie(&tokens.1, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
+  let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
   Ok(HttpResponse::Created().cookie(cookie).json(json!({
     "success": true,
-    "accessToken": tokens.0,
+    "accessToken": access_token,
     "user": user_record,
   })))
-}
-
-fn config_cookie<'a>(
-  value: &'a str,
-  name: &'a str,
-  duration: cookie::time::Duration,
-) -> Cookie<'a> {
-  let mut cookie = Cookie::new(name, value);
-  cookie.set_path("/");
-  cookie.set_http_only(true);
-  cookie.set_same_site(SameSite::Lax);
-  cookie.set_max_age(duration);
-  cookie.set_secure(false);
-
-  cookie
 }

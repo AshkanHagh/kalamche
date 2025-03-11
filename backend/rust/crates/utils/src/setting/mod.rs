@@ -2,7 +2,7 @@ use std::{
   net::{IpAddr, Ipv4Addr},
   sync::LazyLock,
 };
-use structs::{DatabaseConfig, JwtConfig, OAuthConfig, RedisConfig, Settings};
+use structs::{DatabaseConfig, JwtConfig, OAuthConfig, OAuthProviderConfig, RedisConfig, Settings};
 
 pub mod structs;
 
@@ -21,6 +21,10 @@ impl Settings {
       database: DatabaseConfig {
         connection: Self::get_var("DATABASE_URL"),
         pool_size: Self::get_var("DATABASE_POOL_SIZE").parse().unwrap(),
+        max_lifetime: 30,
+        connect_timeout: 10,
+        acquire_timeout: 10,
+        idle_timeout: 10,
       },
 
       cache: Some(RedisConfig {
@@ -28,17 +32,23 @@ impl Settings {
         pool_size: 0,
       }),
 
-      oauth: Some(OAuthConfig {
-        client_id: Self::get_var("GITHUB_CLIENT_ID"),
-        client_secret: Self::get_var("GITHUB_CLIENT_SECRET"),
-        redirect_url: Self::get_var("GITHUB_REDIRECT_URL"),
+      oauth_providers: Some(OAuthConfig {
+        github: Some(OAuthProviderConfig {
+          client_id: Self::get_var("GITHUB_CLIENT_ID"),
+          client_secret: Self::get_var("GITHUB_CLIENT_SECRET"),
+          redirect_url: Self::get_var("GITHUB_REDIRECT_URL"),
+          auth_url: "https://github.com/login/oauth/authorize".to_string(),
+          token_url: "https://github.com/login/oauth/access_token".to_string(),
+          user_info_url: "https://api.github.com/user".to_string(),
+          other_info_url: Some("https://api.github.com/user/emails".to_string()),
+        }),
       }),
 
       jwt: JwtConfig {
         rt_secret: Self::get_var("REFRESH_TOKEN_SECRET"),
         at_secret: Self::get_var("ACCESS_TOKEN_SECRET"),
-        rt_expiry: Self::get_var("REFRESH_TOKEN_EXPIRY").parse().unwrap(),
-        at_expiry: Self::get_var("ACCESS_TOKEN_EXPIRY").parse().unwrap(),
+        rt_expiry: 1000 * 60 * 15,          // 15m
+        at_expiry: 1000 * 60 * 60 * 24 * 2, // 2d,
       },
 
       bind: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
@@ -57,7 +67,7 @@ impl Settings {
   }
 
   pub fn get_oauth(&self) -> &Option<OAuthConfig> {
-    &self.oauth
+    &self.oauth_providers
   }
 
   pub fn get_jwt(&self) -> &JwtConfig {

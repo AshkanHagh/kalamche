@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 utils = { path = "../utils" }
+api_common = { path = "../api_common" }
 database = { path = "../database" }
 tokio = { workspace = true }
 chrono = { workspace = true }
