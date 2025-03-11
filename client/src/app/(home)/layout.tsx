@@ -2,7 +2,7 @@ import Footer from "@/components/layout/Footer"
 import { Navbar, NavLink } from "@/components/layout/Navbar"
 import { navLinks } from "@/data/navLinks"
 
-const ProductLayout = ({ children }: { children: React.ReactNode }) => {
+const HomeLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
       <Navbar>
@@ -12,9 +12,9 @@ const ProductLayout = ({ children }: { children: React.ReactNode }) => {
           </NavLink>
         ))}
       </Navbar>
-      <div className="container mx-auto py-8">{children}</div>
+      <div className="container">{children}</div>
       <Footer />
     </>
   )
 }
-export default ProductLayout
+export default HomeLayout
