@@ -1,7 +1,7 @@
 use chrono::Utc;
 use entity::user;
-use sea_orm::{prelude::*, ActiveValue::Set};
-use utils::error::{KalamcheError, KalamcheResult};
+use sea_orm::{prelude::*, ActiveValue::Set, QuerySelect};
+use utils::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
 
 use crate::{
   connection::Database,
@@ -17,6 +17,7 @@ impl TryFrom<user::Model> for User {
       name: model.name,
       email: model.email,
       avatar_url: model.avatar_url,
+      password_hash: model.password_hash,
       created_at: model.created_at,
       updated_at: model.updated_at,
     })
@@ -61,6 +62,7 @@ impl User {
       name: Set(insert_form.name),
       email: Set(insert_form.email),
       avatar_url: Set(insert_form.avatar_url),
+      password_hash: Set(insert_form.password_hash),
       created_at: Set(Utc::now().fixed_offset()),
       updated_at: Set(Utc::now().fixed_offset()),
     };
@@ -70,5 +72,20 @@ impl User {
       .await?;
 
     User::try_from(user)
+  }
+
+  pub async fn email_exists(pool: &Database, email: &str) -> KalamcheResult<()> {
+    let exists = user::Entity::find()
+      .filter(user::Column::Email.eq(email))
+      .column(user::Column::Email)
+      .one(&**pool)
+      .await?
+      .is_some();
+
+    if exists {
+      return Err(KalamcheError::from(KalamcheErrorType::EmailAlreadyExists));
+    }
+
+    Ok(())
   }
 }

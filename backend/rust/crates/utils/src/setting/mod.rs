@@ -1,9 +1,10 @@
-use chrono::{Duration, Utc};
 use std::{
   net::{IpAddr, Ipv4Addr},
   sync::LazyLock,
 };
-use structs::{DatabaseConfig, JwtConfig, OAuthConfig, OAuthProviderConfig, RedisConfig, Settings};
+use structs::{
+  DatabaseConfig, EmailConfig, JwtConfig, OAuthConfig, OAuthProviderConfig, RedisConfig, Settings,
+};
 
 pub mod structs;
 
@@ -45,11 +46,22 @@ impl Settings {
         }),
       }),
 
+      email: EmailConfig {
+        email: Self::get_var("SMTP_SEND_EMAIL"),
+        host: Self::get_var("SMTP_HOST"),
+        port: Self::get_var("SMTP_PORT").parse::<u16>().unwrap(),
+        user: Self::get_var("SMTP_USER"),
+        password: Self::get_var("SMTP_PASSWORD"),
+        tls: Self::get_var("SMTP_TLS_ENABLED").parse::<bool>().unwrap(),
+      },
+
       jwt: JwtConfig {
         rt_secret: Self::get_var("REFRESH_TOKEN_SECRET"),
         at_secret: Self::get_var("ACCESS_TOKEN_SECRET"),
-        rt_expiry: (Utc::now() + Duration::days(2)).timestamp() as usize,
-        at_expiry: (Utc::now() + Duration::minutes(15)).timestamp() as usize,
+        rt_expiry: 2,  // 2d
+        at_expiry: 15, // 15m
+        verification_secret: Self::get_var("VERIFICATION_TOKEN_SECRET"),
+        verfication_expiry: 10, // 10m
       },
 
       bind: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
@@ -73,6 +85,10 @@ impl Settings {
 
   pub fn get_jwt(&self) -> &JwtConfig {
     &self.jwt
+  }
+
+  pub fn get_email(&self) -> &EmailConfig {
+    &self.email
   }
 
   fn get_var(key: &str) -> String {

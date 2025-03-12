@@ -1,4 +1,10 @@
 services:
+  mailhog:
+    image: registry.docker.ir/mailhog/mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+
   minio:
     image: quay.io/minio/minio:latest
     ports:

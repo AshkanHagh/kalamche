@@ -1,26 +1,33 @@
 use actix_web::{
-  get,
-  web::{Data, Query},
+  get, post,
+  web::{Data, Json, Query},
   HttpResponse,
 };
 use api_common::{
   context::KalamcheContext,
   oauth_provider::AuthenticateWithOAuth,
+  user::{LoginResponse, Register, RegisterResponse},
   utils::{build_cookie, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
 };
 use database::source::{
   login_token::{LoginToken, LoginTokenForm},
   oauth_account::{OAuthAccount, OAuthAccountForm},
+  pending_user::{PendingUser, PendingUserForm},
   permission::Permission,
   user::{InsertUserForm, User},
   user_permissin::UserPermission,
 };
-use serde_json::json;
 use utils::{
-  error::{KalamcheErrorType, KalamcheResult},
+  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
   setting::SETTINGS,
-  utils::token::{sign_access_token, sign_refresh_token},
+  utils::{
+    email::send_email,
+    hash::hash_passwrod,
+    random::generate_random_string,
+    token::{sign_access_token, sign_refresh_token, sign_verification_token},
+  },
 };
+use uuid::Uuid;
 
 #[get("/oauth/callback")]
 pub async fn authenticate_with_oauth(
@@ -43,6 +50,7 @@ pub async fn authenticate_with_oauth(
           name: oauth_user.name,
           email: oauth_user.email,
           avatar_url: oauth_user.avatar_url,
+          password_hash: None,
         },
       )
       .await?;
@@ -95,9 +103,56 @@ pub async fn authenticate_with_oauth(
     .await?;
 
   let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(HttpResponse::Created().cookie(cookie).json(json!({
-    "success": true,
-    "accessToken": access_token,
-    "user": user_record,
-  })))
+  Ok(HttpResponse::Created().cookie(cookie).json(LoginResponse {
+    success: true,
+    access_token,
+    user: user_record,
+  }))
+}
+
+#[post("/signup")]
+pub async fn register(
+  context: Data<KalamcheContext>,
+  payload: Json<Register>,
+) -> KalamcheResult<Json<RegisterResponse>> {
+  // TODO: validate user email by regex
+  // returns error if exists
+  User::email_exists(context.pool(), &payload.email).await?;
+
+  if PendingUser::find_by_email(context.pool(), &payload.email).await? {
+    return Err(KalamcheError::from(
+      KalamcheErrorType::AccountVerificationIsPending,
+    ));
+  }
+
+  let pending_user_id = Uuid::new_v4();
+  let verification_code = generate_random_string();
+  let verification_token = sign_verification_token(
+    SETTINGS.get_jwt(),
+    pending_user_id,
+    verification_code.clone(),
+  )?;
+
+  let _ = PendingUser::insert(
+    context.pool(),
+    PendingUserForm {
+      id: pending_user_id,
+      email: payload.email.clone(),
+      token: verification_token.clone(),
+      password_hash: hash_passwrod(&payload.password)?,
+    },
+  )
+  .await?;
+
+  send_email(
+    "Verification email",
+    &payload.email,
+    &format!("<h1>{}<h1>", verification_code),
+    SETTINGS.get_email(),
+  )?;
+
+  Ok(Json(RegisterResponse {
+    success: true,
+    verification_token,
+  }))
 }

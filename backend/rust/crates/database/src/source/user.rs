@@ -10,6 +10,7 @@ pub struct User {
   pub name: String,
   pub email: String,
   pub avatar_url: String,
+  pub password_hash: Option<String>,
   pub created_at: DateTime<FixedOffset>,
   pub updated_at: DateTime<FixedOffset>,
 }
@@ -30,4 +31,5 @@ pub struct InsertUserForm {
   pub name: String,
   pub email: String,
   pub avatar_url: String,
+  pub password_hash: Option<String>,
 }

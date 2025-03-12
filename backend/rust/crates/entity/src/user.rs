@@ -9,9 +9,9 @@ pub struct Model {
   #[sea_orm(primary_key, auto_increment = false)]
   pub id: Uuid,
   pub name: String,
-  #[sea_orm(unique)]
   pub email: String,
   pub avatar_url: String,
+  pub password_hash: Option<String>,
   pub created_at: DateTimeWithTimeZone,
   pub updated_at: DateTimeWithTimeZone,
 }

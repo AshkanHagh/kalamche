@@ -12,8 +12,9 @@ impl MigrationTrait for Migration {
           .table(User::Table)
           .col(ColumnDef::new(User::Id).primary_key().uuid())
           .col(ColumnDef::new(User::Name).string_len(255).not_null())
-          .col(string_len_uniq(User::Email, 255).not_null())
+          .col(string_len(User::Email, 255).not_null())
           .col(ColumnDef::new(User::AvatarUrl).string_len(300).not_null())
+          .col(ColumnDef::new(User::PasswordHash).string_len(300))
           .col(
             ColumnDef::new(User::CreatedAt)
               .timestamp_with_time_zone()
@@ -70,6 +71,7 @@ pub enum User {
   Name,
   Email,
   AvatarUrl,
+  PasswordHash,
   CreatedAt,
   UpdatedAt,
 }

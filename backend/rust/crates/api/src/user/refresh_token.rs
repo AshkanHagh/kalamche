@@ -1,6 +1,7 @@
 use actix_web::{get, web::Data, HttpRequest, HttpResponse};
 use api_common::{
   context::KalamcheContext,
+  user::RefreshTokenResponse,
   utils::{build_cookie, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
 };
 use database::source::{
@@ -8,7 +9,6 @@ use database::source::{
   user::User,
   user_permissin::UserPermission,
 };
-use serde_json::json;
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
   setting::SETTINGS,
@@ -57,8 +57,12 @@ pub async fn refresh_token(
   .await?;
 
   let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(HttpResponse::Created().cookie(cookie).json(json!({
-    "success": true,
-    "accessToken": access_token,
-  })))
+  Ok(
+    HttpResponse::Created()
+      .cookie(cookie)
+      .json(RefreshTokenResponse {
+        success: true,
+        access_token,
+      }),
+  )
 }

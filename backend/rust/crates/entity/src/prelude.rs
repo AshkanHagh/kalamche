@@ -2,6 +2,7 @@
 
 pub use super::login_token::Entity as LoginToken;
 pub use super::oauth_account::Entity as OauthAccount;
+pub use super::pending_user::Entity as PendingUser;
 pub use super::permission::Entity as Permission;
 pub use super::user::Entity as User;
 pub use super::user_permission::Entity as UserPermission;

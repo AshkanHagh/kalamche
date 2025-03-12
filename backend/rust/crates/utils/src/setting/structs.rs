@@ -13,6 +13,9 @@ pub struct Settings {
   #[default(Some(Default::default()))]
   pub oauth_providers: Option<OAuthConfig>,
 
+  #[default(Default::default())]
+  pub email: EmailConfig,
+
   #[default("localhost")]
   pub hostname: String,
 
@@ -63,15 +66,23 @@ pub struct RedisConfig {
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
 #[serde(default)]
 pub struct JwtConfig {
-  #[default("randome jwt secret")]
+  #[default("access_token_secret")]
   pub at_secret: String,
 
-  #[default("randome jwt secret")]
+  #[default("refresh_token_secret")]
   pub rt_secret: String,
 
+  #[default(2)] // 2 day
   pub at_expiry: usize,
 
+  #[default(15)] // 15m
   pub rt_expiry: usize,
+
+  #[default(10)] // 10m
+  pub verfication_expiry: usize,
+
+  #[default("verification_token_secret")]
+  pub verification_secret: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
@@ -91,4 +102,28 @@ pub struct OAuthProviderConfig {
   pub token_url: String,
   pub user_info_url: String,
   pub other_info_url: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize, SmartDefault)]
+#[serde(default)]
+pub struct EmailConfig {
+  #[default("kalamche.app@example.com")]
+  pub email: String,
+
+  #[default("localhost")]
+  pub host: String,
+
+  #[default(1025)]
+  pub port: u16,
+
+  // no user required
+  #[default("")]
+  pub user: String,
+
+  // no password required
+  #[default("")]
+  pub password: String,
+
+  #[default(false)]
+  pub tls: bool,
 }

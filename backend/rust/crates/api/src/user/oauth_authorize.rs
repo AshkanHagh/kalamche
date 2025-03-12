@@ -3,8 +3,9 @@ use actix_web::{
   web::{Data, Query},
   HttpResponse,
 };
-use api_common::{context::KalamcheContext, oauth_provider::GetAuthorizeUrl};
-use serde_json::json;
+use api_common::{
+  context::KalamcheContext, oauth_provider::GetAuthorizeUrl, user::AuthrizeUrlResponse,
+};
 use utils::error::KalamcheResult;
 
 #[get("/oauth")]
@@ -14,8 +15,5 @@ pub async fn get_authorize_url(
 ) -> KalamcheResult<HttpResponse> {
   let url = context.oauth().get_authorize_url(&query.provider)?;
 
-  Ok(HttpResponse::Ok().json(json!({
-    "success": true,
-    "url": url,
-  })))
+  Ok(HttpResponse::Ok().json(AuthrizeUrlResponse { success: true, url }))
 }

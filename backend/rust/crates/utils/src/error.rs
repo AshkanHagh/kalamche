@@ -26,6 +26,11 @@ pub enum KalamcheErrorType {
   TokenExpired,
   InvalidAud,
   InvalidIss,
+  InvalidEmailAddress,
+  EmailSendFaild,
+  EmailAlreadyExists,
+  InvalidPassword,
+  AccountVerificationIsPending,
 }
 
 pub type KalamcheResult<T> = std::result::Result<T, KalamcheError>;

@@ -23,3 +23,5 @@ argon2 = { workspace = true }
 lazy-regex = { workspace = true }
 redis = { workspace = true }
 smart-default = "0.7.1"
+lettre = "0.11.12"
+rand = "0.8"
