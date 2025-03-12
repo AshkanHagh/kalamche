@@ -1,4 +1,4 @@
-const Instagram = ({ className }: { className: string }) => {
+export const Instagram = ({ className }: { className: string }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -16,4 +16,3 @@ const Instagram = ({ className }: { className: string }) => {
     </svg>
   )
 }
-export default Instagram

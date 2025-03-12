@@ -1,6 +1,4 @@
-import Facebook from "@/components/svgs/Facebook"
-import Instagram from "@/components/svgs/Instagram"
-import Twitter from "@/components/svgs/Twitter"
+import { Facebook, Instagram, Twitter } from "@/components/svgs/icon"
 
 export const footerLinks = [
   {

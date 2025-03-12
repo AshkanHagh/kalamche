@@ -1,4 +1,4 @@
-const Facebook = ({ className }: { className: string }) => {
+export const Facebook = ({ className }: { className: string }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -14,4 +14,3 @@ const Facebook = ({ className }: { className: string }) => {
     </svg>
   )
 }
-export default Facebook
