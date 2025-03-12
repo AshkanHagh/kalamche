@@ -1,0 +1,64 @@
+use actix_web::{get, web::Data, HttpRequest, HttpResponse};
+use api_common::{
+  context::KalamcheContext,
+  utils::{build_cookie, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
+};
+use database::source::{
+  login_token::{LoginToken, LoginTokenForm},
+  user::User,
+  user_permissin::UserPermission,
+};
+use serde_json::json;
+use utils::{
+  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
+  setting::SETTINGS,
+  utils::token::{sign_access_token, sign_refresh_token, verify_refresh_token},
+};
+
+#[get("/token/refresh")]
+pub async fn refresh_token(
+  context: Data<KalamcheContext>,
+  req: HttpRequest,
+) -> KalamcheResult<HttpResponse> {
+  let refresh_token = req
+    .cookie(RT_COOKIE_NAME)
+    .ok_or(KalamcheErrorType::NotLoggedIn)?;
+
+  let token_claims = verify_refresh_token(SETTINGS.get_jwt(), refresh_token.value())?;
+  let user = User::find_by_id(context.pool(), token_claims.sub)
+    .await?
+    .ok_or(KalamcheErrorType::NotLoggedIn)?;
+
+  let login_token = LoginToken::find_by_user_id(context.pool(), user.id).await?;
+
+  // FIX: compare with hashed token
+  if login_token.token_hash != refresh_token.value() {
+    return Err(KalamcheError::from(KalamcheErrorType::NotLoggedIn));
+  }
+
+  let user_permissoins = UserPermission::find_user_permissions(context.pool(), user.id).await?;
+
+  let (user_id, permission) = (user.id, user_permissoins.clone());
+  let (access_token, refresh_token) =
+    tokio::task::spawn_blocking(move || -> KalamcheResult<(String, String)> {
+      let access_token = sign_access_token(SETTINGS.get_jwt(), user_id, permission)?;
+      let refresh_token = sign_refresh_token(SETTINGS.get_jwt(), user_id)?;
+      Ok((access_token, refresh_token))
+    })
+    .await??;
+
+  LoginToken::insert(
+    context.pool(),
+    LoginTokenForm {
+      user_id: user.id,
+      token_hash: refresh_token.to_owned(),
+    },
+  )
+  .await?;
+
+  let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
+  Ok(HttpResponse::Created().cookie(cookie).json(json!({
+    "success": true,
+    "accessToken": access_token,
+  })))
+}

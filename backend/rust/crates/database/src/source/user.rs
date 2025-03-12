@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{DateTime, FixedOffset};
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -10,8 +10,8 @@ pub struct User {
   pub name: String,
   pub email: String,
   pub avatar_url: String,
-  pub created_at: NaiveDateTime,
-  pub updated_at: NaiveDateTime,
+  pub created_at: DateTime<FixedOffset>,
+  pub updated_at: DateTime<FixedOffset>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,7 +22,7 @@ pub struct UserRecord {
   pub email: String,
   pub avatar_url: String,
   pub permissions: Vec<String>,
-  pub created_at: NaiveDateTime,
+  pub created_at: DateTime<FixedOffset>,
 }
 
 #[derive(Debug)]

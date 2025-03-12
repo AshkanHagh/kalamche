@@ -1,3 +1,4 @@
+use chrono::Utc;
 use entity::user;
 use sea_orm::{prelude::*, ActiveValue::Set};
 use utils::error::{KalamcheError, KalamcheResult};
@@ -60,7 +61,8 @@ impl User {
       name: Set(insert_form.name),
       email: Set(insert_form.email),
       avatar_url: Set(insert_form.avatar_url),
-      ..Default::default()
+      created_at: Set(Utc::now().fixed_offset()),
+      updated_at: Set(Utc::now().fixed_offset()),
     };
 
     let user = user::Entity::insert(model)

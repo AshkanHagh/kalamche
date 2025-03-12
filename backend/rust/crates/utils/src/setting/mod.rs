@@ -1,3 +1,4 @@
+use chrono::{Duration, Utc};
 use std::{
   net::{IpAddr, Ipv4Addr},
   sync::LazyLock,
@@ -47,8 +48,8 @@ impl Settings {
       jwt: JwtConfig {
         rt_secret: Self::get_var("REFRESH_TOKEN_SECRET"),
         at_secret: Self::get_var("ACCESS_TOKEN_SECRET"),
-        rt_expiry: 1000 * 60 * 15,          // 15m
-        at_expiry: 1000 * 60 * 60 * 24 * 2, // 2d,
+        rt_expiry: (Utc::now() + Duration::days(2)).timestamp() as usize,
+        at_expiry: (Utc::now() + Duration::minutes(15)).timestamp() as usize,
       },
 
       bind: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),

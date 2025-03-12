@@ -12,8 +12,8 @@ pub struct Model {
   #[sea_orm(unique)]
   pub email: String,
   pub avatar_url: String,
-  pub created_at: DateTime,
-  pub updated_at: DateTime,
+  pub created_at: DateTimeWithTimeZone,
+  pub updated_at: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

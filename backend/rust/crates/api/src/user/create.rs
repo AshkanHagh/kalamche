@@ -1,10 +1,12 @@
 use actix_web::{
-  cookie, get,
+  get,
   web::{Data, Query},
   HttpResponse,
 };
 use api_common::{
-  context::KalamcheContext, oauth_provider::AuthenticateWithOAuth, utils::build_cookie,
+  context::KalamcheContext,
+  oauth_provider::AuthenticateWithOAuth,
+  utils::{build_cookie, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
 };
 use database::source::{
   login_token::{LoginToken, LoginTokenForm},
@@ -19,9 +21,6 @@ use utils::{
   setting::SETTINGS,
   utils::token::{sign_access_token, sign_refresh_token},
 };
-
-const RT_COOKIE_NAME: &str = "refresh_token";
-const RT_COOKIE_MAX_AGE: cookie::time::Duration = cookie::time::Duration::days(2);
 
 #[get("/oauth/callback")]
 pub async fn authenticate_with_oauth(

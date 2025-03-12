@@ -19,6 +19,13 @@ pub enum KalamcheErrorType {
   OAuthLoginFailed,
   RedisNotConfigured,
   FaildToMigrate,
+  NotLoggedIn,
+  CaptchaIncorrect,
+  CouldntCreateImageCaptcha,
+  InvalidToken,
+  TokenExpired,
+  InvalidAud,
+  InvalidIss,
 }
 
 pub type KalamcheResult<T> = std::result::Result<T, KalamcheError>;

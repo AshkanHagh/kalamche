@@ -1,4 +1,4 @@
-use chrono::NaiveDateTime;
+use chrono::{DateTime, FixedOffset};
 use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -10,7 +10,7 @@ pub struct LoginToken {
   pub user_id: Uuid,
   pub token_hash: String,
   // time of login
-  pub published: NaiveDateTime,
+  pub published: DateTime<FixedOffset>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

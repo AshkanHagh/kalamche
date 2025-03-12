@@ -16,15 +16,13 @@ impl MigrationTrait for Migration {
           .col(ColumnDef::new(User::AvatarUrl).string_len(300).not_null())
           .col(
             ColumnDef::new(User::CreatedAt)
-              .timestamp()
-              .not_null()
-              .default(Expr::current_timestamp()),
+              .timestamp_with_time_zone()
+              .not_null(),
           )
           .col(
             ColumnDef::new(User::UpdatedAt)
-              .timestamp()
-              .not_null()
-              .default(Expr::current_timestamp()),
+              .timestamp_with_time_zone()
+              .not_null(),
           )
           .to_owned(),
       )

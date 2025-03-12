@@ -69,10 +69,8 @@ pub struct JwtConfig {
   #[default("randome jwt secret")]
   pub rt_secret: String,
 
-  #[default(24 * 60 * 60)]
   pub at_expiry: usize,
 
-  #[default(30 * 24 * 60 * 60)]
   pub rt_expiry: usize,
 }
 

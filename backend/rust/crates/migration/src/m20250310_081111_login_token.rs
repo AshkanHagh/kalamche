@@ -20,9 +20,8 @@ impl MigrationTrait for Migration {
           )
           .col(
             ColumnDef::new(LoginToken::Published)
-              .timestamp()
-              .not_null()
-              .default(Expr::current_timestamp()),
+              .timestamp_with_time_zone()
+              .not_null(),
           )
           .to_owned(),
       )
