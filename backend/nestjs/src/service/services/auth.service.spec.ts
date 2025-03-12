@@ -3,7 +3,6 @@ import { AuthService } from "./auth.service";
 import { Postgres } from "src/drizzle/types";
 import { PermissionService } from "./permission.service";
 import { TokenService } from "./token.service";
-import { OAuthUser } from "src/config/auth/oauth.strategy";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
 import { ConfigModule } from "src/config/config.module";
 import { DATABASE_CONNECTION } from "src/drizzle";
@@ -11,6 +10,7 @@ import { sql } from "drizzle-orm";
 import { seedDefaultPermissions } from "src/drizzle/seed/permissions.seed";
 import { migration } from "src/drizzle/migration";
 import { ConfigService } from "src/config/config.service";
+import { OAuthUser } from "src/config/auth/oauth-clients";
 
 describe("AuthService", () => {
   let app: TestingModule;
@@ -21,9 +21,10 @@ describe("AuthService", () => {
   let config: ConfigService;
 
   const testOAuthUser: OAuthUser = {
-    email: "test.integration@example.com",
+    id: "84938493",
+    email: "auth.test.integration@example.com",
     name: "Test Integration User",
-    imageUrl: "https://example.com/test-avatar.jpg",
+    avatarUrl: "https://example.com/test-avatar.jpg",
   };
 
   beforeAll(async () => {
@@ -53,12 +54,13 @@ describe("AuthService", () => {
 
   describe("FindOrCreateUser", () => {
     it("should create a new user when not found", async () => {
-      const user = await authService["findOrCreateUser"](testOAuthUser);
+      const user =
+        await authService["findUserByOAuthAccountOrCreate"](testOAuthUser);
 
       expect(user).toBeDefined();
       expect(user.email).toBe(testOAuthUser.email);
       expect(user.name).toBe(testOAuthUser.name);
-      expect(user.avatarUrl).toBe(testOAuthUser.imageUrl);
+      expect(user.avatarUrl).toBe(testOAuthUser.avatarUrl);
 
       const savedUser = await connection.query.UserSchema.findFirst({
         where: (table, funcs) => funcs.eq(table.id, user.id),
@@ -70,11 +72,20 @@ describe("AuthService", () => {
       const permissions = await permissionService.getUserPermissions(user.id);
       expect(permissions).toBeDefined();
       expect(permissions.length).toBeGreaterThan(0);
+
+      const oauthAccount = await connection.query.OAuthAccountSchema.findFirst({
+        where: (table, funcs) => funcs.eq(table.userId, user.id),
+      });
+
+      expect(oauthAccount).toBeDefined();
+      expect(oauthAccount?.oauthUserId).toBe(testOAuthUser.id);
     });
 
     it("should return existing user when found", async () => {
-      const createdUser = await authService["findOrCreateUser"](testOAuthUser);
-      const existingUser = await authService["findOrCreateUser"](testOAuthUser);
+      const createdUser =
+        await authService["findUserByOAuthAccountOrCreate"](testOAuthUser);
+      const existingUser =
+        await authService["findUserByOAuthAccountOrCreate"](testOAuthUser);
 
       expect(existingUser).toBeDefined();
       expect(existingUser.id).toBe(createdUser.id);
@@ -134,6 +145,9 @@ describe("AuthService", () => {
       const user = await authService.oauthRegister(testOAuthUser);
       const currentUser = await connection.query.UserSchema.findFirst({
         where: (table, funcs) => funcs.eq(table.id, user.user.id),
+        with: {
+          loginToken: true,
+        },
       });
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -145,13 +159,17 @@ describe("AuthService", () => {
 
       const updatedUser = await connection.query.UserSchema.findFirst({
         where: (table, funcs) => funcs.eq(table.id, user.user.id),
+        with: {
+          loginToken: true,
+        },
       });
 
-      expect(updatedUser?.lastLogin.getTime()).toBeGreaterThan(
-        currentUser!.lastLogin.getTime(),
+      expect(updatedUser?.loginToken?.published.getTime()).toBeGreaterThan(
+        currentUser!.loginToken!.published.getTime(),
       );
-      expect(updatedUser?.refreshTokenHash).not.toBe(
-        currentUser?.refreshTokenHash,
+
+      expect(updatedUser?.loginToken?.tokenHash).not.toBe(
+        currentUser?.loginToken?.tokenHash,
       );
     });
 

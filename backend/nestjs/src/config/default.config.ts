@@ -1,8 +1,21 @@
 import { RedisCacheStrategy } from "src/cache/redis-cache.strategy";
-import { RuntimeAppConfig } from "./app.config";
-import { GithubOAuthProvider } from "./auth/github-oauth.strategy";
+import { OAuthOpitons, RuntimeAppConfig } from "./app.config";
 import { Argon2PasswordStrategy } from "./auth/argon2-password.strategy";
 import { JwtTokenStrategy } from "./auth/jwt-token.strategy";
+import { OAuthManager } from "./auth/oauth-manager";
+
+const oauthOptions: OAuthOpitons = {
+  github: {
+    clientId: process.env.GITHUB_CLIENT_ID!,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+    redirectUrl: process.env.GITHUB_REDIRECT_URL!,
+    tokenHostUrl: "https://github.com",
+    authPath: "/login/oauth/authorize",
+    tokenPath: "/login/oauth/access_token",
+    userInfoUrl: "https://api.github.com/user",
+    otherInfoUrl: "https://api.github.com/user/emails",
+  },
+};
 
 export const defaultConfig: RuntimeAppConfig = {
   authOptions: {
@@ -11,10 +24,8 @@ export const defaultConfig: RuntimeAppConfig = {
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 2,
     },
-    oauthProvider: new GithubOAuthProvider(
-      process.env.GITHUB_CLIENT_ID || "",
-      process.env.GITHUB_CLIENT_SECRET! || "",
-    ),
+    oauthOptions,
+    oauthManager: new OAuthManager(oauthOptions),
     passwordStrategy: new Argon2PasswordStrategy(),
     tokenCacheDuration: 60 * 60 * 24 * 7,
     tokenStrategy: new JwtTokenStrategy(

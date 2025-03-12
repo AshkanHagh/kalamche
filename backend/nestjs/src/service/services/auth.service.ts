@@ -1,17 +1,18 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  Inject,
-} from "@nestjs/common";
+import { ForbiddenException, Inject } from "@nestjs/common";
 import { createCacheKey } from "src/common/cache-name";
 import { CatchError } from "src/common/error/catch-error";
-import { OAuthUser } from "src/config/auth/oauth.strategy";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle";
-import { User, UserRecord, UserSchema } from "src/drizzle/schema";
+import {
+  OAuthAccountSchema,
+  User,
+  UserRecord,
+  UserSchema,
+} from "src/drizzle/schema";
 import { Postgres } from "src/drizzle/types";
 import { TokenService } from "./token.service";
 import { PermissionService } from "./permission.service";
+import { OAuthUser } from "src/config/auth/oauth-clients";
 
 export class AuthService {
   constructor(
@@ -33,27 +34,42 @@ export class AuthService {
     };
   }
 
-  private async findOrCreateUser(userInfo: OAuthUser) {
-    let user = await this.connection.query.UserSchema.findFirst({
-      where: (table, funcs) => funcs.eq(table.email, userInfo.email),
+  private async findUserByOAuthAccountOrCreate(userInfo: OAuthUser) {
+    const account = await this.connection.query.OAuthAccountSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.oauthUserId, userInfo.id),
+      with: {
+        user: true,
+      },
     });
 
-    if (!user) {
-      const createdUser = await this.connection
-        .insert(UserSchema)
-        .values({
-          email: userInfo.email,
-          name: userInfo.name,
-          avatarUrl: userInfo.imageUrl,
-        })
-        .returning();
+    let user: User;
 
-      if (!createdUser[0]) {
-        throw new BadRequestException("could not insert user");
-      }
+    if (!account) {
+      const createdUser = (
+        await this.connection
+          .insert(UserSchema)
+          .values({
+            email: userInfo.email,
+            name: userInfo.name,
+            avatarUrl: userInfo.avatarUrl,
+          })
+          .returning()
+      )[0];
 
-      user = createdUser[0];
-      await this.permissionService.createDefaultPermissionsForUser(user.id);
+      await Promise.all([
+        await this.permissionService.createDefaultPermissionsForUser(
+          createdUser.id,
+        ),
+
+        await this.connection.insert(OAuthAccountSchema).values({
+          userId: createdUser.id,
+          oauthUserId: userInfo.id,
+        }),
+      ]);
+
+      user = createdUser;
+    } else {
+      user = account.user;
     }
 
     return user;
@@ -61,17 +77,17 @@ export class AuthService {
 
   public async oauthRegister(userInfo: OAuthUser) {
     try {
-      const existingUser = await this.findOrCreateUser(userInfo);
+      const user = await this.findUserByOAuthAccountOrCreate(userInfo);
       const userPermissions = await this.permissionService.getUserPermissions(
-        existingUser.id,
+        user.id,
       );
 
       const token = await this.tokenService.createAutnetiationTokens(
-        existingUser.id,
+        user.id,
         userPermissions,
       );
 
-      const userRecord = this.intoRecord(existingUser, userPermissions);
+      const userRecord = this.intoRecord(user, userPermissions);
       await this.addUserToCache(userRecord);
 
       return {
@@ -102,9 +118,14 @@ export class AuthService {
     try {
       const rtClaims = this.tokenService.decodeRefreshToken(refreshToken);
       const user = await this.getUserWithPermissions(rtClaims.sub);
+      const loginToken = await this.connection.query.LoginTokenSchema.findFirst(
+        {
+          where: (table, funcs) => funcs.eq(table.userId, user.id),
+        },
+      );
 
-      await this.tokenService.isRTMatchUserRT(
-        user.refreshTokenHash || "",
+      await this.tokenService.isRefreshTokenMatchesHash(
+        loginToken!.tokenHash,
         refreshToken,
       );
 

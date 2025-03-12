@@ -4,6 +4,15 @@ import * as schema from "./schema";
 
 export const DATABASE_CONNECTION: string = "DATABASE_CONNECTION";
 
+export function createDrizzleConnection(connection?: string) {
+  const pool = createPool(connection);
+
+  return drizzle(pool, {
+    schema,
+    casing: "snake_case",
+  });
+}
+
 export function createPool(connection?: string) {
   const url: string =
     process.env.DATABASE_URL ||
@@ -16,8 +25,5 @@ export function createPool(connection?: string) {
     min: 1,
   });
 
-  return drizzle(pool, {
-    schema,
-    casing: "snake_case",
-  });
+  return pool;
 }

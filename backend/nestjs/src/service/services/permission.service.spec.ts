@@ -18,7 +18,7 @@ describe("PermissionService", () => {
   let permissionService: PermissionService;
 
   const testUser: InsertUser = {
-    email: "test.integration@example.com",
+    email: "permission.test.integration@example.com",
     name: "Test Integration User",
     avatarUrl: "https://example.com/test-avatar.jpg",
     id: uuid(),
@@ -39,8 +39,8 @@ describe("PermissionService", () => {
     await migration();
 
     await Promise.all([
-      connection.execute(sql`TRUNCATE TABLE permissions CASCADE`),
       connection.execute(sql`TRUNCATE TABLE users CASCADE`),
+      connection.execute(sql`TRUNCATE TABLE permissions CASCADE`),
       config.systemOpitons.cacheSterategy.clear(),
     ]);
 

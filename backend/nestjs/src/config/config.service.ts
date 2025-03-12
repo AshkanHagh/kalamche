@@ -4,13 +4,14 @@ import {
   AuthOptions,
   RuntimeAppConfig,
   SystemOptions,
+  TestAppConfig,
 } from "./app.config";
 import { defaultConfig } from "./default.config";
 import { testConfig } from "./test.config";
 
 @Injectable()
 export class ConfigService implements AppConfig {
-  private activeConfig: RuntimeAppConfig;
+  private activeConfig: RuntimeAppConfig | TestAppConfig;
 
   constructor() {
     if (process.env.KALAMCHE_INIT_WITH_TEST_ENV) {

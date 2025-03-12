@@ -1,11 +1,10 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
-import { eq } from "drizzle-orm";
 import { createCacheKey } from "src/common/cache-name";
 import { CatchError } from "src/common/error/catch-error";
 import { RefreshTokenClaims } from "src/config/auth/token.strategy";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle";
-import { UserSchema } from "src/drizzle/schema";
+import { LoginTokenSchema } from "src/drizzle/schema";
 import { Postgres } from "src/drizzle/types";
 
 @Injectable()
@@ -52,10 +51,18 @@ export class TokenService {
 
       await Promise.all([
         await this.connection
-          .update(UserSchema)
-          .set({ refreshTokenHash, lastLogin: new Date() })
-          .where(eq(UserSchema.id, userId)),
+          .insert(LoginTokenSchema)
+          .values({
+            userId,
+            tokenHash: refreshTokenHash,
+            published: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: LoginTokenSchema.userId,
+            set: { tokenHash: refreshTokenHash, published: new Date() },
+          }),
 
+        // TODO: store without hash
         await this.config.systemOpitons.cacheSterategy.set(
           rfHashCacheKey,
           refreshToken,
@@ -78,10 +85,13 @@ export class TokenService {
     }
   }
 
-  public async isRTMatchUserRT(userRt: string, rt: string): Promise<void> {
+  public async isRefreshTokenMatchesHash(
+    userRefreshTokenHash: string,
+    refreshToken: string,
+  ): Promise<void> {
     const tokenMatches = await this.config.authOptions.passwordStrategy.check(
-      rt,
-      userRt || "",
+      refreshToken,
+      userRefreshTokenHash,
     );
     if (!tokenMatches) {
       throw new ForbiddenException();

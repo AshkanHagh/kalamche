@@ -1,6 +1,8 @@
 import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 import { index, pgTable } from "drizzle-orm/pg-core";
 import { UserPermissionSchema } from "./user-permission.schema";
+import { OAuthAccountSchema } from "./oauth-account.schema";
+import { LoginTokenSchema } from "./login-token.schema";
 
 export const UserSchema = pgTable(
   "users",
@@ -9,8 +11,6 @@ export const UserSchema = pgTable(
     name: table.varchar({ length: 255 }).notNull(),
     email: table.varchar({ length: 255 }).notNull().unique(),
     avatarUrl: table.varchar({ length: 300 }).notNull(),
-    refreshTokenHash: table.varchar({ length: 300 }),
-    lastLogin: table.timestamp().default(new Date()).notNull(),
     createdAt: table.timestamp().defaultNow().notNull(),
     updatedAt: table
       .timestamp()
@@ -23,10 +23,12 @@ export const UserSchema = pgTable(
   }),
 );
 
-export const UserTableRelations = relations(UserSchema, ({ many }) => ({
+export const UserTableRelations = relations(UserSchema, ({ many, one }) => ({
   permissions: many(UserPermissionSchema, {
     relationName: "fk_user_permission_permission",
   }),
+  oauthAccount: one(OAuthAccountSchema),
+  loginToken: one(LoginTokenSchema),
 }));
 
 export type User = InferSelectModel<typeof UserSchema>;

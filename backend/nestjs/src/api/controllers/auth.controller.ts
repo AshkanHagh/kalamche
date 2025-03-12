@@ -9,6 +9,7 @@ import {
 import { Request, Response } from "express";
 import { ConfigService } from "src/config/config.service";
 import { AuthService } from "src/service/services/auth.service";
+import { AuthenticateWIthOAuthDto } from "../dto/authenticate-with-oauth.dto";
 
 @Controller("auth")
 export class AuthController {
@@ -18,19 +19,21 @@ export class AuthController {
   ) {}
 
   @Get("/oauth")
-  public getAuthUrl() {
-    const url = this.config.authOptions.oauthProvider.createAuthUrl();
+  public getAuthorizeUrl(@Query("provider") query: string) {
+    const url = this.config.authOptions.oauthManager?.getAuthorizeUrl(query);
     return { url };
   }
 
-  @Get("/oauth/callback1")
-  public async oauthCallback(
-    @Query("code") query: string,
+  @Get("/oauth/callback")
+  public async authenticateWithOAuth(
+    @Query() query: AuthenticateWIthOAuthDto,
     @Res() response: Response,
   ) {
-    const oauthUser =
-      await this.config.authOptions.oauthProvider.authenticate(query);
-    const result = await this.authService.oauthRegister(oauthUser);
+    const oauthUser = await this.config.authOptions.oauthManager?.authenticate(
+      query.provider,
+      query.code,
+    );
+    const result = await this.authService.oauthRegister(oauthUser!);
 
     response
       .status(201)

@@ -1,12 +1,12 @@
 import { DynamicModule, Module } from "@nestjs/common";
-import { createPool, DATABASE_CONNECTION } from ".";
+import { createDrizzleConnection, DATABASE_CONNECTION } from ".";
 
 @Module({
   providers: [
     {
       provide: DATABASE_CONNECTION,
       useFactory: () => {
-        return createPool();
+        return createDrizzleConnection();
       },
     },
   ],
@@ -21,7 +21,7 @@ export class DrizzleModule {
         {
           provide: DATABASE_CONNECTION,
           useFactory: () => {
-            return createPool(url);
+            return createDrizzleConnection(url);
           },
         },
       ],

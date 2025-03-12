@@ -6,11 +6,11 @@ import { PermissionSchema } from "./permission.schema";
 export const UserPermissionSchema = pgTable("user_permissions", (table) => ({
   permissionId: table
     .uuid()
-    .references(() => PermissionSchema.id)
+    .references(() => PermissionSchema.id, { onDelete: "cascade" })
     .notNull(),
   userId: table
     .uuid()
-    .references(() => UserSchema.id)
+    .references(() => UserSchema.id, { onDelete: "cascade" })
     .notNull(),
 }));
 
