@@ -37,7 +37,7 @@ export const Navbar = ({ children }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-4">
-          {false ? (
+          {true ? (
             <Avatar className="h-8 w-8">
               <AvatarImage src="/placeholder-user.jpg" alt="User" />
               <AvatarFallback>U</AvatarFallback>

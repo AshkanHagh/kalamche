@@ -11,23 +11,23 @@ import {
 import { Input } from "@/components/ui/input"
 import { Eye, EyeOff } from "lucide-react"
 import { HTMLInputTypeAttribute, useState } from "react"
-import { Control } from "react-hook-form"
+import { Control, FieldValues, Path } from "react-hook-form"
 
-type FormInputProps = {
-  control: Control<any>
-  name: string
+type FormInputProps<T extends FieldValues> = {
+  control: Control<T>
+  name: Path<T>
   label: string
   placeholder?: string
   type?: HTMLInputTypeAttribute
 }
 
-const FormInput = ({
+const FormInput = <T extends FieldValues>({
   control,
   name,
   label,
   placeholder,
   type = "text"
-}: FormInputProps) => {
+}: FormInputProps<T>) => {
   const [showPassword, setShowPassword] = useState(false)
 
   const isPasswordType = type === "password"

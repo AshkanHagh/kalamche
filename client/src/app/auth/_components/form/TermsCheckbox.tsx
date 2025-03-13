@@ -6,18 +6,22 @@ import {
   FormMessage
 } from "@/components/ui/form"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Control } from "react-hook-form"
+import { Control, FieldValues, Path } from "react-hook-form"
 import Link from "next/link"
 
-type TermsCheckboxProps = {
-  control: Control<any>
+type TermsCheckboxProps<T extends FieldValues> = {
+  control: Control<T>
+  name: Path<T>
 }
 
-export default function TermsCheckbox({ control }: TermsCheckboxProps) {
+const TermsCheckbox = <T extends FieldValues>({
+  control,
+  name
+}: TermsCheckboxProps<T>) => {
   return (
     <FormField
       control={control}
-      name="terms"
+      name={name}
       render={({ field }) => (
         <FormItem className="flex flex-row items-start space-x-2 space-y-0">
           <FormControl>
@@ -41,3 +45,5 @@ export default function TermsCheckbox({ control }: TermsCheckboxProps) {
     />
   )
 }
+
+export default TermsCheckbox

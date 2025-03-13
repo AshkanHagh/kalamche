@@ -59,7 +59,7 @@ const RegisterForm = () => {
           placeholder="••••••••"
           type="password"
         />
-        <TermsCheckbox control={control} />
+        <TermsCheckbox control={control} name="terms" />
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? (
             <>
