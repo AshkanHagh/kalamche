@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger
 } from "../ui/dropdown-menu"
 import { Children } from "react"
-import { ProfileDropdown } from "../profile/profile-dropdown"
+import ProfileDropdown from "../profile/profile-dropdown"
 
 type NavbarProps = {
   children: React.ReactNode

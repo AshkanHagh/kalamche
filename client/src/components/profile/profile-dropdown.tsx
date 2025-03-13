@@ -1,6 +1,5 @@
 "use client"
 
-import { UserProfileContent } from "./profile-content"
 import { LogOut, Crown, Clock } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -12,8 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
+import UserProfileContent from "./profile-content"
 
-export const ProfileDropdown = () => {
+export default function ProfileDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

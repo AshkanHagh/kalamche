@@ -5,13 +5,18 @@ import { Check, X, Pencil } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
-export const UserProfileContent = () => {
+interface UserData {
+  name: string
+  email: string
+}
+
+export default function UserProfileContent() {
   const [isEditing, setIsEditing] = useState(false)
-  const [userData, setUserData] = useState({
+  const [userData, setUserData] = useState<UserData>({
     name: "John Doe",
     email: "john@example.com"
   })
-  const [tempData, setTempData] = useState(userData)
+  const [tempData, setTempData] = useState<UserData>(userData)
 
   const handleSave = () => {
     setUserData(tempData)
@@ -30,12 +35,22 @@ export const UserProfileContent = () => {
           <div className="space-y-2">
             <Input
               value={tempData.name}
-              onChange={(e) => setTempData({ ...tempData, name: e.target.value })}
+              onChange={(e) =>
+                setTempData({
+                  ...tempData,
+                  name: e.target.value
+                })
+              }
               className="h-8"
             />
             <Input
               value={tempData.email}
-              onChange={(e) => setTempData({ ...tempData, email: e.target.value })}
+              onChange={(e) =>
+                setTempData({
+                  ...tempData,
+                  email: e.target.value
+                })
+              }
               className="h-8"
             />
           </div>
@@ -49,17 +64,17 @@ export const UserProfileContent = () => {
       <div className="ml-4">
         {isEditing ? (
           <div className="flex gap-1">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleSave}
               className="h-8 w-8"
             >
               <Check className="h-4 w-4 text-green-600" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={handleCancel}
               className="h-8 w-8"
             >
@@ -67,9 +82,9 @@ export const UserProfileContent = () => {
             </Button>
           </div>
         ) : (
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={() => setIsEditing(true)}
             className="h-8 w-8"
           >
