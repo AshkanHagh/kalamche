@@ -62,6 +62,7 @@ impl Settings {
         at_expiry: 15, // 15m
         verification_secret: Self::get_var("VERIFICATION_TOKEN_SECRET"),
         verfication_expiry: 10, // 10m
+        verification_redirect_url: Self::get_var("VERIFICATION_REDIRECT_URL"),
       },
 
       bind: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),

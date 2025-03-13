@@ -27,7 +27,7 @@ pub struct UserRecord {
 }
 
 #[derive(Debug)]
-pub struct InsertUserForm {
+pub struct UserInsertForm {
   pub name: String,
   pub email: String,
   pub avatar_url: String,

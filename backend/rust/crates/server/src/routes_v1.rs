@@ -6,6 +6,7 @@ pub fn routes_v1(cfg: &mut ServiceConfig) {
       .service(api::user::oauth_authorize::get_authorize_url)
       .service(api::user::create::authenticate_with_oauth)
       .service(api::user::refresh_token::refresh_token)
-      .service(api::user::create::register),
+      .service(api::user::create::register)
+      .service(api::user::create::verify_email_registration),
   );
 }

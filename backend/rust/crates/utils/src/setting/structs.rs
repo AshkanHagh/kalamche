@@ -83,6 +83,9 @@ pub struct JwtConfig {
 
   #[default("verification_token_secret")]
   pub verification_secret: String,
+
+  #[default("http://localhost:7319/auth/email/verifiy")]
+  pub verification_redirect_url: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]

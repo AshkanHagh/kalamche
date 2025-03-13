@@ -6,13 +6,13 @@ use uuid::Uuid;
 
 use crate::{
   connection::Database,
-  source::pending_user::{PendingUser, PendingUserForm},
+  source::pending_user::{PendingUser, PendingUserInsertForm},
 };
 
 impl PendingUser {
   pub async fn insert(
     pool: &Database,
-    insert_form: PendingUserForm,
+    insert_form: PendingUserInsertForm,
   ) -> KalamcheResult<PendingUser> {
     let model = pending_user::ActiveModel {
       id: Set(insert_form.id),
@@ -46,6 +46,11 @@ impl PendingUser {
       .await?;
 
     Ok(pending_user.is_some())
+  }
+
+  pub async fn delete_by_id(pool: &Database, id: Uuid) -> KalamcheResult<()> {
+    pending_user::Entity::delete_by_id(id).exec(&**pool).await?;
+    Ok(())
   }
 }
 
