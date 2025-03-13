@@ -1,7 +1,7 @@
 import { CacheStrategy } from "src/cache/cache.strategy";
 import { PasswordHashStrategy } from "./auth/password.strategy";
-import { TokenStrategy } from "./auth/token.strategy";
 import { OAuthManager } from "./auth/oauth-manager";
+import { TokenStrategy } from "./auth/token";
 
 export interface CookieOptions {
   name?: string;
@@ -15,13 +15,23 @@ export interface CookieOptions {
 }
 
 export interface AuthOptions {
-  cookieOptions: CookieOptions;
-  oauthOptions?: OAuthOpitons;
   oauthManager?: OAuthManager;
+  token: TokenStrategy;
   passwordStrategy: PasswordHashStrategy;
 
+  cookieOptions: CookieOptions;
+  oauthOptions?: OAuthOpitons;
+  tokenOptions: TokenOptions;
+}
+
+export interface TokenOptions {
+  atSecret: string;
+  rtSecret: string;
+  rtExpiry: number;
+  atExpiry: number;
   tokenCacheDuration: number;
-  tokenStrategy: TokenStrategy;
+  tokenAud: string;
+  tokenIss: string;
 }
 
 export interface OAuthOpitons {

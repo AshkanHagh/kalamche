@@ -9,7 +9,13 @@ import {
 import { Request, Response } from "express";
 import { ConfigService } from "src/config/config.service";
 import { AuthService } from "src/service/services/auth.service";
-import { AuthenticateWIthOAuthDto } from "../dto/authenticate-with-oauth.dto";
+import {
+  AuthenticateWIthOAuthDto,
+  GetAuthorizeUrlResponse,
+  LoginResponse,
+  RefreshTokenResponse,
+} from "../common/auth-generated-types";
+import { REFRESH_TOKEN_COOKIE_NAME } from "../common/shared-constants";
 
 @Controller("auth")
 export class AuthController {
@@ -19,9 +25,11 @@ export class AuthController {
   ) {}
 
   @Get("/oauth")
-  public getAuthorizeUrl(@Query("provider") query: string) {
+  public getAuthorizeUrl(
+    @Query("provider") query: string,
+  ): GetAuthorizeUrlResponse {
     const url = this.config.authOptions.oauthManager?.getAuthorizeUrl(query);
-    return { url };
+    return { success: true, url: url! };
   }
 
   @Get("/oauth/callback")
@@ -38,11 +46,11 @@ export class AuthController {
     response
       .status(201)
       .cookie(
-        "refresh_token",
+        REFRESH_TOKEN_COOKIE_NAME,
         result.refreshToken,
         this.config.authOptions.cookieOptions,
       )
-      .json({
+      .json(<LoginResponse>{
         success: true,
         accessToken: result.accessToken,
         user: result.user,
@@ -60,11 +68,11 @@ export class AuthController {
     res
       .status(200)
       .cookie(
-        "refresh_token",
+        REFRESH_TOKEN_COOKIE_NAME,
         tokens.refreshToken,
         this.config.authOptions.cookieOptions,
       )
-      .json({
+      .json(<RefreshTokenResponse>{
         success: true,
         accessToken: tokens.accessToken,
       });

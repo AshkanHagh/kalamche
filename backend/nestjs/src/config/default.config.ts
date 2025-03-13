@@ -1,8 +1,8 @@
 import { RedisCacheStrategy } from "src/cache/redis-cache.strategy";
-import { OAuthOpitons, RuntimeAppConfig } from "./app.config";
+import { OAuthOpitons, RuntimeAppConfig, TokenOptions } from "./app.config";
 import { Argon2PasswordStrategy } from "./auth/argon2-password.strategy";
-import { JwtTokenStrategy } from "./auth/jwt-token.strategy";
 import { OAuthManager } from "./auth/oauth-manager";
+import { TokenStrategy } from "./auth/token";
 
 const oauthOptions: OAuthOpitons = {
   github: {
@@ -17,6 +17,16 @@ const oauthOptions: OAuthOpitons = {
   },
 };
 
+const tokenOptions: TokenOptions = {
+  atExpiry: 1000 * 60 * 15,
+  atSecret: process.env.ACCESS_TOKEN_SECRET!,
+  rtExpiry: 1000 * 60 * 60 * 24 * 2,
+  rtSecret: process.env.REFRESH_TOKEN_SECRET!,
+  tokenIss: "Kalamche",
+  tokenAud: "Kalamche",
+  tokenCacheDuration: 60 * 60 * 24 * 2,
+};
+
 export const defaultConfig: RuntimeAppConfig = {
   authOptions: {
     cookieOptions: {
@@ -24,14 +34,11 @@ export const defaultConfig: RuntimeAppConfig = {
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 2,
     },
-    oauthOptions,
     oauthManager: new OAuthManager(oauthOptions),
     passwordStrategy: new Argon2PasswordStrategy(),
-    tokenCacheDuration: 60 * 60 * 24 * 7,
-    tokenStrategy: new JwtTokenStrategy(
-      process.env.ACCESS_TOKEN_SECRET!,
-      process.env.REFRESH_TOKEN_SECRET!,
-    ),
+    oauthOptions,
+    tokenOptions,
+    token: new TokenStrategy(tokenOptions),
   },
 
   systemOpitons: {

@@ -1,7 +1,17 @@
 import { RedisCacheStrategy } from "src/cache/redis-cache.strategy";
-import { TestAppConfig } from "./app.config";
+import { TestAppConfig, TokenOptions } from "./app.config";
 import { Argon2PasswordStrategy } from "./auth/argon2-password.strategy";
-import { JwtTokenStrategy } from "./auth/jwt-token.strategy";
+import { TokenStrategy } from "./auth/token";
+
+const tokenOptions: TokenOptions = {
+  atExpiry: 1000 * 60 * 15,
+  atSecret: "test_access_token",
+  rtExpiry: 1000 * 60 * 60 * 24 * 2,
+  rtSecret: "test_refresh_token",
+  tokenIss: "test_iss",
+  tokenAud: "test_aud",
+  tokenCacheDuration: 60 * 60 * 24 * 2,
+};
 
 export const testConfig: TestAppConfig = {
   authOptions: {
@@ -10,10 +20,9 @@ export const testConfig: TestAppConfig = {
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 2,
     },
-
     passwordStrategy: new Argon2PasswordStrategy(),
-    tokenCacheDuration: 60 * 60 * 24 * 7,
-    tokenStrategy: new JwtTokenStrategy("atSecret", "rtSecret"),
+    token: new TokenStrategy(tokenOptions),
+    tokenOptions,
   },
 
   systemOpitons: {

@@ -1,7 +1,7 @@
 import { ForbiddenException, Inject, Injectable } from "@nestjs/common";
 import { createCacheKey } from "src/common/cache-name";
 import { CatchError } from "src/common/error/catch-error";
-import { RefreshTokenClaims } from "src/config/auth/token.strategy";
+import { RefreshTokenClaims } from "src/config/auth/token";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle";
 import { LoginTokenSchema } from "src/drizzle/schema";
@@ -17,16 +17,12 @@ export class TokenService {
 
   public async createAutnetiationTokens(userId: string, permissions: string[]) {
     try {
-      const accessToken = this.config.authOptions.tokenStrategy.signAccessToken(
-        {
-          sub: userId,
-          permissions,
-        },
+      const accessToken = this.config.authOptions.token.signAccessToken(
+        userId,
+        permissions,
       );
       const refreshToken =
-        this.config.authOptions.tokenStrategy.signRefreshToken({
-          sub: userId,
-        });
+        this.config.authOptions.token.signRefreshToken(userId);
 
       await this.updateTokenHashAndLastLogin(userId, refreshToken);
 
@@ -62,11 +58,10 @@ export class TokenService {
             set: { tokenHash: refreshTokenHash, published: new Date() },
           }),
 
-        // TODO: store without hash
         await this.config.systemOpitons.cacheSterategy.set(
           rfHashCacheKey,
           refreshToken,
-          this.config.authOptions.tokenCacheDuration,
+          this.config.authOptions.tokenOptions.tokenCacheDuration,
         ),
       ]);
     } catch (error: unknown) {
@@ -77,7 +72,7 @@ export class TokenService {
   public decodeRefreshToken(refreshToken: string): RefreshTokenClaims {
     try {
       const claims =
-        this.config.authOptions.tokenStrategy.verifyRefreshToken(refreshToken);
+        this.config.authOptions.token.verifyRefreshToken(refreshToken);
 
       return claims;
     } catch (error: unknown) {
