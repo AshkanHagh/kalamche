@@ -13,7 +13,7 @@ pub struct PendingUser {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct PendingUserForm {
+pub struct PendingUserInsertForm {
   pub id: Uuid,
   pub email: String,
   pub password_hash: String,

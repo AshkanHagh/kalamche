@@ -10,7 +10,7 @@ pub struct OAuthAccount {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct OAuthAccountForm {
+pub struct OAuthAccountInsertForm {
   pub oauth_user_id: String,
   pub user_id: Uuid,
 }

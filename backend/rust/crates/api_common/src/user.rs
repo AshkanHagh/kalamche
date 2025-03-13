@@ -7,6 +7,12 @@ pub struct Register {
   pub password: String,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct VerifyEmailRegistration {
+  pub code: String,
+  pub token: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegisterResponse {

@@ -31,6 +31,9 @@ pub enum KalamcheErrorType {
   EmailAlreadyExists,
   InvalidPassword,
   AccountVerificationIsPending,
+  AccountNotRegistered,
+  InvalidVerificationCode,
+  ExpiredVerificationCode,
 }
 
 pub type KalamcheResult<T> = std::result::Result<T, KalamcheError>;

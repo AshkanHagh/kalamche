@@ -5,7 +5,7 @@ use api_common::{
   utils::{build_cookie, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
 };
 use database::source::{
-  login_token::{LoginToken, LoginTokenForm},
+  login_token::{LoginToken, LoginTokenInsertForm},
   user::User,
   user_permissin::UserPermission,
 };
@@ -49,7 +49,7 @@ pub async fn refresh_token(
 
   LoginToken::insert(
     context.pool(),
-    LoginTokenForm {
+    LoginTokenInsertForm {
       user_id: user.id,
       token_hash: refresh_token.to_owned(),
     },

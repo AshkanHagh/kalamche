@@ -6,11 +6,11 @@ use utils::error::{KalamcheErrorType, KalamcheResult};
 
 use crate::{
   connection::Database,
-  source::login_token::{LoginToken, LoginTokenForm},
+  source::login_token::{LoginToken, LoginTokenInsertForm},
 };
 
 impl LoginToken {
-  pub async fn insert(pool: &Database, payload: LoginTokenForm) -> KalamcheResult<()> {
+  pub async fn insert(pool: &Database, payload: LoginTokenInsertForm) -> KalamcheResult<()> {
     let model = login_token::ActiveModel {
       user_id: Set(payload.user_id),
       token_hash: Set(payload.token_hash.clone()),

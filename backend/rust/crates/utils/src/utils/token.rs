@@ -2,7 +2,7 @@ use chrono::{Duration, Utc};
 use jsonwebtoken::{
   decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey, Header, Validation,
 };
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
@@ -107,15 +107,36 @@ pub fn sign_verification_token(
 }
 
 pub fn verify_refresh_token(config: &JwtConfig, token: &str) -> KalamcheResult<RTClaims> {
-  let mut validation = Validation::new(Algorithm::HS256);
-  validation.set_audience(&[TOKEN_AUD]);
-  validation.set_issuer(&[TOKEN_ISS]);
-  validation.set_required_spec_claims(&["sub", "exp", "aud"]);
+  let token_claims = decode_token::<RTClaims>(&config.rt_secret.as_bytes(), token)?;
+  if token_claims.t_type != "refresh" {
+    return Err(KalamcheError::from(KalamcheErrorType::InvalidToken));
+  }
 
-  let token_result = decode::<RTClaims>(
+  Ok(token_claims)
+}
+
+pub fn verify_verification_token(
+  config: &JwtConfig,
+  token: &str,
+) -> KalamcheResult<VerificationClaims> {
+  let token_claims =
+    decode_token::<VerificationClaims>(&config.verification_secret.as_bytes(), token)?;
+
+  if token_claims.t_type != "verification" {
+    return Err(KalamcheError::from(KalamcheErrorType::InvalidToken));
+  }
+
+  Ok(token_claims)
+}
+
+pub fn decode_token<Claims>(secret: &[u8], token: &str) -> KalamcheResult<Claims>
+where
+  Claims: DeserializeOwned,
+{
+  let token_result = decode::<Claims>(
     token,
-    &DecodingKey::from_secret(config.rt_secret.as_bytes()),
-    &validation,
+    &DecodingKey::from_secret(secret),
+    &config_vaidation(),
   );
 
   let token = match token_result {
@@ -131,9 +152,14 @@ pub fn verify_refresh_token(config: &JwtConfig, token: &str) -> KalamcheResult<R
     },
   };
 
-  if token.claims.t_type != "refresh" {
-    return Err(KalamcheError::from(KalamcheErrorType::InvalidToken));
-  }
-
   Ok(token.claims)
+}
+
+fn config_vaidation() -> Validation {
+  let mut validation = Validation::new(Algorithm::HS256);
+  validation.set_audience(&[TOKEN_AUD]);
+  validation.set_issuer(&[TOKEN_ISS]);
+  validation.set_required_spec_claims(&["sub", "exp", "aud"]);
+
+  validation
 }

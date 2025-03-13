@@ -5,7 +5,7 @@ use utils::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
 
 use crate::{
   connection::Database,
-  source::user::{InsertUserForm, User, UserRecord},
+  source::user::{User, UserInsertForm, UserRecord},
 };
 
 impl TryFrom<user::Model> for User {
@@ -56,7 +56,7 @@ impl User {
     Ok(user)
   }
 
-  pub async fn insert(pool: &Database, insert_form: InsertUserForm) -> KalamcheResult<User> {
+  pub async fn insert(pool: &Database, insert_form: UserInsertForm) -> KalamcheResult<User> {
     let model = user::ActiveModel {
       id: Set(Uuid::new_v4()),
       name: Set(insert_form.name),

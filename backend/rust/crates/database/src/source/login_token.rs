@@ -14,7 +14,7 @@ pub struct LoginToken {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct LoginTokenForm {
+pub struct LoginTokenInsertForm {
   pub user_id: Uuid,
   pub token_hash: String,
 }

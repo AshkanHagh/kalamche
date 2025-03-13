@@ -4,11 +4,11 @@ use utils::error::KalamcheResult;
 
 use crate::{
   connection::Database,
-  source::oauth_account::{OAuthAccount, OAuthAccountForm},
+  source::oauth_account::{OAuthAccount, OAuthAccountInsertForm},
 };
 
 impl OAuthAccount {
-  pub async fn insert(pool: &Database, payload: OAuthAccountForm) -> KalamcheResult<()> {
+  pub async fn insert(pool: &Database, payload: OAuthAccountInsertForm) -> KalamcheResult<()> {
     let model = oauth_account::ActiveModel {
       oauth_user_id: Set(payload.oauth_user_id),
       user_id: Set(payload.user_id),
