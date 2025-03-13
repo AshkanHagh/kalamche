@@ -15,6 +15,7 @@ impl LoginToken {
       user_id: Set(payload.user_id),
       token_hash: Set(payload.token_hash.clone()),
       published: Set(Utc::now().fixed_offset()),
+      ip: Set(payload.ip),
     };
 
     login_token::Entity::insert(model)
@@ -48,6 +49,7 @@ impl TryFrom<login_token::Model> for LoginToken {
     Ok(Self {
       user_id: model.user_id,
       token_hash: model.token_hash,
+      ip: model.ip,
       published: model.published,
     })
   }

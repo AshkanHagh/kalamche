@@ -9,3 +9,5 @@ database = { path = "../database" }
 actix-web = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }

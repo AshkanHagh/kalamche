@@ -9,6 +9,7 @@ pub struct Model {
   #[sea_orm(primary_key, auto_increment = false)]
   pub user_id: Uuid,
   pub token_hash: String,
+  pub ip: String,
   pub published: DateTimeWithTimeZone,
 }
 

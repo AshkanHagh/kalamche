@@ -7,7 +7,7 @@ use uuid::Uuid;
 pub struct PendingUser {
   pub id: Uuid,
   pub email: String,
-  pub password_hash: String,
+  pub password_hash: Option<String>,
   pub token: String,
   pub published: DateTime<FixedOffset>,
 }
@@ -16,6 +16,6 @@ pub struct PendingUser {
 pub struct PendingUserInsertForm {
   pub id: Uuid,
   pub email: String,
-  pub password_hash: String,
+  pub password_hash: Option<String>,
   pub token: String,
 }

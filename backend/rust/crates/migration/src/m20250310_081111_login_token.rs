@@ -18,6 +18,7 @@ impl MigrationTrait for Migration {
               .string_len(300)
               .not_null(),
           )
+          .col(ColumnDef::new(LoginToken::Ip).string_len(20).not_null())
           .col(
             ColumnDef::new(LoginToken::Published)
               .timestamp_with_time_zone()
@@ -91,5 +92,6 @@ enum LoginToken {
   Table,
   UserId,
   TokenHash,
+  Ip,
   Published,
 }

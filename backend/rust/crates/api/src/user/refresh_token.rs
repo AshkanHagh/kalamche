@@ -2,7 +2,7 @@ use actix_web::{get, web::Data, HttpRequest, HttpResponse};
 use api_common::{
   context::KalamcheContext,
   user::RefreshTokenResponse,
-  utils::{build_cookie, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
+  utils::{build_cookie, get_user_ip, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
 };
 use database::source::{
   login_token::{LoginToken, LoginTokenInsertForm},
@@ -51,6 +51,7 @@ pub async fn refresh_token(
     context.pool(),
     LoginTokenInsertForm {
       user_id: user.id,
+      ip: get_user_ip(&req),
       token_hash: refresh_token.to_owned(),
     },
   )

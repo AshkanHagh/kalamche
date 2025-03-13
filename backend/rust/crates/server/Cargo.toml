@@ -8,6 +8,7 @@ api = { path = "../api" }
 api_common = { path = "../api_common" }
 utils = { path = "../utils" }
 database = { path = "../database" }
+api_crud = { path = "../api_crud" }
 actix-web = { workspace = true }
 reqwest = { workspace = true }
 env_logger = { workspace = true }

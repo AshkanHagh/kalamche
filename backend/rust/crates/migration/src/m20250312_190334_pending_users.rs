@@ -22,11 +22,7 @@ impl MigrationTrait for Migration {
               .unique_key()
               .not_null(),
           )
-          .col(
-            ColumnDef::new(PendingUser::PasswordHash)
-              .string_len(300)
-              .not_null(),
-          )
+          .col(ColumnDef::new(PendingUser::PasswordHash).string_len(300))
           .col(
             ColumnDef::new(PendingUser::Token)
               .string_len(300)

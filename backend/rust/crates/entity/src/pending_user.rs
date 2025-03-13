@@ -10,7 +10,7 @@ pub struct Model {
   pub id: Uuid,
   #[sea_orm(unique)]
   pub email: String,
-  pub password_hash: String,
+  pub password_hash: Option<String>,
   pub token: String,
   pub published: DateTimeWithTimeZone,
 }

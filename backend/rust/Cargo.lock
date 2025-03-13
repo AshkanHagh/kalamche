@@ -358,7 +358,28 @@ dependencies = [
  "database",
  "reqwest 0.12.12",
  "serde",
+ "tokio",
  "utils",
+ "uuid",
+]
+
+[[package]]
+name = "api_crud"
+version = "0.1.0"
+dependencies = [
+ "actix-web",
+ "api_common",
+ "chrono",
+ "database",
+ "jsonwebtoken",
+ "lazy-regex",
+ "log",
+ "reqwest 0.12.12",
+ "serde",
+ "serde_json",
+ "tokio",
+ "utils",
+ "uuid",
 ]
 
 [[package]]
@@ -3405,6 +3426,7 @@ dependencies = [
  "actix-web",
  "api",
  "api_common",
+ "api_crud",
  "database",
  "env_logger",
  "log",

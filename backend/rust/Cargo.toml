@@ -10,7 +10,7 @@ members = [
   "crates/server",
   "crates/migration",
   "crates/entity",
-  "crates/api_common",
+  "crates/api_common", "crates/api_crud",
 ]
 resolver = "2"
 

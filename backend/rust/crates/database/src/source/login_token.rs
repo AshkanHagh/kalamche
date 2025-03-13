@@ -9,6 +9,7 @@ use uuid::Uuid;
 pub struct LoginToken {
   pub user_id: Uuid,
   pub token_hash: String,
+  pub ip: String,
   // time of login
   pub published: DateTime<FixedOffset>,
 }
@@ -17,4 +18,5 @@ pub struct LoginToken {
 pub struct LoginTokenInsertForm {
   pub user_id: Uuid,
   pub token_hash: String,
+  pub ip: String,
 }
