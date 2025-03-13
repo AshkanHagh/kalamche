@@ -2,7 +2,7 @@
 
 import { Menu, User } from "lucide-react"
 import Logo from "../svgs/logo"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger
 } from "../ui/dropdown-menu"
 import { Children } from "react"
+import { ProfileDropdown } from "../profile/profile-dropdown"
 
 type NavbarProps = {
   children: React.ReactNode
@@ -38,10 +39,7 @@ export const Navbar = ({ children }: NavbarProps) => {
 
         <div className="flex items-center gap-4">
           {true ? (
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="/placeholder-user.jpg" alt="User" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
+            <ProfileDropdown />
           ) : (
             <Button asChild variant="outline" size="sm">
               <Link href="/auth/login">
