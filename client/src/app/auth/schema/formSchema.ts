@@ -26,3 +26,13 @@ export const registerSchema = z
   })
 
 export type RegisterFormValues = z.infer<typeof registerSchema>
+
+export const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters" }),
+  rememberMe: z.boolean().optional()
+})
+
+export type LoginFormValues = z.infer<typeof loginSchema>

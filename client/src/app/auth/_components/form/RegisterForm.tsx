@@ -25,7 +25,7 @@ const RegisterForm = () => {
     formState: { isSubmitting }
   } = form
 
-  function onSubmit(data: RegisterFormValues) {
+  const onSubmit = (data: RegisterFormValues) => {
     console.log(data)
   }
 
