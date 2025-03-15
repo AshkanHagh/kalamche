@@ -2,7 +2,6 @@
 
 import { Menu, User } from "lucide-react"
 import Logo from "../svgs/logo"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "../ui/button"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -15,7 +14,7 @@ import {
   DropdownMenuTrigger
 } from "../ui/dropdown-menu"
 import { Children } from "react"
-import { ProfileDropdown } from "../profile/profile-dropdown"
+import { ProfileDropdown } from "../profile/ProfileDropdown"
 
 type NavbarProps = {
   children: React.ReactNode
