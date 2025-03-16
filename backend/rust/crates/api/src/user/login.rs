@@ -50,7 +50,7 @@ pub async fn login(
   )?;
 
   let login_token = LoginToken::find_by_user_id(context.pool(), user.id).await?;
-  if Utc::now() - login_token.published.with_timezone(&Utc) >= Duration::days(12) {
+  if Utc::now() - login_token.published.with_timezone(&Utc) >= Duration::hours(12) {
     let pending_user_id = Uuid::new_v4();
     let code = generate_random_string();
     let verification_token =
