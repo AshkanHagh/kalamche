@@ -1,3 +1,5 @@
+import { CurrentUser } from "@/types"
+
 export const bestSellingProducts = [
   {
     id: 1,
@@ -342,4 +344,16 @@ export const product = {
       image: "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg"
     }
   ]
+}
+
+export const currentUser: CurrentUser = {
+  id: "user_123",
+  name: "Jane Smith",
+  email: "jane.smith@example.com",
+  avatar: "#",
+  subscription: {
+    status: "active" as const,
+    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 700) // 30 days from now
+  },
+  memberSince: new Date("2024-04-05")
 }
