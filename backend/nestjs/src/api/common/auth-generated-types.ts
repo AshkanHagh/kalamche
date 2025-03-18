@@ -1,5 +1,5 @@
 import { UserRecord } from "src/drizzle/schema";
-import { IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 export class AuthenticateWIthOAuthDto {
   @IsString()
@@ -11,6 +11,22 @@ export class AuthenticateWIthOAuthDto {
 
   @IsString()
   provider: string;
+}
+
+export class RegisterDto {
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  password: string;
+}
+
+export class VerifyEmailRegistratonDto {
+  @IsString()
+  token: string;
+
+  @IsString()
+  code: string;
 }
 
 export type GetAuthorizeUrlResponse = {

@@ -10,10 +10,11 @@ export const UserSchema = pgTable(
     id: table.uuid().primaryKey().defaultRandom(),
     name: table.varchar({ length: 255 }).notNull(),
     email: table.varchar({ length: 255 }).notNull().unique(),
-    avatarUrl: table.varchar({ length: 300 }).notNull(),
-    createdAt: table.timestamp().defaultNow().notNull(),
+    avatarUrl: table.varchar({ length: 300 }).notNull().default("#"),
+    passwordHash: table.varchar({ length: 300 }),
+    createdAt: table.timestamp({ withTimezone: true }).defaultNow().notNull(),
     updatedAt: table
-      .timestamp()
+      .timestamp({ withTimezone: true })
       .defaultNow()
       .$onUpdateFn(() => new Date())
       .notNull(),
@@ -34,7 +35,7 @@ export const UserTableRelations = relations(UserSchema, ({ many, one }) => ({
 export type User = InferSelectModel<typeof UserSchema>;
 export type UserRecord = Omit<
   User,
-  "refreshTokenHash" | "updatedAt" | "lastLogin"
+  "refreshTokenHash" | "updatedAt" | "lastLogin" | "passwordHash"
 > & {
   permissions: string[];
 };

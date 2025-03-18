@@ -3,8 +3,8 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { migration } from "./drizzle/migration";
 import { ValidationPipe } from "@nestjs/common";
-import { AllExceptionsFilter } from "./common/error/error.filter";
 import * as cookieParser from "cookie-parser";
+import { AllExceptionsFilter } from "./common/error/all-exception-filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

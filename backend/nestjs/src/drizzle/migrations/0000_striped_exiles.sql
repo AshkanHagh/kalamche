@@ -2,9 +2,10 @@ CREATE TABLE "users" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(255) NOT NULL,
 	"email" varchar(255) NOT NULL,
-	"avatar_url" varchar(300) NOT NULL,
-	"created_at" timestamp DEFAULT now() NOT NULL,
-	"updated_at" timestamp DEFAULT now() NOT NULL,
+	"avatar_url" varchar(300) DEFAULT '#' NOT NULL,
+	"password_hash" varchar(300),
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
 --> statement-breakpoint
@@ -22,12 +23,21 @@ CREATE TABLE "permissions" (
 CREATE TABLE "login_tokens" (
 	"user_id" uuid PRIMARY KEY NOT NULL,
 	"token_hash" varchar(300) NOT NULL,
-	"published" timestamp DEFAULT now() NOT NULL
+	"ip" varchar DEFAULT '127.0.0.1',
+	"published" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "oauth_accounts" (
 	"oauth_user_id" varchar(50) NOT NULL,
 	"user_id" uuid NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "pending_users" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"email" varchar(255) NOT NULL,
+	"password_hash" varchar(300),
+	"token" varchar(300) NOT NULL,
+	"published" timestamp with time zone DEFAULT now()
 );
 --> statement-breakpoint
 ALTER TABLE "user_permissions" ADD CONSTRAINT "user_permissions_permission_id_permissions_id_fk" FOREIGN KEY ("permission_id") REFERENCES "public"."permissions"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint

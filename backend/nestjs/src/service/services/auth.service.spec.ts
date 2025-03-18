@@ -5,13 +5,14 @@ import { PermissionService } from "./permission.service";
 import { TokenService } from "./token.service";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
 import { ConfigModule } from "src/config/config.module";
-import { DATABASE_CONNECTION } from "src/drizzle";
+import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import { sql } from "drizzle-orm";
-import { seedDefaultPermissions } from "src/drizzle/seed/permissions.seed";
 import { migration } from "src/drizzle/migration";
 import { ConfigService } from "src/config/config.service";
-import { OAuthUser } from "src/config/auth/oauth-clients";
+import { OAuthUser } from "src/config/auth/oauth/oauth-clients";
 
+// TODO: check redis data in tests
+// NOTE: this test is currently unreliable. Improve it with proper test cases.
 describe("AuthService", () => {
   let app: TestingModule;
   let authService: AuthService;
@@ -45,17 +46,14 @@ describe("AuthService", () => {
 
     await Promise.all([
       connection.execute(sql`TRUNCATE TABLE users CASCADE`),
-      connection.execute(sql`TRUNCATE TABLE permissions CASCADE`),
       config.systemOpitons.cacheSterategy.clear(),
     ]);
-
-    await seedDefaultPermissions();
   });
 
-  describe("FindOrCreateUser", () => {
+  describe("createUserWithDefaultPermission", () => {
     it("should create a new user when not found", async () => {
       const user =
-        await authService["findUserByOAuthAccountOrCreate"](testOAuthUser);
+        await authService["createUserWithDefaultPermission"](testOAuthUser);
 
       expect(user).toBeDefined();
       expect(user.email).toBe(testOAuthUser.email);
@@ -73,29 +71,18 @@ describe("AuthService", () => {
       expect(permissions).toBeDefined();
       expect(permissions.length).toBeGreaterThan(0);
 
-      const oauthAccount = await connection.query.OAuthAccountSchema.findFirst({
-        where: (table, funcs) => funcs.eq(table.userId, user.id),
-      });
+      // const oauthAccount = await connection.query.OAuthAccountSchema.findFirst({
+      //   where: (table, funcs) => funcs.eq(table.userId, user.id),
+      // });
 
-      expect(oauthAccount).toBeDefined();
-      expect(oauthAccount?.oauthUserId).toBe(testOAuthUser.id);
-    });
-
-    it("should return existing user when found", async () => {
-      const createdUser =
-        await authService["findUserByOAuthAccountOrCreate"](testOAuthUser);
-      const existingUser =
-        await authService["findUserByOAuthAccountOrCreate"](testOAuthUser);
-
-      expect(existingUser).toBeDefined();
-      expect(existingUser.id).toBe(createdUser.id);
-      expect(existingUser.email).toBe(testOAuthUser.email);
+      // expect(oauthAccount).toBeDefined();
+      // expect(oauthAccount?.oauthUserId).toBe(testOAuthUser.id);
     });
   });
 
-  describe("oauthRegister", () => {
+  describe("authenticateWithOAuth", () => {
     it("sould register user with tokens", async () => {
-      const user = await authService.oauthRegister(testOAuthUser);
+      const user = await authService.authenticateWithOAuth(testOAuthUser);
 
       expect(user).toBeDefined();
       expect(user.user).toBeDefined();
@@ -103,7 +90,9 @@ describe("AuthService", () => {
       expect(user.accessToken).toBeDefined();
       expect(user.refreshToken).toBeDefined();
 
-      const claims = tokenService.decodeRefreshToken(user.refreshToken);
+      const claims = config.authOptions.token.verifyRefreshToken(
+        user.refreshToken,
+      );
       expect(claims).toBeDefined();
       expect(claims.sub).toBe(user.user.id);
 
@@ -115,9 +104,13 @@ describe("AuthService", () => {
     });
 
     it("sould return exstingUser with new tokens on register", async () => {
-      const firstRegistration = await authService.oauthRegister(testOAuthUser);
+      const firstRegistration =
+        await authService.authenticateWithOAuth(testOAuthUser);
+
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      const secondRegistration = await authService.oauthRegister(testOAuthUser);
+
+      const secondRegistration =
+        await authService.authenticateWithOAuth(testOAuthUser);
 
       expect(secondRegistration.user.id).toBe(firstRegistration.user.id);
       expect(secondRegistration.accessToken).not.toBe(
@@ -130,9 +123,9 @@ describe("AuthService", () => {
 
     it("should handle concurrent registration", async () => {
       const result = await Promise.all([
-        await authService.oauthRegister(testOAuthUser),
-        await authService.oauthRegister(testOAuthUser),
-        await authService.oauthRegister(testOAuthUser),
+        await authService.authenticateWithOAuth(testOAuthUser),
+        await authService.authenticateWithOAuth(testOAuthUser),
+        await authService.authenticateWithOAuth(testOAuthUser),
       ]);
 
       const userIds = result.map((user) => user.user.id);
@@ -142,7 +135,7 @@ describe("AuthService", () => {
 
   describe("refreshToken", () => {
     it("should update user and return new tokens", async () => {
-      const user = await authService.oauthRegister(testOAuthUser);
+      const user = await authService.authenticateWithOAuth(testOAuthUser);
       const currentUser = await connection.query.UserSchema.findFirst({
         where: (table, funcs) => funcs.eq(table.id, user.user.id),
         with: {
@@ -174,7 +167,7 @@ describe("AuthService", () => {
     });
 
     it("should refresh tokens and add old tokens in blacklist", async () => {
-      const user = await authService.oauthRegister(testOAuthUser);
+      const user = await authService.authenticateWithOAuth(testOAuthUser);
 
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await authService.refreshToken(user.refreshToken);

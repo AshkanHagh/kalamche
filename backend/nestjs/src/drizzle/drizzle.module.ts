@@ -1,12 +1,19 @@
 import { DynamicModule, Module } from "@nestjs/common";
-import { createDrizzleConnection, DATABASE_CONNECTION } from ".";
+import { DATABASE_CONNECTION } from "./constants";
+import { createMockDb, createPool } from "./connection";
+import { drizzle } from "drizzle-orm/node-postgres";
+import * as schema from "./schema";
 
 @Module({
   providers: [
     {
       provide: DATABASE_CONNECTION,
       useFactory: () => {
-        return createDrizzleConnection();
+        const pool = createPool(process.env.DATABSE_URL!, 100);
+        return drizzle(pool, {
+          casing: "snake_case",
+          schema,
+        });
       },
     },
   ],
@@ -14,14 +21,14 @@ import { createDrizzleConnection, DATABASE_CONNECTION } from ".";
   exports: [DATABASE_CONNECTION],
 })
 export class DrizzleModule {
-  static forTest(url?: string): DynamicModule {
+  static forTest(): DynamicModule {
     return {
       module: DrizzleModule,
       providers: [
         {
           provide: DATABASE_CONNECTION,
           useFactory: () => {
-            return createDrizzleConnection(url);
+            return createMockDb();
           },
         },
       ],

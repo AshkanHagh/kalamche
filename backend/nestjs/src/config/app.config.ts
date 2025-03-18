@@ -1,7 +1,8 @@
 import { CacheStrategy } from "src/cache/cache.strategy";
-import { PasswordHashStrategy } from "./auth/password.strategy";
-import { OAuthManager } from "./auth/oauth-manager";
+import { PasswordHashStrategy } from "./auth/password/password.strategy";
+import { OAuthManager } from "./auth/oauth/oauth-manager";
 import { TokenStrategy } from "./auth/token";
+import { NodemailerSendEmail } from "./utils/email";
 
 export interface CookieOptions {
   name?: string;
@@ -22,6 +23,7 @@ export interface AuthOptions {
   cookieOptions: CookieOptions;
   oauthOptions?: OAuthOpitons;
   tokenOptions: TokenOptions;
+  verificationRedirectUrl: string;
 }
 
 export interface TokenOptions {
@@ -29,9 +31,11 @@ export interface TokenOptions {
   rtSecret: string;
   rtExpiry: number;
   atExpiry: number;
-  tokenCacheDuration: number;
   tokenAud: string;
   tokenIss: string;
+  tokenCacheDuration: number;
+  verificationSecret: string;
+  verificationExpiry: number;
 }
 
 export interface OAuthOpitons {
@@ -49,21 +53,33 @@ export interface OAuthProviderOpitons {
   otherInfoUrl: string | undefined;
 }
 
+export interface EmailOptions {
+  email: string;
+  host: string;
+  port: number;
+  tls: boolean;
+  user: string | null;
+  password: string | null;
+}
+
 export interface SystemOptions {
   cacheSterategy: CacheStrategy;
 }
 
 export interface AppConfig {
   authOptions: AuthOptions;
+  emailOptions: NodemailerSendEmail;
   systemOpitons: SystemOptions;
 }
 
 export interface RuntimeAppConfig extends Required<AppConfig> {
   authOptions: Required<AuthOptions>;
+  emailOptions: NodemailerSendEmail;
   systemOpitons: Required<SystemOptions>;
 }
 
 export interface TestAppConfig extends Partial<AppConfig> {
   authOptions: AuthOptions;
+  emailOptions: NodemailerSendEmail;
   systemOpitons: SystemOptions;
 }

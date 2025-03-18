@@ -1,10 +1,15 @@
-import { ForbiddenException, Inject } from "@nestjs/common";
-import { createCacheKey } from "src/common/cache-name";
-import { CatchError } from "src/common/error/catch-error";
-import { ConfigService } from "src/config/config.service";
-import { DATABASE_CONNECTION } from "src/drizzle";
 import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+  UnauthorizedException,
+} from "@nestjs/common";
+import { ConfigService } from "src/config/config.service";
+import { DATABASE_CONNECTION } from "src/drizzle/constants";
+import {
+  InsertUser,
   OAuthAccountSchema,
+  PendingUserSchema,
   User,
   UserRecord,
   UserSchema,
@@ -12,7 +17,18 @@ import {
 import { Postgres } from "src/drizzle/types";
 import { TokenService } from "./token.service";
 import { PermissionService } from "./permission.service";
-import { OAuthUser } from "src/config/auth/oauth-clients";
+import { OAuthUser } from "src/config/auth/oauth/oauth-clients";
+import {
+  RegisterDto,
+  VerifyEmailRegistratonDto,
+} from "src/api/common/auth-generated-types";
+import { v4 as uuid } from "uuid";
+import { generateOTP, createCacheKey } from "src/common/utils";
+import {
+  AccountPendingToVerifyException,
+  EmailAlreadyExistsException,
+} from "src/common/error/error.exception";
+import { eq } from "drizzle-orm";
 
 export class AuthService {
   constructor(
@@ -34,110 +50,185 @@ export class AuthService {
     };
   }
 
-  private async findUserByOAuthAccountOrCreate(userInfo: OAuthUser) {
-    const account = await this.connection.query.OAuthAccountSchema.findFirst({
-      where: (table, funcs) => funcs.eq(table.oauthUserId, userInfo.id),
-      with: {
-        user: true,
-      },
-    });
+  public async authenticateWithOAuth(oauthUser: OAuthUser) {
+    const oauthAccount =
+      await this.connection.query.OAuthAccountSchema.findFirst({
+        where: (table, funcs) => funcs.eq(table.oauthUserId, oauthUser.id),
+      });
 
     let user: User;
+    if (oauthAccount) {
+      const [existingUser] = await this.connection
+        .select()
+        .from(UserSchema)
+        .where(eq(UserSchema.id, oauthAccount.userId));
 
-    if (!account) {
-      const createdUser = (
-        await this.connection
-          .insert(UserSchema)
-          .values({
-            email: userInfo.email,
-            name: userInfo.name,
-            avatarUrl: userInfo.avatarUrl,
-          })
-          .returning()
-      )[0];
-
-      await Promise.all([
-        await this.permissionService.createDefaultPermissionsForUser(
-          createdUser.id,
-        ),
-
-        await this.connection.insert(OAuthAccountSchema).values({
-          userId: createdUser.id,
-          oauthUserId: userInfo.id,
-        }),
-      ]);
-
-      user = createdUser;
+      user = existingUser;
     } else {
-      user = account.user;
+      user = await this.createUserWithDefaultPermission({
+        name: oauthUser.name,
+        email: oauthUser.email,
+        avatarUrl: oauthUser.avatarUrl,
+      });
+
+      await this.connection.insert(OAuthAccountSchema).values({
+        userId: user.id,
+        oauthUserId: oauthUser.id,
+      });
     }
 
-    return user;
-  }
+    const userPermissions = await this.permissionService.getUserPermissions(
+      user.id,
+    );
+    const { refreshToken, accessToken } =
+      await this.tokenService.createAuthToken(user.id, userPermissions);
 
-  public async oauthRegister(userInfo: OAuthUser) {
-    try {
-      const user = await this.findUserByOAuthAccountOrCreate(userInfo);
-      const userPermissions = await this.permissionService.getUserPermissions(
-        user.id,
-      );
+    const userRecord = this.intoRecord(user, userPermissions);
+    await this.addUserToCache(userRecord);
 
-      const token = await this.tokenService.createAutnetiationTokens(
-        user.id,
-        userPermissions,
-      );
-
-      const userRecord = this.intoRecord(user, userPermissions);
-      await this.addUserToCache(userRecord);
-
-      return {
-        user: userRecord,
-        ...token,
-      };
-    } catch (error: unknown) {
-      throw CatchError(error);
-    }
-  }
-
-  private async addUserToCache(user: UserRecord) {
-    try {
-      const userCacheKey = createCacheKey("user", user.id);
-      const oneDay = 60 * 60 * 24;
-
-      await this.config.systemOpitons.cacheSterategy.set(
-        userCacheKey,
-        user,
-        oneDay,
-      );
-    } catch (error: unknown) {
-      throw CatchError(error);
-    }
+    return {
+      user: userRecord,
+      accessToken,
+      refreshToken,
+    };
   }
 
   public async refreshToken(refreshToken: string) {
-    try {
-      const rtClaims = this.tokenService.decodeRefreshToken(refreshToken);
-      const user = await this.getUserWithPermissions(rtClaims.sub);
-      const loginToken = await this.connection.query.LoginTokenSchema.findFirst(
-        {
-          where: (table, funcs) => funcs.eq(table.userId, user.id),
-        },
-      );
+    const claims =
+      this.config.authOptions.token.verifyRefreshToken(refreshToken);
+    const user = await this.getUserWithPermissions(claims.sub);
 
-      await this.tokenService.isRefreshTokenMatchesHash(
-        loginToken!.tokenHash,
-        refreshToken,
-      );
-
-      const tokens = await this.tokenService.createAutnetiationTokens(
-        user.id,
-        user.permissions,
-      );
-
-      return tokens;
-    } catch (error: unknown) {
-      throw CatchError(error);
+    const loginToken = await this.connection.query.LoginTokenSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.userId, user.id),
+    });
+    if (!loginToken) {
+      throw new UnauthorizedException();
     }
+
+    const tokenMatches = await this.config.authOptions.passwordStrategy.check(
+      refreshToken,
+      loginToken.tokenHash,
+    );
+    if (!tokenMatches) {
+      throw new UnauthorizedException();
+    }
+
+    const tokens = await this.tokenService.createAuthToken(
+      user.id,
+      user.permissions,
+    );
+
+    return tokens;
+  }
+
+  public async register(payload: RegisterDto) {
+    const emailExists = await this.connection.query.UserSchema.findFirst({
+      where: (table, funcs) => funcs.eq(table.email, payload.email),
+    });
+    if (emailExists) {
+      throw new EmailAlreadyExistsException();
+    }
+
+    const pendingUser = await this.connection.query.PendingUserSchema.findFirst(
+      {
+        where: (table, funcs) => funcs.eq(table.email, payload.email),
+      },
+    );
+    if (pendingUser) {
+      throw new AccountPendingToVerifyException();
+    }
+
+    const pendingUserId = uuid();
+    const verificationCode = generateOTP();
+    const verificationToken =
+      this.config.authOptions.token.signVerificationToken(
+        pendingUserId,
+        verificationCode,
+      );
+
+    await this.connection.insert(PendingUserSchema).values({
+      email: payload.email,
+      passwordHash: await this.config.authOptions.passwordStrategy.hash(
+        payload.password,
+      ),
+      token: verificationToken,
+      id: pendingUserId,
+    });
+
+    await this.config.emailOptions.sendVerificationEmail({
+      email: payload.email,
+      redirectUrl: this.config.authOptions.verificationRedirectUrl,
+      code: verificationCode,
+    });
+
+    return verificationToken;
+  }
+
+  public async verifyEmailRegistration(payload: VerifyEmailRegistratonDto) {
+    const tokenClaims = this.config.authOptions.token.verifyVerificationToken(
+      payload.token,
+    );
+
+    if (tokenClaims.code != payload.code) {
+      throw new BadRequestException("Invalid verification code.");
+    }
+
+    const [pendingUser] = await this.connection
+      .select()
+      .from(PendingUserSchema)
+      .where(eq(PendingUserSchema.id, tokenClaims.sub));
+
+    if (!pendingUser) {
+      throw new BadRequestException("No pending verification.");
+    }
+
+    const tokenAge = Date.now() - new Date(pendingUser.published!).getTime();
+    if (tokenAge > this.config.authOptions.tokenOptions.verificationExpiry) {
+      throw new BadRequestException("Verification token expired.");
+    }
+
+    let [user] = await this.connection
+      .select()
+      .from(UserSchema)
+      .where(eq(UserSchema.email, pendingUser.email));
+
+    if (!user) {
+      user = await this.createUserWithDefaultPermission({
+        name: pendingUser.email.split("@")[0],
+        email: pendingUser.email,
+        passwordHash: pendingUser.passwordHash,
+      });
+    }
+
+    await this.connection
+      .delete(PendingUserSchema)
+      .where(eq(PendingUserSchema.id, pendingUser.id));
+
+    const userPermissions = await this.permissionService.getUserPermissions(
+      user.id,
+    );
+    const { refreshToken, accessToken } =
+      await this.tokenService.createAuthToken(user.id, userPermissions);
+
+    const userRecord = this.intoRecord(user, userPermissions);
+    await this.addUserToCache(userRecord);
+
+    return {
+      user: userRecord,
+      refreshToken,
+      accessToken,
+    };
+  }
+
+  private async addUserToCache(user: UserRecord) {
+    const userCacheKey = createCacheKey("user", user.id);
+    const oneDay = 60 * 60 * 24;
+
+    await this.config.systemOpitons.cacheSterategy.set(
+      userCacheKey,
+      user,
+      oneDay,
+    );
   }
 
   private async getUserWithPermissions(userId: string) {
@@ -152,5 +243,15 @@ export class AuthService {
       await this.permissionService.getUserPermissions(userId);
 
     return { ...user, permissions: userPermissions };
+  }
+
+  private async createUserWithDefaultPermission(insertForm: InsertUser) {
+    const [user] = await this.connection
+      .insert(UserSchema)
+      .values(insertForm)
+      .returning();
+
+    await this.permissionService.createDefaultPermissionsForUser(user.id);
+    return user;
   }
 }

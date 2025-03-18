@@ -1,5 +1,5 @@
 import { AuthorizationCode } from "simple-oauth2";
-import { OAuthProviderOpitons } from "../app.config";
+import { OAuthProviderOpitons } from "../../app.config";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { CatchError } from "src/common/error/catch-error";
 import { BadRequestException, NotFoundException } from "@nestjs/common";

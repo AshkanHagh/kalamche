@@ -1,6 +1,8 @@
 import {
+  Body,
   Controller,
   Get,
+  Post,
   Query,
   Req,
   Res,
@@ -14,6 +16,8 @@ import {
   GetAuthorizeUrlResponse,
   LoginResponse,
   RefreshTokenResponse,
+  RegisterDto,
+  VerifyEmailRegistratonDto,
 } from "../common/auth-generated-types";
 import { REFRESH_TOKEN_COOKIE_NAME } from "../common/shared-constants";
 
@@ -41,7 +45,7 @@ export class AuthController {
       query.provider,
       query.code,
     );
-    const result = await this.authService.oauthRegister(oauthUser!);
+    const result = await this.authService.authenticateWithOAuth(oauthUser!);
 
     response
       .status(201)
@@ -75,6 +79,36 @@ export class AuthController {
       .json(<RefreshTokenResponse>{
         success: true,
         accessToken: tokens.accessToken,
+      });
+  }
+
+  @Post("/signup")
+  public async register(@Body() payload: RegisterDto) {
+    const token = await this.authService.register(payload);
+    return {
+      success: true,
+      verificationToken: token,
+    };
+  }
+
+  @Post("/email/verify")
+  public async verifyEmailRegistration(
+    @Res() res: Response,
+    @Body() payload: VerifyEmailRegistratonDto,
+  ) {
+    const user = await this.authService.verifyEmailRegistration(payload);
+
+    res
+      .status(201)
+      .cookie(
+        REFRESH_TOKEN_COOKIE_NAME,
+        user.refreshToken,
+        this.config.authOptions.cookieOptions,
+      )
+      .json(<RefreshTokenResponse>{
+        success: true,
+        user: user.user,
+        accessToken: user.accessToken,
       });
   }
 }

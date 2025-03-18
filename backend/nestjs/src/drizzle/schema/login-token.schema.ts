@@ -9,8 +9,9 @@ export const LoginTokenSchema = pgTable("login_tokens", (table) => ({
     .references(() => UserSchema.id, { onDelete: "cascade" })
     .notNull(),
   tokenHash: table.varchar({ length: 300 }).notNull(),
+  ip: table.varchar().default("127.0.0.1"),
   published: table
-    .timestamp()
+    .timestamp({ withTimezone: true })
     .defaultNow()
     .notNull()
     .$onUpdateFn(() => new Date()),

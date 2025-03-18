@@ -3,9 +3,8 @@ import {
   Injectable,
   InternalServerErrorException,
 } from "@nestjs/common";
-import { CatchError } from "src/common/error/catch-error";
 import { ConfigService } from "src/config/config.service";
-import { DATABASE_CONNECTION } from "src/drizzle";
+import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import { UserPermissionSchema } from "src/drizzle/schema";
 import { Postgres } from "src/drizzle/types";
 
@@ -18,49 +17,41 @@ export class PermissionService {
   ) {}
 
   public async createDefaultPermissionsForUser(userId: string): Promise<void> {
-    try {
-      const defaultPermissionNames = ["user:read", "shop:read", "product:read"];
+    const defaultPermissionNames = ["user:read", "shop:read", "product:read"];
 
-      const defaultPermissions =
-        await this.connection.query.PermissionSchema.findMany({
-          where: (table, funcs) =>
-            funcs.inArray(table.name, defaultPermissionNames),
-        });
+    const defaultPermissions =
+      await this.connection.query.PermissionSchema.findMany({
+        where: (table, funcs) =>
+          funcs.inArray(table.name, defaultPermissionNames),
+      });
 
-      if (defaultPermissions.length === 0) {
-        throw new InternalServerErrorException("default permissions not found");
-      }
-
-      await this.connection.insert(UserPermissionSchema).values(
-        defaultPermissions.map((permission) => ({
-          permissionId: permission.id,
-          userId,
-        })),
-      );
-    } catch (error: unknown) {
-      throw CatchError(error);
+    // permissions always exists but for not crashing
+    if (defaultPermissions.length === 0) {
+      throw new InternalServerErrorException("default permissions not found");
     }
+
+    await this.connection.insert(UserPermissionSchema).values(
+      defaultPermissions.map((permission) => ({
+        permissionId: permission.id,
+        userId,
+      })),
+    );
   }
 
   public async getUserPermissions(userId: string): Promise<string[]> {
-    try {
-      const userPermissions =
-        await this.connection.query.UserPermissionSchema.findMany({
-          where: (table, funcs) => funcs.eq(table.userId, userId),
-          with: {
-            permission: {
-              columns: { name: true },
-            },
+    const userPermissions =
+      await this.connection.query.UserPermissionSchema.findMany({
+        where: (table, funcs) => funcs.eq(table.userId, userId),
+        with: {
+          permission: {
+            columns: { name: true },
           },
-        });
+        },
+      });
 
-      if (!userPermissions || userPermissions.length === 0) {
-        throw new InternalServerErrorException("user has no permissions");
-      }
-
-      return userPermissions.map((up) => up.permission.name);
-    } catch (error: unknown) {
-      throw CatchError(error);
+    if (!userPermissions || userPermissions.length === 0) {
+      throw new InternalServerErrorException("user has no permissions");
     }
+    return userPermissions.map((up) => up.permission.name);
   }
 }

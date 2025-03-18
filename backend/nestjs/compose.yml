@@ -1,4 +1,10 @@
 services:
+  mailhog:
+    image: registry.docker.ir/mailhog/mailhog
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # Web UI
+
   minio:
     image: quay.io/minio/minio:latest
     ports:
@@ -10,9 +16,6 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
-    profiles:
-      - default
-      - with_test
 
   postgres:
     image: postgres:16.4-alpine
@@ -26,10 +29,6 @@ services:
     ports:
       - 5432:5432
 
-    profiles:
-      - default
-      - with_test
-
   redis:
     image: redis/redis-stack:latest
     restart: always
@@ -39,30 +38,6 @@ services:
       - 6379:6379
     volumes:
       - redis_data:/var/lib/redis/data
-
-    profiles:
-      - default
-      - with_test
-
-  test_postgres:
-    image: postgres:16.4-alpine
-    restart: always
-    environment:
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=kalamche_test
-    ports:
-      - 7302:5432
-    profiles:
-      - with_test
-
-  test_redis:
-    image: redis/redis-stack:latest
-    restart: always
-    ports:
-      - 7301:6379
-    profiles:
-      - with_test
 
 volumes:
   postgres_data:

@@ -2,15 +2,16 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { sql } from "drizzle-orm";
 import { ConfigModule } from "src/config/config.module";
 import { ConfigService } from "src/config/config.service";
-import { DATABASE_CONNECTION } from "src/drizzle";
+import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
 import { migration } from "src/drizzle/migration";
 import { InsertUser, UserSchema } from "src/drizzle/schema";
-import { seedDefaultPermissions } from "src/drizzle/seed/permissions.seed";
 import { Postgres } from "src/drizzle/types";
 import { PermissionService } from "./permission.service";
 import { v4 as uuid } from "uuid";
 
+// TODO: check redis data in tests
+// NOTE: this test is currently unreliable. Improve it with proper test cases.
 describe("PermissionService", () => {
   let app: TestingModule;
   let connection: Postgres;
@@ -40,11 +41,9 @@ describe("PermissionService", () => {
 
     await Promise.all([
       connection.execute(sql`TRUNCATE TABLE users CASCADE`),
-      connection.execute(sql`TRUNCATE TABLE permissions CASCADE`),
       config.systemOpitons.cacheSterategy.clear(),
     ]);
 
-    await seedDefaultPermissions();
     await connection.insert(UserSchema).values(testUser);
   });
 

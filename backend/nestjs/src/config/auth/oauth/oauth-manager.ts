@@ -1,6 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import { OAuthClient, OAuthUser } from "./oauth-clients";
-import { OAuthOpitons } from "../app.config";
+import { OAuthOpitons } from "../../app.config";
 
 export class OAuthManager {
   private readonly clients: Map<string, OAuthClient> = new Map();

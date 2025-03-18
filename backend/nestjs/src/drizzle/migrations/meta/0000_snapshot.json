@@ -1,5 +1,5 @@
 {
-  "id": "eb5a2229-b1d3-4190-a198-5a4dcf054f76",
+  "id": "8a482dff-33ed-4cae-9290-108c02375c7f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -31,18 +31,25 @@
           "name": "avatar_url",
           "type": "varchar(300)",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'#'"
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -182,9 +189,16 @@
           "primaryKey": false,
           "notNull": true
         },
+        "ip": {
+          "name": "ip",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'127.0.0.1'"
+        },
         "published": {
           "name": "published",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -245,6 +259,51 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.pending_users": {
+      "name": "pending_users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "password_hash": {
+          "name": "password_hash",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "published": {
+          "name": "published",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

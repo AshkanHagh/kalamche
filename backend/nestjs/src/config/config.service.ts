@@ -8,6 +8,7 @@ import {
 } from "./app.config";
 import { defaultConfig } from "./default.config";
 import { testConfig } from "./test.config";
+import { NodemailerSendEmail } from "./utils/email";
 
 @Injectable()
 export class ConfigService implements AppConfig {
@@ -27,5 +28,9 @@ export class ConfigService implements AppConfig {
 
   get systemOpitons(): SystemOptions {
     return this.activeConfig.systemOpitons;
+  }
+
+  get emailOptions(): NodemailerSendEmail {
+    return this.activeConfig.emailOptions;
   }
 }

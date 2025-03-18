@@ -1,13 +1,11 @@
-import { createDrizzleConnection } from "..";
 import * as schema from "../schema";
+import { Postgres } from "../types";
 
-export async function seedDefaultPermissions() {
-  // wait for migratoin to complete
-  await new Promise((resolve) => setTimeout(resolve, 1000));
+export async function seedDefaultPermissions(db: Postgres) {
+  await new Promise((resolve) => setTimeout(resolve, 400));
   const defaultPermissions = ["shop:read", "user:read", "product:read"];
-  const connection = createDrizzleConnection();
 
-  await connection
+  await db
     .insert(schema.PermissionSchema)
     .values(
       defaultPermissions.map((permission) => ({
