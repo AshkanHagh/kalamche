@@ -5,14 +5,14 @@ import { TokenStrategy } from "./auth/token";
 import { NodemailerSendEmail } from "./utils/email";
 
 const tokenOptions: TokenOptions = {
-  atExpiry: 60 * 15,
+  atExpiry: 1000 * 60 * 15,
   atSecret: "test_access_token",
-  rtExpiry: 60 * 60 * 24 * 2,
+  rtExpiry: 1000 * 60 * 60 * 24 * 2,
   rtSecret: "test_refresh_token",
   tokenIss: "test_iss",
   tokenAud: "test_aud",
   tokenCacheDuration: 60 * 60 * 24 * 2,
-  verificationExpiry: 60 * 15,
+  verificationExpiry: 1000 * 60 * 15,
   verificationSecret: "test_verification_secret",
 };
 

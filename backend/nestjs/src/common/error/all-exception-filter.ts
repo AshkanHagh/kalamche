@@ -9,6 +9,7 @@ import { Request, Response } from "express";
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
+    console.log(exception);
     const ctx = host.switchToHttp();
     const req = ctx.getRequest<Request>();
     const res = ctx.getResponse<Response>();
@@ -22,6 +23,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     res.status(statusCode).json({
       success: false,
+      statusCode: statusCode.toString(),
       message,
     });
   }

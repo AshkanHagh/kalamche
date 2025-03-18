@@ -111,4 +111,29 @@ export class AuthController {
         accessToken: user.accessToken,
       });
   }
+
+  @Post("/signin")
+  public async login(@Res() res: Response, @Body() payload: RegisterDto) {
+    const result = await this.authService.login(payload);
+
+    if (typeof result === "string") {
+      return res.status(200).json({
+        success: true,
+        verificationToken: result,
+      });
+    }
+
+    return res
+      .status(201)
+      .cookie(
+        REFRESH_TOKEN_COOKIE_NAME,
+        result.refreshToken,
+        this.config.authOptions.cookieOptions,
+      )
+      .json(<RefreshTokenResponse>{
+        success: true,
+        user: result.user,
+        accessToken: result.accessToken,
+      });
+  }
 }

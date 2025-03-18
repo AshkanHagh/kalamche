@@ -37,7 +37,7 @@ export class TokenStrategy {
       iss: this.config.tokenIss,
       scope,
       sub,
-      exp: Math.floor(Date.now() / 1000) + this.config.atExpiry,
+      exp: Math.floor(Date.now() + this.config.atExpiry / 1000),
       t_type: "access",
     };
 
@@ -49,7 +49,7 @@ export class TokenStrategy {
       aud: this.config.tokenAud,
       iss: this.config.tokenIss,
       sub,
-      exp: Math.floor(Date.now() / 1000) + this.config.rtExpiry,
+      exp: Math.floor(Date.now() + this.config.rtExpiry / 1000),
       t_type: "refresh",
     };
 
@@ -62,7 +62,7 @@ export class TokenStrategy {
       iss: this.config.tokenIss,
       sub,
       code,
-      exp: Math.floor(Date.now() / 1000) + this.config.verificationExpiry,
+      exp: Math.floor(Date.now() + this.config.verificationExpiry / 1000),
       t_type: "verification",
     };
 

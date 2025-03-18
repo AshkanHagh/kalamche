@@ -9,7 +9,7 @@ import * as schema from "./schema";
     {
       provide: DATABASE_CONNECTION,
       useFactory: () => {
-        const pool = createPool(process.env.DATABSE_URL!, 100);
+        const pool = createPool(process.env.DATABASE_URL!, 100);
         return drizzle(pool, {
           casing: "snake_case",
           schema,

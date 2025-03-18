@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Inject,
   UnauthorizedException,
@@ -8,6 +9,7 @@ import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import {
   InsertUser,
+  LoginTokenSchema,
   OAuthAccountSchema,
   PendingUserSchema,
   User,
@@ -24,10 +26,6 @@ import {
 } from "src/api/common/auth-generated-types";
 import { v4 as uuid } from "uuid";
 import { generateOTP, createCacheKey } from "src/common/utils";
-import {
-  AccountPendingToVerifyException,
-  EmailAlreadyExistsException,
-} from "src/common/error/error.exception";
 import { eq } from "drizzle-orm";
 
 export class AuthService {
@@ -126,7 +124,7 @@ export class AuthService {
       where: (table, funcs) => funcs.eq(table.email, payload.email),
     });
     if (emailExists) {
-      throw new EmailAlreadyExistsException();
+      throw new ConflictException("email already exists");
     }
 
     const pendingUser = await this.connection.query.PendingUserSchema.findFirst(
@@ -135,33 +133,13 @@ export class AuthService {
       },
     );
     if (pendingUser) {
-      throw new AccountPendingToVerifyException();
+      throw new ConflictException("account already is pending to verify");
     }
 
-    const pendingUserId = uuid();
-    const verificationCode = generateOTP();
-    const verificationToken =
-      this.config.authOptions.token.signVerificationToken(
-        pendingUserId,
-        verificationCode,
-      );
+    const { token, code } = await this.createPendingUser(payload);
+    await this.sendVerificationEmail(payload.email, code);
 
-    await this.connection.insert(PendingUserSchema).values({
-      email: payload.email,
-      passwordHash: await this.config.authOptions.passwordStrategy.hash(
-        payload.password,
-      ),
-      token: verificationToken,
-      id: pendingUserId,
-    });
-
-    await this.config.emailOptions.sendVerificationEmail({
-      email: payload.email,
-      redirectUrl: this.config.authOptions.verificationRedirectUrl,
-      code: verificationCode,
-    });
-
-    return verificationToken;
+    return token;
   }
 
   public async verifyEmailRegistration(payload: VerifyEmailRegistratonDto) {
@@ -220,6 +198,72 @@ export class AuthService {
     };
   }
 
+  public async login(payload: RegisterDto) {
+    const [user] = await this.connection
+      .select()
+      .from(UserSchema)
+      .where(eq(UserSchema.email, payload.email));
+    if (!user) {
+      throw new BadRequestException("invalid email or password");
+    }
+    if (!user.passwordHash) {
+      throw new BadRequestException("cannot login wiht oauth account");
+    }
+
+    const isPasswordMathes =
+      await this.config.authOptions.passwordStrategy.check(
+        payload.password,
+        user.passwordHash,
+      );
+    if (!isPasswordMathes) {
+      throw new BadRequestException("invalid email or password");
+    }
+
+    const [loginToken] = await this.connection
+      .select()
+      .from(LoginTokenSchema)
+      .where(eq(LoginTokenSchema.userId, user.id));
+
+    const tokenAge = Date.now() - new Date(loginToken.published).getTime();
+    if (tokenAge >= 1000 * 60 * 60 * 12) {
+      const [pendingUser] = await this.connection
+        .select()
+        .from(PendingUserSchema)
+        .where(eq(PendingUserSchema.email, payload.email));
+      if (pendingUser) {
+        throw new ConflictException("account already is pending to verify");
+      }
+
+      const { token, code } = await this.createPendingUser(payload);
+      await this.sendVerificationEmail(user.email, code);
+
+      return token;
+    }
+
+    const permissions = await this.permissionService.getUserPermissions(
+      user.id,
+    );
+    const { accessToken, refreshToken } =
+      await this.tokenService.createAuthToken(user.id, permissions);
+
+    const userRecord = this.intoRecord(user, permissions);
+    await this.addUserToCache(userRecord);
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  public async sendVerificationEmail(email: string, code: string) {
+    await this.config.emailOptions.sendVerificationEmail({
+      email,
+      redirectUrl: this.config.authOptions.verificationRedirectUrl,
+      code,
+    });
+  }
+
   private async addUserToCache(user: UserRecord) {
     const userCacheKey = createCacheKey("user", user.id);
     const oneDay = 60 * 60 * 24;
@@ -253,5 +297,26 @@ export class AuthService {
 
     await this.permissionService.createDefaultPermissionsForUser(user.id);
     return user;
+  }
+
+  private async createPendingUser(payload: RegisterDto) {
+    const pendingUserId = uuid();
+    const verificationCode = generateOTP();
+    const verificationToken =
+      this.config.authOptions.token.signVerificationToken(
+        pendingUserId,
+        verificationCode,
+      );
+
+    await this.connection.insert(PendingUserSchema).values({
+      email: payload.email,
+      passwordHash: await this.config.authOptions.passwordStrategy.hash(
+        payload.password,
+      ),
+      token: verificationToken,
+      id: pendingUserId,
+    });
+
+    return { token: verificationToken, code: verificationCode };
   }
 }

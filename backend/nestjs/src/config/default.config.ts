@@ -24,14 +24,14 @@ const oauthOptions: OAuthOpitons = {
 };
 
 const tokenOptions: TokenOptions = {
-  atExpiry: 60 * 15,
+  atExpiry: 1000 * 60 * 15,
   atSecret: process.env.ACCESS_TOKEN_SECRET!,
-  rtExpiry: 60 * 60 * 24 * 2,
+  rtExpiry: 1000 * 60 * 60 * 24 * 2,
   rtSecret: process.env.REFRESH_TOKEN_SECRET!,
   tokenIss: "Kalamche",
   tokenAud: "Kalamche",
   tokenCacheDuration: 60 * 60 * 24 * 2,
-  verificationExpiry: 60 * 10,
+  verificationExpiry: 1000 * 60 * 10,
   verificationSecret: process.env.VERIFICATION_TOKEN_SECRET!,
 };
 
