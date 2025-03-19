@@ -35,6 +35,8 @@ pub enum KalamcheErrorType {
   InvalidVerificationCode,
   ExpiredVerificationCode,
   AccountUsesOAuth,
+  RateLimitError,
+  InvalidRateLimitActionType,
 }
 
 pub type KalamcheResult<T> = std::result::Result<T, KalamcheError>;

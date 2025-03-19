@@ -2,9 +2,9 @@ use actix_web::{middleware, web::Data, App, HttpServer};
 use api_common::{context::KalamcheContext, oauth_provider::OAuthManager};
 use database::{connection::Database, migration::run_migration};
 use reqwest::Client;
-use routes_v1::routes_v1;
 use utils::{
   error::{KalamcheErrorType, KalamcheResult},
+  rate_limit::RateLimiter,
   setting::SETTINGS,
   utils::cache::RedisCache,
 };
@@ -20,6 +20,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
 
   let client = Client::new();
   let cache = RedisCache::new(SETTINGS.get_cache()).await?;
+  let rate_limiter = RateLimiter::new(&cache);
   let oauth = OAuthManager::new(
     SETTINGS
       .get_oauth()
@@ -35,7 +36,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
       .wrap(middleware::Logger::default())
       .wrap(middleware::Compress::default())
       .app_data(context.clone())
-      .configure(routes_v1)
+      .configure(|cfg| routes_v1::routes_v1(cfg, &rate_limiter))
   })
   .bind(bind)?
   .workers(2)

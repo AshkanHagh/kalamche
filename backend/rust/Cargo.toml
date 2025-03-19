@@ -10,7 +10,8 @@ members = [
   "crates/server",
   "crates/migration",
   "crates/entity",
-  "crates/api_common", "crates/api_crud",
+  "crates/api_common",
+  "crates/api_crud",
 ]
 resolver = "2"
 
@@ -37,7 +38,6 @@ log = "0.4.25"
 reqwest = { version = "0.12.12", features = ["multipart", "json"] }
 oauth2 = "4.4.2"
 argon2 = "0.5.3"
-lazy-regex = "3.4.1"
 strum = { version = "0.27", features = ["derive"] }
 async-trait = "0.1"
 redis = { version = "0.29.1", features = ["tokio-native-tls-comp", "r2d2"] }

@@ -9,6 +9,7 @@ use crate::{
 
 const DEFAULT_CACHE_TTL: usize = 60 * 60;
 
+#[derive(Debug, Clone)]
 pub struct RedisCache(pub MultiplexedConnection);
 
 impl RedisCache {
@@ -44,7 +45,7 @@ impl RedisCache {
   }
 
   fn namespace(key: &str) -> String {
-    format!("redis_cache:{}", key)
+    format!("kalamche:{}", key)
   }
 }
 

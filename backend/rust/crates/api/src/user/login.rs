@@ -19,12 +19,13 @@ use database::source::{
   user_permissin::UserPermission,
 };
 use utils::{
-  error::{KalamcheErrorType, KalamcheResult},
+  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
   setting::SETTINGS,
   utils::{
     hash::{hash_passwrod, verify_passwrod},
     random::generate_random_string,
     token::sign_verification_token,
+    validation::{is_email_valid, is_password_valid},
   },
 };
 use uuid::Uuid;
@@ -35,7 +36,8 @@ pub async fn login(
   req: HttpRequest,
   Json(payload): Json<Register>,
 ) -> KalamcheResult<HttpResponse> {
-  // TODO: validate password and email with regex
+  is_email_valid(&payload.email)?;
+  is_password_valid(&payload.password)?;
 
   let user = User::find_user_by_email(context.pool(), &payload.email)
     .await?
@@ -51,6 +53,13 @@ pub async fn login(
 
   let login_token = LoginToken::find_by_user_id(context.pool(), user.id).await?;
   if Utc::now() - login_token.published.with_timezone(&Utc) >= Duration::hours(12) {
+    let pending_user = PendingUser::find_by_email(context.pool(), &user.email).await?;
+    if pending_user {
+      return Err(KalamcheError::from(
+        KalamcheErrorType::AccountVerificationIsPending,
+      ));
+    }
+
     let pending_user_id = Uuid::new_v4();
     let code = generate_random_string();
     let verification_token =

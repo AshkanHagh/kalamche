@@ -14,7 +14,12 @@ use database::source::{
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
   setting::SETTINGS,
-  utils::{hash::hash_passwrod, random::generate_random_string, token::sign_verification_token},
+  utils::{
+    hash::hash_passwrod,
+    random::generate_random_string,
+    token::sign_verification_token,
+    validation::{is_email_valid, is_password_valid},
+  },
 };
 use uuid::Uuid;
 
@@ -23,7 +28,9 @@ pub async fn register(
   context: Data<KalamcheContext>,
   payload: Json<Register>,
 ) -> KalamcheResult<Json<RegisterResponse>> {
-  // TODO: validate user email by regex
+  is_email_valid(&payload.email)?;
+  is_password_valid(&payload.password)?;
+
   // returns error if exists
   User::email_exists(context.pool(), &payload.email).await?;
 

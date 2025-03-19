@@ -111,26 +111,28 @@ pub async fn verify_email_registration(
     .await?
     .ok_or(KalamcheErrorType::AccountNotRegistered)?;
 
-  let verification_token_duration =
-    Utc::now() + Duration::minutes(SETTINGS.get_jwt().verfication_expiry as i64);
-  if pending_user.published >= verification_token_duration {
+  let token_age = Utc::now().fixed_offset() - pending_user.published;
+  if token_age > Duration::minutes(SETTINGS.get_jwt().verfication_expiry as i64) {
     return Err(KalamcheError::from(
       KalamcheErrorType::ExpiredVerificationCode,
     ));
   }
 
+  // TODO: seprate some of the args in insert new user
   let user = match User::find_user_by_email(context.pool(), &pending_user.email).await? {
     Some(user) => user,
     None => {
+      let user_name = pending_user
+        .email
+        .split("@")
+        .next()
+        .unwrap_or("unknown")
+        .to_string();
+
       insert_new_user(
         context.pool(),
         UserInsertForm {
-          name: pending_user
-            .email
-            .split("@")
-            .next()
-            .unwrap_or("unknown")
-            .to_string(),
+          name: user_name,
           email: pending_user.email,
           password_hash: Some(
             pending_user

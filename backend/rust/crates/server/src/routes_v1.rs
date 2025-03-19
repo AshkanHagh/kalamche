@@ -1,8 +1,10 @@
 use actix_web::web::{scope, ServiceConfig};
+use utils::rate_limit::RateLimiter;
 
-pub fn routes_v1(cfg: &mut ServiceConfig) {
+pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
   cfg.service(
     scope("/auth")
+      .wrap(rate_limit.register())
       .service(api::user::oauth_authorize::get_authorize_url)
       .service(api::user::refresh_token::refresh_token)
       .service(api::user::register::register)
