@@ -1,3 +1,5 @@
+import tailwindCssAnimate from "tailwindcss-animate"
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
@@ -64,6 +66,22 @@ module.exports = {
           "var(--font-geist-sans)"
         ]
       },
+      keyframes: {
+        // Make sure these keyframes are defined
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" }
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 }
+        }
+      },
+      animation: {
+        // Make sure these animations are defined
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out"
+      },
       screens: {
         xs: "480px"
       },
@@ -75,5 +93,5 @@ module.exports = {
       }
     }
   },
-  plugins: []
+  plugins: [tailwindCssAnimate]
 }
