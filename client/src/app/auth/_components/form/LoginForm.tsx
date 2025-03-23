@@ -10,7 +10,7 @@ import {
 import { Control, useForm, FieldValues, Path } from "react-hook-form"
 import FormInput from "./FormInput"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { LoginFormValues, loginSchema } from "../../schema/formSchema"
+import { LoginFormValues, loginSchema } from "../../_schema/formSchema"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
