@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { createCacheKey } from "src/common/utils";
+import { signAccessToken, signRefreshToken } from "src/config/auth/token";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import { LoginTokenSchema } from "src/drizzle/schema";
@@ -13,14 +13,16 @@ export class TokenService {
     private readonly config: ConfigService,
   ) {}
 
-  public async createAuthToken(userId: string, permissions: string[]) {
-    const accessToken = this.config.authOptions.token.signAccessToken(
+  public createAuthToken(userId: string, permissions: string[]) {
+    const accessToken = signAccessToken(
+      this.config.authOptions.accessTokenConfig,
       userId,
       permissions,
     );
-
-    const refreshToken = this.config.authOptions.token.signRefreshToken(userId);
-    await this.updateTokenHashAndLastLogin(userId, refreshToken);
+    const refreshToken = signRefreshToken(
+      this.config.authOptions.refreshTokenConfig,
+      userId,
+    );
 
     return {
       refreshToken,
@@ -28,33 +30,20 @@ export class TokenService {
     };
   }
 
-  private async updateTokenHashAndLastLogin(
-    userId: string,
-    refreshToken: string,
-  ) {
+  public async updateLoginToken(userId: string, refreshToken: string) {
     const refreshTokenHash =
-      await this.config.authOptions.passwordStrategy.hash(refreshToken);
+      await this.config.authOptions.passwordHashingStrategy.hash(refreshToken);
 
-    const rfHashCacheKey = createCacheKey("user", "token_hash", userId);
-
-    await Promise.all([
-      await this.connection
-        .insert(LoginTokenSchema)
-        .values({
-          userId,
-          tokenHash: refreshTokenHash,
-          published: new Date(),
-        })
-        .onConflictDoUpdate({
-          target: LoginTokenSchema.userId,
-          set: { tokenHash: refreshTokenHash, published: new Date() },
-        }),
-
-      await this.config.systemOpitons.cacheSterategy.set(
-        rfHashCacheKey,
-        refreshToken,
-        this.config.authOptions.tokenOptions.tokenCacheDuration,
-      ),
-    ]);
+    await this.connection
+      .insert(LoginTokenSchema)
+      .values({
+        userId,
+        tokenHash: refreshTokenHash,
+        published: new Date(),
+      })
+      .onConflictDoUpdate({
+        target: LoginTokenSchema.userId,
+        set: { tokenHash: refreshTokenHash, published: new Date() },
+      });
   }
 }

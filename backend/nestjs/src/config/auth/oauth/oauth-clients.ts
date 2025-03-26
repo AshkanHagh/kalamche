@@ -1,8 +1,11 @@
 import { AuthorizationCode } from "simple-oauth2";
-import { OAuthProviderOpitons } from "../../app.config";
-import axios, { AxiosInstance, AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosInstance, AxiosResponse } from "axios";
 import { CatchError } from "src/common/error/catch-error";
-import { BadRequestException, NotFoundException } from "@nestjs/common";
+import { OAuthProviderOpitons } from "../types";
+import {
+  KalamcheError,
+  KalamcheErrorType,
+} from "src/common/error/error.exception";
 
 export type OAuthUser = {
   id: string;
@@ -71,9 +74,12 @@ export class OAuthClient {
         case "github":
           return this.mapGithubUser(userInfo, otherInfo);
         default:
-          throw new NotFoundException("oauth provider not found");
+          throw new KalamcheError(KalamcheErrorType.InvalidOAuthAuthorization);
       }
     } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new KalamcheError(KalamcheErrorType.OAuthLoginFailed, error);
+      }
       throw CatchError(error);
     }
   }
@@ -91,7 +97,7 @@ export class OAuthClient {
       (email) => email.primary && email.verified,
     );
     if (!userPrimaryEmail) {
-      throw new BadRequestException("oauth user has no primary email");
+      throw new KalamcheError(KalamcheErrorType.OAuthNoVerifiedPrimaryEmail);
     }
 
     return {

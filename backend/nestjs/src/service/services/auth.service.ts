@@ -1,10 +1,4 @@
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Inject,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { Inject } from "@nestjs/common";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import {
@@ -25,8 +19,18 @@ import {
   VerifyEmailRegistratonDto,
 } from "src/api/common/auth-generated-types";
 import { v4 as uuid } from "uuid";
-import { generateOTP, createCacheKey } from "src/common/utils";
+import { generateOTP } from "src/common/utils";
 import { eq } from "drizzle-orm";
+import {
+  RefreshTokenClaims,
+  signVerificationToken,
+  VerificationTokenClaims,
+  verifyToken,
+} from "src/config/auth/token";
+import {
+  KalamcheError,
+  KalamcheErrorType,
+} from "src/common/error/error.exception";
 
 export class AuthService {
   constructor(
@@ -49,17 +53,22 @@ export class AuthService {
   }
 
   public async authenticateWithOAuth(oauthUser: OAuthUser) {
-    const oauthAccount =
-      await this.connection.query.OAuthAccountSchema.findFirst({
-        where: (table, funcs) => funcs.eq(table.oauthUserId, oauthUser.id),
-      });
+    const [oauthAccount] = await this.connection
+      .select()
+      .from(OAuthAccountSchema)
+      .where(eq(OAuthAccountSchema.oauthUserId, oauthUser.id));
 
     let user: User;
+
     if (oauthAccount) {
       const [existingUser] = await this.connection
         .select()
         .from(UserSchema)
         .where(eq(UserSchema.id, oauthAccount.userId));
+
+      if (!existingUser) {
+        throw new KalamcheError(KalamcheErrorType.InvalidOAuthAuthorization);
+      }
 
       user = existingUser;
     } else {
@@ -75,46 +84,35 @@ export class AuthService {
       });
     }
 
-    const userPermissions = await this.permissionService.getUserPermissions(
-      user.id,
-    );
-    const { refreshToken, accessToken } =
-      await this.tokenService.createAuthToken(user.id, userPermissions);
-
-    const userRecord = this.intoRecord(user, userPermissions);
-    await this.addUserToCache(userRecord);
-
-    return {
-      user: userRecord,
-      accessToken,
-      refreshToken,
-    };
+    return this.loginTokens(user);
   }
 
   public async refreshToken(refreshToken: string) {
-    const claims =
-      this.config.authOptions.token.verifyRefreshToken(refreshToken);
-    const user = await this.getUserWithPermissions(claims.sub);
+    const refreshTokenClaims = verifyToken<RefreshTokenClaims>(
+      this.config.authOptions.refreshTokenConfig,
+      "REFRESH",
+      refreshToken,
+    );
+    const user = await this.getUserWithPermissions(refreshTokenClaims.sub);
 
     const loginToken = await this.connection.query.LoginTokenSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.userId, user.id),
     });
     if (!loginToken) {
-      throw new UnauthorizedException();
+      throw new KalamcheError(KalamcheErrorType.NotLoggedIn);
     }
 
-    const tokenMatches = await this.config.authOptions.passwordStrategy.check(
-      refreshToken,
-      loginToken.tokenHash,
-    );
+    const tokenMatches =
+      await this.config.authOptions.passwordHashingStrategy.check(
+        refreshToken,
+        loginToken.tokenHash,
+      );
     if (!tokenMatches) {
-      throw new UnauthorizedException();
+      throw new KalamcheError(KalamcheErrorType.NotLoggedIn);
     }
 
-    const tokens = await this.tokenService.createAuthToken(
-      user.id,
-      user.permissions,
-    );
+    const tokens = this.tokenService.createAuthToken(user.id, user.permissions);
+    await this.tokenService.updateLoginToken(user.id, tokens.refreshToken);
 
     return tokens;
   }
@@ -124,16 +122,15 @@ export class AuthService {
       where: (table, funcs) => funcs.eq(table.email, payload.email),
     });
     if (emailExists) {
-      throw new ConflictException("email already exists");
+      throw new KalamcheError(KalamcheErrorType.EmailAlreadyExists);
     }
 
-    const pendingUser = await this.connection.query.PendingUserSchema.findFirst(
-      {
-        where: (table, funcs) => funcs.eq(table.email, payload.email),
-      },
-    );
+    const [pendingUser] = await this.connection
+      .select()
+      .from(PendingUserSchema)
+      .where(eq(PendingUserSchema.email, payload.email));
     if (pendingUser) {
-      throw new ConflictException("account already is pending to verify");
+      throw new KalamcheError(KalamcheErrorType.AccountVerificationIsPending);
     }
 
     const { token, code } = await this.createPendingUser(payload);
@@ -143,26 +140,30 @@ export class AuthService {
   }
 
   public async verifyEmailRegistration(payload: VerifyEmailRegistratonDto) {
-    const tokenClaims = this.config.authOptions.token.verifyVerificationToken(
+    const tokenClaims = verifyToken<VerificationTokenClaims>(
+      this.config.authOptions.verificationTokenConfig,
+      "VERIFY",
       payload.token,
     );
 
     if (tokenClaims.code != payload.code) {
-      throw new BadRequestException("Invalid verification code.");
+      throw new KalamcheError(KalamcheErrorType.InvalidVerificationCode);
     }
 
     const [pendingUser] = await this.connection
       .select()
       .from(PendingUserSchema)
       .where(eq(PendingUserSchema.id, tokenClaims.sub));
-
     if (!pendingUser) {
-      throw new BadRequestException("No pending verification.");
+      throw new KalamcheError(KalamcheErrorType.AccountNotRegistered);
     }
 
+    // Calculate the age of the verification token by subtracting the token's published time from the current time
     const tokenAge = Date.now() - new Date(pendingUser.published!).getTime();
-    if (tokenAge > this.config.authOptions.tokenOptions.verificationExpiry) {
-      throw new BadRequestException("Verification token expired.");
+
+    // Check if the verification token has expired
+    if (tokenAge > this.config.authOptions.verificationTokenConfig.expireAt) {
+      throw new KalamcheError(KalamcheErrorType.ExpiredVerificationCode);
     }
 
     let [user] = await this.connection
@@ -182,20 +183,7 @@ export class AuthService {
       .delete(PendingUserSchema)
       .where(eq(PendingUserSchema.id, pendingUser.id));
 
-    const userPermissions = await this.permissionService.getUserPermissions(
-      user.id,
-    );
-    const { refreshToken, accessToken } =
-      await this.tokenService.createAuthToken(user.id, userPermissions);
-
-    const userRecord = this.intoRecord(user, userPermissions);
-    await this.addUserToCache(userRecord);
-
-    return {
-      user: userRecord,
-      refreshToken,
-      accessToken,
-    };
+    return this.loginTokens(user);
   }
 
   public async login(payload: RegisterDto) {
@@ -204,19 +192,19 @@ export class AuthService {
       .from(UserSchema)
       .where(eq(UserSchema.email, payload.email));
     if (!user) {
-      throw new BadRequestException("invalid email or password");
+      throw new KalamcheError(KalamcheErrorType.AccountNotRegistered);
     }
     if (!user.passwordHash) {
-      throw new BadRequestException("cannot login wiht oauth account");
+      throw new KalamcheError(KalamcheErrorType.AccountUsesOAuth);
     }
 
     const isPasswordMathes =
-      await this.config.authOptions.passwordStrategy.check(
+      await this.config.authOptions.passwordHashingStrategy.check(
         payload.password,
         user.passwordHash,
       );
     if (!isPasswordMathes) {
-      throw new BadRequestException("invalid email or password");
+      throw new KalamcheError(KalamcheErrorType.InvalidPassword);
     }
 
     const [loginToken] = await this.connection
@@ -224,14 +212,18 @@ export class AuthService {
       .from(LoginTokenSchema)
       .where(eq(LoginTokenSchema.userId, user.id));
 
+    // Calculate the age of the login token by subtracting the token's published time from the current time
     const tokenAge = Date.now() - new Date(loginToken.published).getTime();
+
+    // Check if the login token has been active for more than 12 hours (in milliseconds)
     if (tokenAge >= 1000 * 60 * 60 * 12) {
       const [pendingUser] = await this.connection
         .select()
         .from(PendingUserSchema)
         .where(eq(PendingUserSchema.email, payload.email));
+
       if (pendingUser) {
-        throw new ConflictException("account already is pending to verify");
+        throw new KalamcheError(KalamcheErrorType.AccountVerificationIsPending);
       }
 
       const { token, code } = await this.createPendingUser(payload);
@@ -240,20 +232,7 @@ export class AuthService {
       return token;
     }
 
-    const permissions = await this.permissionService.getUserPermissions(
-      user.id,
-    );
-    const { accessToken, refreshToken } =
-      await this.tokenService.createAuthToken(user.id, permissions);
-
-    const userRecord = this.intoRecord(user, permissions);
-    await this.addUserToCache(userRecord);
-
-    return {
-      user,
-      accessToken,
-      refreshToken,
-    };
+    return this.loginTokens(user);
   }
 
   public async sendVerificationEmail(email: string, code: string) {
@@ -264,23 +243,12 @@ export class AuthService {
     });
   }
 
-  private async addUserToCache(user: UserRecord) {
-    const userCacheKey = createCacheKey("user", user.id);
-    const oneDay = 60 * 60 * 24;
-
-    await this.config.systemOpitons.cacheSterategy.set(
-      userCacheKey,
-      user,
-      oneDay,
-    );
-  }
-
   private async getUserWithPermissions(userId: string) {
     const user = await this.connection.query.UserSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.id, userId),
     });
     if (!user) {
-      throw new ForbiddenException();
+      throw new KalamcheError(KalamcheErrorType.InvalidCredentials); // TODO: fix error type later
     }
 
     const userPermissions =
@@ -302,15 +270,15 @@ export class AuthService {
   private async createPendingUser(payload: RegisterDto) {
     const pendingUserId = uuid();
     const verificationCode = generateOTP();
-    const verificationToken =
-      this.config.authOptions.token.signVerificationToken(
-        pendingUserId,
-        verificationCode,
-      );
+    const verificationToken = signVerificationToken(
+      this.config.authOptions.verificationTokenConfig,
+      pendingUserId,
+      verificationCode,
+    );
 
     await this.connection.insert(PendingUserSchema).values({
       email: payload.email,
-      passwordHash: await this.config.authOptions.passwordStrategy.hash(
+      passwordHash: await this.config.authOptions.passwordHashingStrategy.hash(
         payload.password,
       ),
       token: verificationToken,
@@ -318,5 +286,22 @@ export class AuthService {
     });
 
     return { token: verificationToken, code: verificationCode };
+  }
+
+  private async loginTokens(user: User) {
+    const permissions = await this.permissionService.getUserPermissions(
+      user.id,
+    );
+    const { refreshToken, accessToken } = this.tokenService.createAuthToken(
+      user.id,
+      permissions,
+    );
+    await this.tokenService.updateLoginToken(user.id, refreshToken);
+
+    return {
+      user: this.intoRecord(user, permissions),
+      accessToken,
+      refreshToken,
+    };
   }
 }

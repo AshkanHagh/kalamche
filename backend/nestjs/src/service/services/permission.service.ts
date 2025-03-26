@@ -1,8 +1,8 @@
+import { Inject, Injectable } from "@nestjs/common";
 import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-} from "@nestjs/common";
+  KalamcheError,
+  KalamcheErrorType,
+} from "src/common/error/error.exception";
 import { ConfigService } from "src/config/config.service";
 import { DATABASE_CONNECTION } from "src/drizzle/constants";
 import { UserPermissionSchema } from "src/drizzle/schema";
@@ -27,7 +27,7 @@ export class PermissionService {
 
     // permissions always exists but for not crashing
     if (defaultPermissions.length === 0) {
-      throw new InternalServerErrorException("default permissions not found");
+      throw new KalamcheError(KalamcheErrorType.InvalidCredentials); // TODO: fix errro later
     }
 
     await this.connection.insert(UserPermissionSchema).values(
@@ -50,7 +50,7 @@ export class PermissionService {
       });
 
     if (!userPermissions || userPermissions.length === 0) {
-      throw new InternalServerErrorException("user has no permissions");
+      throw new KalamcheError(KalamcheErrorType.InvalidCredentials); // TODO: fix errro later
     }
     return userPermissions.map((up) => up.permission.name);
   }

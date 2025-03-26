@@ -7,8 +7,8 @@ import {
   TestAppConfig,
 } from "./app.config";
 import { defaultConfig } from "./default.config";
-import { testConfig } from "./test.config";
 import { NodemailerSendEmail } from "./utils/email";
+import { testConfig } from "./test.config";
 
 @Injectable()
 export class ConfigService implements AppConfig {
