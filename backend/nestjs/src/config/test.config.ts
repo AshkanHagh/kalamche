@@ -1,20 +1,7 @@
-import { RedisCacheStrategy } from "src/cache/redis-cache.strategy";
-import { EmailOptions, TestAppConfig, TokenOptions } from "./app.config";
+import { EmailOptions, TestAppConfig } from "./app.config";
 import { Argon2PasswordStrategy } from "./auth/password/argon2-password.strategy";
-import { TokenStrategy } from "./auth/token";
 import { NodemailerSendEmail } from "./utils/email";
-
-const tokenOptions: TokenOptions = {
-  atExpiry: 1000 * 60 * 15,
-  atSecret: "test_access_token",
-  rtExpiry: 1000 * 60 * 60 * 24 * 2,
-  rtSecret: "test_refresh_token",
-  tokenIss: "test_iss",
-  tokenAud: "test_aud",
-  tokenCacheDuration: 60 * 60 * 24 * 2,
-  verificationExpiry: 1000 * 60 * 15,
-  verificationSecret: "test_verification_secret",
-};
+import { RedisCacheStrategy } from "src/plugin/redis-cache-plugin/redis-cache-strategy";
 
 const emailOptions: EmailOptions = {
   email: "test.email@example.com",
@@ -27,20 +14,50 @@ const emailOptions: EmailOptions = {
 
 export const testConfig: TestAppConfig = {
   authOptions: {
-    cookieOptions: {
+    passwordHashingStrategy: new Argon2PasswordStrategy(),
+
+    accessTokenConfig: {
+      aud: "test_kalamche",
+      iss: "test_kalamche",
+      secret: "test_default",
+      expireAt: 1000 * 60 * 15,
+    },
+    refreshTokenConfig: {
+      aud: "test_kalamche",
+      iss: "test_kalamche",
+      secret: "test_default",
+      expireAt: 1000 * 60 * 60 * 2,
+    },
+
+    verificationTokenConfig: {
+      aud: "test_kalamche",
+      iss: "test_kalamche",
+      secret: "test_default",
+      expireAt: 1000 * 60 * 15,
+    },
+
+    verificationRedirectUrl: "http://localhost:7319",
+
+    cookieConfig: {
       httpOnly: true,
       sameSite: "lax",
       maxAge: 1000 * 60 * 60 * 24 * 2,
+      path: "/",
     },
-    passwordStrategy: new Argon2PasswordStrategy(),
-    token: new TokenStrategy(tokenOptions),
-    tokenOptions,
-    verificationRedirectUrl: "http://localhost:7319/auth/email/verify",
   },
 
   emailOptions: new NodemailerSendEmail(emailOptions),
 
+  // add mock connection
   systemOpitons: {
-    cacheSterategy: new RedisCacheStrategy("redis://localhost:7301"),
+    cacheStrategy: new RedisCacheStrategy({
+      maxItemSizeInBytes: 100000,
+      redisOptions: {
+        monitor: true,
+        lazyConnect: true,
+      },
+      connectionUrl: process.env.REDIS_URL!,
+      namespace: "redis-cache",
+    }),
   },
 };

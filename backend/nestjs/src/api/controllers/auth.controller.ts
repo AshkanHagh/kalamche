@@ -52,7 +52,7 @@ export class AuthController {
       .cookie(
         REFRESH_TOKEN_COOKIE_NAME,
         result.refreshToken,
-        this.config.authOptions.cookieOptions,
+        this.config.authOptions.cookieConfig,
       )
       .json(<LoginResponse>{
         success: true,
@@ -74,7 +74,7 @@ export class AuthController {
       .cookie(
         REFRESH_TOKEN_COOKIE_NAME,
         tokens.refreshToken,
-        this.config.authOptions.cookieOptions,
+        this.config.authOptions.cookieConfig,
       )
       .json(<RefreshTokenResponse>{
         success: true,
@@ -103,7 +103,7 @@ export class AuthController {
       .cookie(
         REFRESH_TOKEN_COOKIE_NAME,
         user.refreshToken,
-        this.config.authOptions.cookieOptions,
+        this.config.authOptions.cookieConfig,
       )
       .json(<RefreshTokenResponse>{
         success: true,
@@ -128,7 +128,7 @@ export class AuthController {
       .cookie(
         REFRESH_TOKEN_COOKIE_NAME,
         result.refreshToken,
-        this.config.authOptions.cookieOptions,
+        this.config.authOptions.cookieConfig,
       )
       .json(<RefreshTokenResponse>{
         success: true,

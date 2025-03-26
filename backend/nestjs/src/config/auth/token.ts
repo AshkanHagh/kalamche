@@ -1,117 +1,139 @@
 import { UnauthorizedException } from "@nestjs/common";
 import * as jwt from "jsonwebtoken";
-import { TokenOptions } from "../app.config";
+import { BaseTokenClaims, JwtConfigOptions } from "./types";
+import {
+  KalamcheError,
+  KalamcheErrorType,
+} from "src/common/error/error.exception";
 
-export type AccessTokenClaims = {
-  sub: string;
-  aud: string;
-  iss: string;
-  exp: number;
-  t_type: string;
+/**
+ * @description
+ * Claims specific to an access token, which includes user permissions.
+ */
+export interface AccessTokenClaims extends BaseTokenClaims {
+  /**
+   * @description
+   * The list of scopes granted to the user, defining their level of access.
+   */
   scope: string[];
-};
+}
 
-export type RefreshTokenClaims = {
-  sub: string;
-  aud: string;
-  iss: string;
-  exp: number;
-  t_type: string;
-};
+/**
+ * @description
+ * Claims specific to a refresh token, used to obtain a new access token.
+ */
+// eslint-disable-next-line
+export interface RefreshTokenClaims extends BaseTokenClaims {}
 
-export type VerificationTokenClaims = {
-  sub: string;
+/**
+ * @description
+ * Claims specific to a verification token, typically used for email verification.
+ */
+export interface VerificationTokenClaims extends BaseTokenClaims {
+  /**
+   * @description
+   * The verification code associated with the token.
+   */
   code: string;
-  aud: string;
-  exp: number;
-  iss: string;
-  t_type: string;
-};
+}
 
-export class TokenStrategy {
-  constructor(private readonly config: TokenOptions) {}
+export function signAccessToken(
+  config: JwtConfigOptions,
+  sub: string,
+  scope: string[],
+): string {
+  const claims: AccessTokenClaims = buildClaims(config, sub, "ACCESS", {
+    scope,
+  });
+  return jwt.sign(claims, config.secret);
+}
 
-  public signAccessToken(sub: string, scope: string[]): string {
-    const claims: AccessTokenClaims = {
-      aud: this.config.tokenAud,
-      iss: this.config.tokenIss,
-      scope,
-      sub,
-      exp: Math.floor(Date.now() + this.config.atExpiry / 1000),
-      t_type: "access",
-    };
+export function signRefreshToken(
+  config: JwtConfigOptions,
+  sub: string,
+): string {
+  const claims: RefreshTokenClaims = buildClaims(config, sub, "REFRESH", {});
+  return jwt.sign(claims, config.secret);
+}
 
-    return jwt.sign(claims, this.config.atSecret);
+export function signVerificationToken(
+  config: JwtConfigOptions,
+  sub: string,
+  code: string,
+): string {
+  const claims: VerificationTokenClaims = buildClaims(config, sub, "VERIFY", {
+    code,
+  });
+  return jwt.sign(claims, config.secret);
+}
+
+export function verifyToken<T extends BaseTokenClaims>(
+  config: JwtConfigOptions,
+  type: "REFRESH" | "ACCESS" | "VERIFY",
+  token: string,
+): T {
+  const claims = decodeToken<T>(config, token);
+  if (claims.t_type !== type) {
+    throw new UnauthorizedException("invalid refresh token");
   }
 
-  public signRefreshToken(sub: string): string {
-    const claims: RefreshTokenClaims = {
-      aud: this.config.tokenAud,
-      iss: this.config.tokenIss,
-      sub,
-      exp: Math.floor(Date.now() + this.config.rtExpiry / 1000),
-      t_type: "refresh",
-    };
+  return claims;
+}
 
-    return jwt.sign(claims, this.config.rtSecret);
-  }
+/**
+ * @description
+ * Builds JWT claims based on the provided configuration, subject, and token type.
+ *
+ * @template T - Additional claims specific to the token type.
+ *
+ * @param {JwtConfigOptions} config - The JWT configuration containing issuer, audience, and expiration settings.
+ * @param {string} sub - The subject of the token, usually the unique user identifier.
+ * @param {"REFRESH" | "ACCESS" | "VERIFY"} type - The type of the token, defining its purpose.
+ * @param {T} extra - Additional claims specific to the token type.
+ *
+ * @returns {T & BaseTokenClaims} - A complete set of JWT claims including both base and extra claims.
+ */
+function buildClaims<T>(
+  config: JwtConfigOptions,
+  sub: string,
+  type: "REFRESH" | "ACCESS" | "VERIFY",
+  extra: T,
+): T & BaseTokenClaims {
+  const claims: T & BaseTokenClaims = {
+    aud: config.aud,
+    iss: config.iss,
+    sub,
+    exp: Math.floor(Date.now() + config.expireAt / 1000),
+    t_type: type,
+    ...extra,
+  };
 
-  public signVerificationToken(sub: string, code: string): string {
-    const claims: VerificationTokenClaims = {
-      aud: this.config.tokenAud,
-      iss: this.config.tokenIss,
-      sub,
-      code,
-      exp: Math.floor(Date.now() + this.config.verificationExpiry / 1000),
-      t_type: "verification",
-    };
+  return claims;
+}
 
-    return jwt.sign(claims, this.config.verificationSecret);
-  }
-
-  public verifyRefreshToken(token: string): RefreshTokenClaims {
-    const claims = this.decodeToken<RefreshTokenClaims>(token);
-
-    if (claims.t_type !== "refresh") {
-      throw new UnauthorizedException("invalid refresh token");
-    }
+function decodeToken<T>(config: JwtConfigOptions, token: string): T {
+  try {
+    const claims = jwt.verify(token, config.secret, {
+      audience: config.aud,
+      issuer: config.iss,
+    }) as T;
 
     return claims;
-  }
-
-  public verifyVerificationToken(token: string): VerificationTokenClaims {
-    const claims = this.decodeToken<VerificationTokenClaims>(token);
-
-    if (claims.t_type != "verification") {
-      throw new UnauthorizedException("invalid verification token");
-    }
-
-    return claims;
-  }
-
-  private decodeToken<T>(token: string): T {
-    try {
-      const claims = jwt.verify(token, this.config.rtSecret, {
-        audience: this.config.tokenAud,
-        issuer: this.config.tokenIss,
-      }) as T;
-
-      return claims;
-    } catch (error: unknown) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        switch (error.name) {
-          case "TokenExpiredError":
-            throw new UnauthorizedException("Token expired.");
-
-          case "JsonWebTokenError":
-            throw new UnauthorizedException("Invalid token.");
-
-          default:
-            throw new UnauthorizedException("JWT verification failed.");
+  } catch (error: unknown) {
+    if (error instanceof jwt.JsonWebTokenError) {
+      switch (error.name) {
+        case "TokenExpiredError": {
+          throw new KalamcheError(KalamcheErrorType.TokenExpired);
+        }
+        case "JsonWebTokenError": {
+          throw new KalamcheError(KalamcheErrorType.InvalidToken);
+        }
+        default: {
+          throw new KalamcheError(KalamcheErrorType.InvalidToken);
         }
       }
-
-      throw new UnauthorizedException("Access denied.");
     }
+
+    throw new KalamcheError(KalamcheErrorType.InvalidToken);
   }
 }

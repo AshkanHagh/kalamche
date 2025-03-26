@@ -1,12 +1,15 @@
-import { BadRequestException } from "@nestjs/common";
 import { OAuthClient, OAuthUser } from "./oauth-clients";
-import { OAuthOpitons } from "../../app.config";
-
+import { AuthOptions } from "src/config/app.config";
+import {
+  KalamcheError,
+  KalamcheErrorType,
+} from "src/common/error/error.exception";
 export class OAuthManager {
   private readonly clients: Map<string, OAuthClient> = new Map();
 
-  constructor(config: OAuthOpitons) {
-    const githubOAuth = new OAuthClient(config.github, "github");
+  // TODO: fix later config is undifined
+  constructor(config: AuthOptions["oauthProvidersOption"]) {
+    const githubOAuth = new OAuthClient(config!.github, "github");
 
     this.clients.set(githubOAuth.name, githubOAuth);
   }
@@ -14,7 +17,7 @@ export class OAuthManager {
   public getAuthorizeUrl(providerName: string): string {
     const provider = this.clients.get(providerName);
     if (!provider) {
-      throw new BadRequestException("oauth provider not found");
+      throw new KalamcheError(KalamcheErrorType.OAuthNotConfigured);
     }
 
     switch (providerName) {
@@ -24,9 +27,8 @@ export class OAuthManager {
           "user:email",
         ]);
       }
-
       default: {
-        throw new BadRequestException("oauth provider not found");
+        throw new KalamcheError(KalamcheErrorType.OAuthNotConfigured);
       }
     }
   }
@@ -37,7 +39,7 @@ export class OAuthManager {
   ): Promise<OAuthUser> {
     const provider = this.clients.get(providerName);
     if (!provider) {
-      throw new BadRequestException("oauth provider not found");
+      throw new KalamcheError(KalamcheErrorType.OAuthNotConfigured);
     }
 
     return await provider.authentiate(providerName, code);

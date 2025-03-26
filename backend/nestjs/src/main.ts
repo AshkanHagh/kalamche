@@ -4,10 +4,11 @@ import { AppModule } from "./app.module";
 import { migration } from "./drizzle/migration";
 import { ValidationPipe } from "@nestjs/common";
 import * as cookieParser from "cookie-parser";
-import { AllExceptionsFilter } from "./common/error/all-exception-filter";
+import { KalamcheExceptionsFilter } from "./common/error/kalamche-exception-filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.useGlobalFilters(new KalamcheExceptionsFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       forbidUnknownValues: true,
@@ -15,7 +16,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  app.useGlobalFilters(new AllExceptionsFilter());
   app.use(cookieParser());
   await app.listen(process.env.PORT ?? 6399);
 }
