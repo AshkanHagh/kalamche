@@ -7,13 +7,13 @@ import { Badge } from "../ui/badge"
 import { useRouter } from "next/navigation"
 
 type SubscriptionInfoProps = {
-  memberSince: Date
+  createdAt: string
   subscription: Subscription
   setIsOpen: (state: boolean) => void
 }
 
 const SubscriptionInfo = ({
-  memberSince,
+  createdAt,
   subscription,
   setIsOpen
 }: SubscriptionInfoProps) => {
@@ -21,9 +21,9 @@ const SubscriptionInfo = ({
 
   const getSubscriptionText = () => {
     if (subscription.status === "active" && subscription?.endDate) {
+      const endDate = new Date(subscription.endDate)
       const daysLeft = Math.ceil(
-        (subscription.endDate.getTime() - new Date().getTime()) /
-          (1000 * 60 * 60 * 24)
+        (endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
       )
       return `${daysLeft} days remaining`
     }
@@ -70,7 +70,7 @@ const SubscriptionInfo = ({
       </div>
 
       <div className="text-xs text-muted-foreground">
-        Member since: {format(memberSince, "yyyy/MM/dd")}
+        Member since: {format(createdAt, "yyyy/MM/dd")}
       </div>
     </div>
   )

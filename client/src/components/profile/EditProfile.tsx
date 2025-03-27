@@ -6,7 +6,7 @@ import { Input } from "../ui/input"
 
 type EditProfileProps = {
   name: string
-  avatar: string
+  avatarUrl: string
   email: string
   onCancel: () => void
   onSave: (editName: string, editAvatar: string) => void
@@ -14,13 +14,13 @@ type EditProfileProps = {
 
 const EditProfile = ({
   name,
-  avatar,
+  avatarUrl,
   email,
   onCancel,
   onSave
 }: EditProfileProps) => {
   const [editName, setEditName] = useState(name)
-  const [editAvatar, setEditAvatar] = useState(avatar)
+  const [editAvatar, setEditAvatar] = useState(avatarUrl)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

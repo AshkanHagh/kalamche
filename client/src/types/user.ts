@@ -1,13 +1,14 @@
-export type CurrentUser = {
+export type User = {
   id: string
   name: string
   email: string
-  avatar: string
+  avatarUrl: string
   subscription: Subscription
-  memberSince: Date
+  permissions: string[]
+  createdAt: string
 }
 
 export type Subscription = {
   status: "active" | "inactive"
-  endDate?: Date
+  endDate?: string
 }

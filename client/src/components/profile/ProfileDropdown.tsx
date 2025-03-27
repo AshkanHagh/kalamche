@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { currentUser } from "@/data/mockData"
+import { user } from "@/data/mockData"
 import UserAvatar from "./UserAvatar"
 import EditProfile from "./EditProfile"
 import SubscriptionInfo from "./SubscriptionInfo"
@@ -40,28 +40,26 @@ export function ProfileDropdown() {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative size-8 rounded-full">
-          <UserAvatar name={currentUser.name} src={currentUser.avatar} />
+          <UserAvatar name={user.name} src={user.avatarUrl} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80" align="end" forceMount>
         {isEditing ? (
           <EditProfile
-            avatar={currentUser.avatar}
-            email={currentUser.email}
-            name={currentUser.name}
+            avatarUrl={user.avatarUrl}
+            email={user.email}
+            name={user.name}
             onCancel={onCancel}
             onSave={onSave}
           />
         ) : (
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
-              <UserAvatar name={currentUser.name} src={currentUser.avatar} />
+              <UserAvatar name={user.name} src={user.avatarUrl} />
 
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold">{currentUser.name}</h4>
-                <p className="text-xs text-muted-foreground">
-                  {currentUser.email}
-                </p>
+                <h4 className="text-sm font-semibold">{user.name}</h4>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
             </div>
             <Button
@@ -78,9 +76,9 @@ export function ProfileDropdown() {
 
         <DropdownMenuSeparator />
         <SubscriptionInfo
-          memberSince={currentUser.memberSince}
+          createdAt={user.createdAt}
           setIsOpen={setIsOpen}
-          subscription={currentUser.subscription}
+          subscription={user.subscription}
         />
         <DropdownMenuSeparator />
 

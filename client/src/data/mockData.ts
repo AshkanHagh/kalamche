@@ -1,4 +1,4 @@
-import { CurrentUser } from "@/types"
+import { User } from "@/types"
 
 export const bestSellingProducts = [
   {
@@ -346,14 +346,15 @@ export const product = {
   ]
 }
 
-export const currentUser: CurrentUser = {
+export const user: User = {
   id: "user_123",
   name: "Jane Smith",
   email: "jane.smith@example.com",
-  avatar: "#",
+  permissions: ["shop:read", "user:read", "product:read"],
+  avatarUrl: "#",
   subscription: {
     status: "active" as const,
-    endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 700) // 30 days from now
+    endDate: "2026-03-05T07:03:51-0800"
   },
-  memberSince: new Date("2024-04-05")
+  createdAt: "2010-03-05T07:03:51-0800"
 }
