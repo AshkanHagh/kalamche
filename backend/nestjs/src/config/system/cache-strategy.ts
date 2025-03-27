@@ -1,3 +1,5 @@
+import Redis from "ioredis";
+
 export interface SetCacheKeyOptions {
   /**
    * @description
@@ -45,4 +47,12 @@ export interface CacheStrategy {
    * Deletes an item from the cache.
    */
   delete(key: string): Promise<void>;
+
+  /**
+   * @description
+   * Returns the Redis client instance.
+   *
+   * @returns The current Redis client.
+   */
+  instance(): Redis;
 }

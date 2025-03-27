@@ -7,6 +7,7 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UseInterceptors,
 } from "@nestjs/common";
 import { Request, Response } from "express";
 import { ConfigService } from "src/config/config.service";
@@ -20,8 +21,12 @@ import {
   VerifyEmailRegistratonDto,
 } from "../common/auth-generated-types";
 import { REFRESH_TOKEN_COOKIE_NAME } from "../common/shared-constants";
+import { RateLimit } from "../decorators/rate-limit.decorators";
+import { ActionType } from "src/config/rate-limit/rate-limit.service";
+import { RateLimitInterceptor } from "../interceptors/rate-limit.interceptor";
 
 @Controller("auth")
+@UseInterceptors(RateLimitInterceptor)
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -29,6 +34,7 @@ export class AuthController {
   ) {}
 
   @Get("/oauth")
+  @RateLimit(ActionType.REGISTER)
   public getAuthorizeUrl(
     @Query("provider") query: string,
   ): GetAuthorizeUrlResponse {
@@ -37,6 +43,7 @@ export class AuthController {
   }
 
   @Get("/oauth/callback")
+  @RateLimit(ActionType.REGISTER)
   public async authenticateWithOAuth(
     @Query() query: AuthenticateWIthOAuthDto,
     @Res() response: Response,
@@ -62,6 +69,7 @@ export class AuthController {
   }
 
   @Get("/token/refresh")
+  @RateLimit(ActionType.REGISTER)
   public async refreshToken(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies["refresh_token"] as string | undefined;
     if (!refreshToken) {
@@ -83,6 +91,7 @@ export class AuthController {
   }
 
   @Post("/signup")
+  @RateLimit(ActionType.REGISTER)
   public async register(@Body() payload: RegisterDto) {
     const token = await this.authService.register(payload);
     return {
@@ -92,6 +101,7 @@ export class AuthController {
   }
 
   @Post("/email/verify")
+  @RateLimit(ActionType.REGISTER)
   public async verifyEmailRegistration(
     @Res() res: Response,
     @Body() payload: VerifyEmailRegistratonDto,
@@ -113,6 +123,7 @@ export class AuthController {
   }
 
   @Post("/signin")
+  @RateLimit(ActionType.REGISTER)
   public async login(@Res() res: Response, @Body() payload: RegisterDto) {
     const result = await this.authService.login(payload);
 

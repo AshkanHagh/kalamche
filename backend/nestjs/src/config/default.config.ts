@@ -71,10 +71,7 @@ export const defaultConfig: RuntimeAppConfig = {
   systemOpitons: {
     cacheStrategy: new RedisCacheStrategy({
       maxItemSizeInBytes: 100000,
-      redisOptions: {
-        monitor: true,
-        lazyConnect: true,
-      },
+      redisOptions: {},
       connectionUrl: process.env.REDIS_URL!,
       namespace: "redis-cache",
     }),
