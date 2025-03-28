@@ -1,12 +1,12 @@
 "use client"
 
-import StorProvider from "@/lib/redux/StorProvider"
+import StoreProvider from "@/lib/redux/StoreProvider"
 
 type MainLayoutProps = {
   children: React.ReactNode
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
-  return <StorProvider>{children}</StorProvider>
+  return <StoreProvider>{children}</StoreProvider>
 }
 export default MainLayout
