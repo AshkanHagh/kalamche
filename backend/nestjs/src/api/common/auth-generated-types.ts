@@ -41,6 +41,11 @@ export type LoginResponse = {
   user: UserRecord;
 };
 
+export type SignupResponse = {
+  success: boolean;
+  verificationToken: string;
+};
+
 export type RefreshTokenResponse = {
   success: boolean;
   accessToken: string;

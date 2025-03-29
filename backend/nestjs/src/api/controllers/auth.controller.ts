@@ -18,6 +18,7 @@ import {
   LoginResponse,
   RefreshTokenResponse,
   RegisterDto,
+  SignupResponse,
   VerifyEmailRegistratonDto,
 } from "../common/auth-generated-types";
 import { REFRESH_TOKEN_COOKIE_NAME } from "../common/shared-constants";
@@ -92,7 +93,7 @@ export class AuthController {
 
   @Post("/signup")
   @RateLimit(ActionType.REGISTER)
-  public async register(@Body() payload: RegisterDto) {
+  public async signup(@Body() payload: RegisterDto): Promise<SignupResponse> {
     const token = await this.authService.register(payload);
     return {
       success: true,
@@ -115,7 +116,7 @@ export class AuthController {
         user.refreshToken,
         this.config.authOptions.cookieConfig,
       )
-      .json(<RefreshTokenResponse>{
+      .json(<LoginResponse>{
         success: true,
         user: user.user,
         accessToken: user.accessToken,
@@ -124,11 +125,11 @@ export class AuthController {
 
   @Post("/signin")
   @RateLimit(ActionType.REGISTER)
-  public async login(@Res() res: Response, @Body() payload: RegisterDto) {
+  public async signin(@Res() res: Response, @Body() payload: RegisterDto) {
     const result = await this.authService.login(payload);
 
     if (typeof result === "string") {
-      return res.status(200).json({
+      return res.status(200).json(<SignupResponse>{
         success: true,
         verificationToken: result,
       });
@@ -141,7 +142,7 @@ export class AuthController {
         result.refreshToken,
         this.config.authOptions.cookieConfig,
       )
-      .json(<RefreshTokenResponse>{
+      .json(<LoginResponse>{
         success: true,
         user: result.user,
         accessToken: result.accessToken,

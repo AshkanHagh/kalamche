@@ -37,10 +37,7 @@ export const UserTableRelations = relations(UserSchema, ({ many, one }) => ({
 }));
 
 export type User = InferSelectModel<typeof UserSchema>;
-export type UserRecord = Omit<
-  User,
-  "refreshTokenHash" | "updatedAt" | "lastLogin" | "passwordHash"
-> & {
+export type UserRecord = Omit<User, "updatedAt" | "passwordHash"> & {
   permissions: string[];
 };
 export type InsertUser = InferInsertModel<typeof UserSchema>;
