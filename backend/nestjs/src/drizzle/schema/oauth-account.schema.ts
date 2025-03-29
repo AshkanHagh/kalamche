@@ -5,7 +5,7 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 export const OAuthAccountSchema = pgTable("oauth_accounts", (table) => ({
   oauthUserId: table.varchar({ length: 50 }).notNull(),
   userId: table
-    .uuid()
+    .bigserial({ mode: "number" })
     .notNull()
     .references(() => UserSchema.id, { onDelete: "cascade" }),
 }));

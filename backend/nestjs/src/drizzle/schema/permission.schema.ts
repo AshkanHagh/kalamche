@@ -3,7 +3,7 @@ import { InferSelectModel, relations } from "drizzle-orm";
 import { UserPermissionSchema } from "./user-permission.schema";
 
 export const PermissionSchema = pgTable("permissions", (table) => ({
-  id: table.uuid().primaryKey().defaultRandom(),
+  id: table.bigserial({ mode: "number" }).primaryKey(),
   name: table.varchar({ length: 50 }).notNull().unique(),
 }));
 

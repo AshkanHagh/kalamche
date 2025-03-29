@@ -18,6 +18,7 @@ import {
 import { RATE_LIMIT_METADATA } from "../decorators/rate-limit.decorators";
 import { Reflector } from "@nestjs/core";
 
+// NOTE: there will be 2 type of rate limit one with userId one with userIp
 @Injectable()
 export class RateLimitInterceptor implements NestInterceptor {
   constructor(

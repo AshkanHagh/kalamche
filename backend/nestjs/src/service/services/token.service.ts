@@ -13,7 +13,7 @@ export class TokenService {
     private readonly config: ConfigService,
   ) {}
 
-  public createAuthToken(userId: string, permissions: string[]) {
+  public createAuthToken(userId: number, permissions: string[]) {
     const accessToken = signAccessToken(
       this.config.authOptions.accessTokenConfig,
       userId,
@@ -30,7 +30,7 @@ export class TokenService {
     };
   }
 
-  public async updateLoginToken(userId: string, refreshToken: string) {
+  public async updateLoginToken(userId: number, refreshToken: string) {
     const refreshTokenHash =
       await this.config.authOptions.passwordHashingStrategy.hash(refreshToken);
 

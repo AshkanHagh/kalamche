@@ -4,3 +4,6 @@ export * from "./permission.schema";
 export * from "./login-token.schema";
 export * from "./oauth-account.schema";
 export * from "./pending-user.schema";
+export * from "./click-plan.schema";
+export * from "./payment-history";
+export * from "./wallet.schema";

@@ -18,7 +18,6 @@ import {
   RegisterDto,
   VerifyEmailRegistratonDto,
 } from "src/api/common/auth-generated-types";
-import { v4 as uuid } from "uuid";
 import { generateOTP } from "src/common/utils";
 import { eq } from "drizzle-orm";
 import {
@@ -212,10 +211,10 @@ export class AuthService {
       .from(LoginTokenSchema)
       .where(eq(LoginTokenSchema.userId, user.id));
 
-    // Calculate the age of the login token by subtracting the token's published time from the current time
+    // calculate the age of the login token by subtracting the tokens published time from the current time
     const tokenAge = Date.now() - new Date(loginToken.published).getTime();
 
-    // Check if the login token has been active for more than 12 hours (in milliseconds)
+    // check if the login token has been active for more than 12 hours (in milliseconds)
     if (tokenAge >= 1000 * 60 * 60 * 12) {
       const [pendingUser] = await this.connection
         .select()
@@ -243,7 +242,7 @@ export class AuthService {
     });
   }
 
-  private async getUserWithPermissions(userId: string) {
+  private async getUserWithPermissions(userId: number) {
     const user = await this.connection.query.UserSchema.findFirst({
       where: (table, funcs) => funcs.eq(table.id, userId),
     });
@@ -268,22 +267,31 @@ export class AuthService {
   }
 
   private async createPendingUser(payload: RegisterDto) {
-    const pendingUserId = uuid();
+    const [pendingUser] = await this.connection
+      .insert(PendingUserSchema)
+      .values({
+        email: payload.email,
+        passwordHash:
+          await this.config.authOptions.passwordHashingStrategy.hash(
+            payload.password,
+          ),
+        token: "", // validate later in code,
+      })
+      .returning({
+        id: PendingUserSchema.id,
+      });
+
     const verificationCode = generateOTP();
     const verificationToken = signVerificationToken(
       this.config.authOptions.verificationTokenConfig,
-      pendingUserId,
+      pendingUser.id,
       verificationCode,
     );
 
-    await this.connection.insert(PendingUserSchema).values({
-      email: payload.email,
-      passwordHash: await this.config.authOptions.passwordHashingStrategy.hash(
-        payload.password,
-      ),
-      token: verificationToken,
-      id: pendingUserId,
-    });
+    await this.connection
+      .update(PendingUserSchema)
+      .set({ token: verificationToken })
+      .where(eq(PendingUserSchema.id, pendingUser.id));
 
     return { token: verificationToken, code: verificationCode };
   }

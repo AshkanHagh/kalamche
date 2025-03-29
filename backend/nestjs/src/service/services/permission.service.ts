@@ -16,7 +16,7 @@ export class PermissionService {
     private readonly config: ConfigService,
   ) {}
 
-  public async createDefaultPermissionsForUser(userId: string): Promise<void> {
+  public async createDefaultPermissionsForUser(userId: number): Promise<void> {
     const defaultPermissionNames = ["user:read", "shop:read", "product:read"];
 
     const defaultPermissions =
@@ -38,7 +38,7 @@ export class PermissionService {
     );
   }
 
-  public async getUserPermissions(userId: string): Promise<string[]> {
+  public async getUserPermissions(userId: number): Promise<string[]> {
     const userPermissions =
       await this.connection.query.UserPermissionSchema.findMany({
         where: (table, funcs) => funcs.eq(table.userId, userId),

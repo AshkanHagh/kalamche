@@ -1,60 +1,60 @@
 /**
  * @description
- * Configuration options for JWT authentication and token generation.
+ * configuration options for JWT authentication and token generation.
  */
 export interface JwtConfigOptions {
   /**
    * @description
-   * The audience for the JWT token, typically the intended recipient(s) of the token.
+   * the audience for the JWT token, typically the intended recipient(s) of the token.
    */
   aud: string;
 
   /**
    * @description
-   * The issuer of the JWT token, usually the service generating the token.
+   * the issuer of the JWT token, usually the service generating the token.
    */
   iss: string;
 
   /**
    * @description
-   * The secret key used for signing and verifying the JWT token.
-   * Ensure this is kept secure and not exposed in client-side code.
+   * the secret key used for signing and verifying the JWT token.
+   * ensure this is kept secure and not exposed in client-side code.
    */
   secret: string;
 
   /**
    * @description
-   * The duration (in milliseconds) for which the token remains valid before expiring.
+   * the duration (in milliseconds) for which the token remains valid before expiring.
    */
   expireAt: number;
 }
 
 /**
  * @description
- * Base claims included in all JWT tokens.
+ * base claims included in all JWT tokens.
  */
 export interface BaseTokenClaims {
   /**
    * @description
-   * The subject of the token, usually the unique identifier of the user.
+   * the subject of the token, usually user id.
    */
-  sub: string;
+  sub: number;
 
   /**
    * @description
-   * The audience for the JWT token, specifying the intended recipient(s).
+   * the audience for the JWT token, specifying the intended recipient(s).
    */
   aud: string;
 
   /**
    * @description
-   * The issuer of the JWT token, identifying the entity that issued the token.
+   * the issuer of the JWT token, identifying the entity that issued the token.
    */
   iss: string;
 
   /**
    * @description
-   * The expiration timestamp (in seconds since the Unix epoch) when the token becomes invalid.
+   * the expiration timestamp (in seconds since the Unix epoch) when the token becomes invalid.
    */
   exp: number;
 

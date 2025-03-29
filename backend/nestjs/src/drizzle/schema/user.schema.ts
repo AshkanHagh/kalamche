@@ -3,11 +3,13 @@ import { index, pgTable } from "drizzle-orm/pg-core";
 import { UserPermissionSchema } from "./user-permission.schema";
 import { OAuthAccountSchema } from "./oauth-account.schema";
 import { LoginTokenSchema } from "./login-token.schema";
+import { PaymentHistorySchema } from "./payment-history";
+import { WalletSchema } from "./wallet.schema";
 
 export const UserSchema = pgTable(
   "users",
   (table) => ({
-    id: table.uuid().primaryKey().defaultRandom(),
+    id: table.bigserial({ mode: "number" }).primaryKey(),
     name: table.varchar({ length: 255 }).notNull(),
     email: table.varchar({ length: 255 }).notNull().unique(),
     avatarUrl: table.varchar({ length: 300 }).notNull().default("#"),
@@ -19,9 +21,7 @@ export const UserSchema = pgTable(
       .$onUpdateFn(() => new Date())
       .notNull(),
   }),
-  (table) => ({
-    idxUserEmail: index("idx_user_email").on(table.email),
-  }),
+  (table) => [index("idx_user_email").on(table.email)],
 );
 
 export const UserTableRelations = relations(UserSchema, ({ many, one }) => ({
@@ -30,6 +30,10 @@ export const UserTableRelations = relations(UserSchema, ({ many, one }) => ({
   }),
   oauthAccount: one(OAuthAccountSchema),
   loginToken: one(LoginTokenSchema),
+  paymentHistory: many(PaymentHistorySchema, {
+    relationName: "user_payment_history",
+  }),
+  wallet: one(WalletSchema),
 }));
 
 export type User = InferSelectModel<typeof UserSchema>;

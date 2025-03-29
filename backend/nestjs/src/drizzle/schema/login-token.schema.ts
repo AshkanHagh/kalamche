@@ -4,7 +4,7 @@ import { InferInsertModel, InferSelectModel, relations } from "drizzle-orm";
 
 export const LoginTokenSchema = pgTable("login_tokens", (table) => ({
   userId: table
-    .uuid()
+    .bigserial({ mode: "number" })
     .primaryKey()
     .references(() => UserSchema.id, { onDelete: "cascade" })
     .notNull(),

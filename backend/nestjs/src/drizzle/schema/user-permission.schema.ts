@@ -5,11 +5,11 @@ import { PermissionSchema } from "./permission.schema";
 
 export const UserPermissionSchema = pgTable("user_permissions", (table) => ({
   permissionId: table
-    .uuid()
+    .bigserial({ mode: "number" })
     .references(() => PermissionSchema.id, { onDelete: "cascade" })
     .notNull(),
   userId: table
-    .uuid()
+    .bigserial({ mode: "number" })
     .references(() => UserSchema.id, { onDelete: "cascade" })
     .notNull(),
 }));

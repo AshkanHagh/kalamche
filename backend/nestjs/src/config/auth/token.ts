@@ -39,7 +39,7 @@ export interface VerificationTokenClaims extends BaseTokenClaims {
 
 export function signAccessToken(
   config: JwtConfigOptions,
-  sub: string,
+  sub: number,
   scope: string[],
 ): string {
   const claims: AccessTokenClaims = buildClaims(config, sub, "ACCESS", {
@@ -50,7 +50,7 @@ export function signAccessToken(
 
 export function signRefreshToken(
   config: JwtConfigOptions,
-  sub: string,
+  sub: number,
 ): string {
   const claims: RefreshTokenClaims = buildClaims(config, sub, "REFRESH", {});
   return jwt.sign(claims, config.secret);
@@ -58,7 +58,7 @@ export function signRefreshToken(
 
 export function signVerificationToken(
   config: JwtConfigOptions,
-  sub: string,
+  sub: number,
   code: string,
 ): string {
   const claims: VerificationTokenClaims = buildClaims(config, sub, "VERIFY", {
@@ -95,7 +95,7 @@ export function verifyToken<T extends BaseTokenClaims>(
  */
 function buildClaims<T>(
   config: JwtConfigOptions,
-  sub: string,
+  sub: number,
   type: "REFRESH" | "ACCESS" | "VERIFY",
   extra: T,
 ): T & BaseTokenClaims {
