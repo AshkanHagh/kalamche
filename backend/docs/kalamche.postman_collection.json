@@ -1,0 +1,187 @@
+{
+	"info": {
+		"_postman_id": "2c60bbcf-d7e6-4e02-a3b2-37ecc277851c",
+		"name": "kalamche",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "33000042"
+	},
+	"item": [
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "/oauth/:oauth",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-forwarded-for",
+								"value": "127.0.0.1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:7319/auth/oauth?provider=github",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7319",
+							"path": [
+								"auth",
+								"oauth"
+							],
+							"query": [
+								{
+									"key": "provider",
+									"value": "github"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/oauth/callback",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:7319/auth/oauth/callback?code=454fb315edc5c5ea74f3&provider=github",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7319",
+							"path": [
+								"auth",
+								"oauth",
+								"callback"
+							],
+							"query": [
+								{
+									"key": "code",
+									"value": "454fb315edc5c5ea74f3"
+								},
+								{
+									"key": "provider",
+									"value": "github"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/token/refresh",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:7319/auth/token/refresh",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7319",
+							"path": [
+								"auth",
+								"token",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/signup",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"ashkanhaghdoost@gmail.com\",\n    \"password\": \"ashkan1386129\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7319/auth/signup",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7319",
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"ashkanhaghdoost@gmail.com\",\n    \"password\": \"ashkan1386129\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7319/auth/signin",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7319",
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/email/verify",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"buoC0u\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJrYWxhbWNoZSIsImlzcyI6ImthbGFtY2hlIiwic3ViIjoxLCJleHAiOjE3NDMyNDg5MjA3MTUsInRfdHlwZSI6IlZFUklGWSIsImNvZGUiOiJidW9DMHUiLCJpYXQiOjE3NDMyNDg5MTl9.ySgHO4exE2lQA4eioyCuoaZtTp9GGr7DtfPagm1btdQ\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:7319/auth/email/verify",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "7319",
+							"path": [
+								"auth",
+								"email",
+								"verify"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
