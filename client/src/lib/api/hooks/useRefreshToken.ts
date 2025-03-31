@@ -4,6 +4,9 @@ import { AxiosError } from "axios"
 import { useRouter } from "next/navigation"
 import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
 import { logout, setCredentials } from "@/lib/redux/slices/authSlice"
+import { handleApiError } from "@/lib/utils"
+import { ServerError } from "@/types"
+import { toast } from "sonner"
 
 type RefreshTokenResponse = {
   success: boolean
@@ -25,7 +28,7 @@ const useRefreshToken = () => {
         return newAccessToken
       }
     } catch (e) {
-      const error = e as AxiosError
+      const error = e as AxiosError<ServerError>
       const status = error.response?.status
 
       if (status === 400 || status === 401) {
@@ -33,7 +36,8 @@ const useRefreshToken = () => {
         push("/auth/login")
         return
       }
-      //TODO: Add sonner component
+      const { errorMessage } = handleApiError(error)
+      toast.error(errorMessage)
     }
   }
   return refresh
