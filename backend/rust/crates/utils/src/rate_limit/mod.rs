@@ -20,7 +20,7 @@ impl RateLimiter {
 
     bucket_configs.insert(
       ActionType::Register,
-      BucketConfig { capacity: 10, secs_to_refill: 5 },
+      BucketConfig { capacity: 3, secs_to_refill: 5 },
     );
     bucket_configs.insert(
       ActionType::Image,

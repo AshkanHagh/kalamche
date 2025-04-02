@@ -95,7 +95,7 @@ pub async fn authenticate_with_oauth(
   }))
 }
 
-#[post("/email/verify")]
+#[post("/verify")]
 pub async fn verify_email_registration(
   context: Data<KalamcheContext>,
   req: HttpRequest,

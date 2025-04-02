@@ -28,10 +28,8 @@ impl PendingUser {
     Ok(PendingUser::try_from(pending_user)?)
   }
 
-  pub async fn update_token(pool: &Database, user_id: Uuid, token: String) -> KalamcheResult<()> {
-    let pending_user = pending_user::Entity::find_by_id(user_id)
-      .one(&**pool)
-      .await?;
+  pub async fn update_token(pool: &Database, id: Uuid, token: String) -> KalamcheResult<()> {
+    let pending_user = pending_user::Entity::find_by_id(id).one(&**pool).await?;
 
     let mut model: pending_user::ActiveModel =
       pending_user.ok_or(KalamcheErrorType::NotFound)?.into();
@@ -64,6 +62,16 @@ impl PendingUser {
   pub async fn delete_by_id(pool: &Database, id: Uuid) -> KalamcheResult<()> {
     pending_user::Entity::delete_by_id(id).exec(&**pool).await?;
     Ok(())
+  }
+
+  pub async fn find_by_email(pool: &Database, email: &str) -> KalamcheResult<Option<PendingUser>> {
+    let model = pending_user::Entity::find()
+      .filter(pending_user::Column::Email.eq(email))
+      .into_model::<PendingUser>()
+      .one(&**pool)
+      .await?;
+
+    Ok(model)
   }
 }
 
