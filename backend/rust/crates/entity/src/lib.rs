@@ -2,9 +2,13 @@
 
 pub mod prelude;
 
+pub mod fr_token;
 pub mod login_token;
 pub mod oauth_account;
+pub mod payment_hisotry;
 pub mod pending_user;
 pub mod permission;
+pub mod sea_orm_active_enums;
 pub mod user;
 pub mod user_permission;
+pub mod wallet;

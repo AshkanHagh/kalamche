@@ -22,8 +22,12 @@ pub enum Relation {
   LoginToken,
   #[sea_orm(has_many = "super::oauth_account::Entity")]
   OauthAccount,
+  #[sea_orm(has_many = "super::payment_hisotry::Entity")]
+  PaymentHisotry,
   #[sea_orm(has_many = "super::user_permission::Entity")]
   UserPermission,
+  #[sea_orm(has_many = "super::wallet::Entity")]
+  Wallet,
 }
 
 impl Related<super::login_token::Entity> for Entity {
@@ -38,9 +42,21 @@ impl Related<super::oauth_account::Entity> for Entity {
   }
 }
 
+impl Related<super::payment_hisotry::Entity> for Entity {
+  fn to() -> RelationDef {
+    Relation::PaymentHisotry.def()
+  }
+}
+
 impl Related<super::user_permission::Entity> for Entity {
   fn to() -> RelationDef {
     Relation::UserPermission.def()
+  }
+}
+
+impl Related<super::wallet::Entity> for Entity {
+  fn to() -> RelationDef {
+    Relation::Wallet.def()
   }
 }
 
