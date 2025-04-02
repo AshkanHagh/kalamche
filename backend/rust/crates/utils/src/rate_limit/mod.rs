@@ -3,7 +3,7 @@ use futures::future::{ok, Ready};
 use rate_limiter::{ActionType, BucketConfig, RateLimitChecker};
 use std::{collections::HashMap, future::Future, pin::Pin, rc::Rc};
 
-use crate::{error::KalamcheErrorType, utils::cache::RedisCache};
+use crate::{cache::RedisCache, error::KalamcheErrorType};
 
 pub mod rate_limiter;
 

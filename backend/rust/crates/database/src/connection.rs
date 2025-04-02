@@ -1,6 +1,6 @@
 use sea_orm::{ConnectOptions, Database as SeaOrmDatabase, DatabaseConnection};
 use std::{ops::Deref, sync::Arc, time::Duration};
-use utils::{error::KalamcheResult, setting::structs::DatabaseConfig};
+use utils::{error::KalamcheResult, settings::structs::DatabaseConfig};
 
 pub struct Database(pub Arc<DatabaseConnection>);
 

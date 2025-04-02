@@ -9,12 +9,11 @@ pub struct PendingUser {
   pub email: String,
   pub password_hash: Option<String>,
   pub token: String,
-  pub published: DateTime<FixedOffset>,
+  pub created_at: DateTime<FixedOffset>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PendingUserInsertForm {
-  pub id: Uuid,
   pub email: String,
   pub password_hash: Option<String>,
   pub token: String,

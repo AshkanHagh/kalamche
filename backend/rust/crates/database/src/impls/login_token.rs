@@ -14,7 +14,7 @@ impl LoginToken {
     let model = login_token::ActiveModel {
       user_id: Set(payload.user_id),
       token_hash: Set(payload.token_hash.clone()),
-      published: Set(Utc::now().fixed_offset()),
+      created_at: Set(Utc::now().fixed_offset()),
       ip: Set(payload.ip),
     };
 
@@ -22,7 +22,7 @@ impl LoginToken {
       .on_conflict(
         OnConflict::column(login_token::Column::UserId)
           .update_column(login_token::Column::TokenHash)
-          .update_column(login_token::Column::Published)
+          .update_column(login_token::Column::CreatedAt)
           .to_owned(),
       )
       .exec(&*pool.0)
@@ -50,7 +50,7 @@ impl TryFrom<login_token::Model> for LoginToken {
       user_id: model.user_id,
       token_hash: model.token_hash,
       ip: model.ip,
-      published: model.published,
+      created_at: model.created_at,
     })
   }
 }

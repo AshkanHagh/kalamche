@@ -12,12 +12,7 @@ impl MigrationTrait for Migration {
       .create_table(
         Table::create()
           .table(UserPermission::Table)
-          .col(
-            ColumnDef::new(UserPermission::Id)
-              .uuid()
-              .primary_key()
-              .not_null(),
-          )
+          .col(ColumnDef::new(UserPermission::Id).uuid().primary_key())
           .col(ColumnDef::new(UserPermission::UserId).uuid().not_null())
           .col(
             ColumnDef::new(UserPermission::PermissionId)

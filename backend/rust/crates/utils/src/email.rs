@@ -2,7 +2,7 @@ use lettre::transport::smtp::authentication::Credentials;
 use lettre::{Message, SmtpTransport, Transport};
 
 use crate::error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
-use crate::setting::structs::EmailConfig;
+use crate::settings::structs::EmailConfig;
 
 pub fn send_email(subject: &str, to: &str, html: &str, config: &EmailConfig) -> KalamcheResult<()> {
   let email = Message::builder()

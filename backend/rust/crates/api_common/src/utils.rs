@@ -7,12 +7,10 @@ use database::source::{
   user::{User, UserRecord},
 };
 use utils::{
+  email::send_email,
   error::KalamcheResult,
-  setting::SETTINGS,
-  utils::{
-    email::send_email,
-    token::{sign_access_token, sign_refresh_token},
-  },
+  settings::SETTINGS,
+  utils::token::{sign_access_token, sign_refresh_token},
 };
 use uuid::Uuid;
 
@@ -47,9 +45,9 @@ pub async fn create_token(
   Ok((access_token, refresh_token))
 }
 
-pub async fn send_account_verification_email(email: &str, code: &str) -> KalamcheResult<()> {
+pub async fn send_account_verification_email(email: &str, code: u32) -> KalamcheResult<()> {
   send_email(
-    "Verification email",
+    "verification code",
     email,
     &format!(
       "<h1>{}</h1>\n<h1>url: {}?code={}</h1>",

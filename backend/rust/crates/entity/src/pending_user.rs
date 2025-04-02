@@ -12,7 +12,7 @@ pub struct Model {
   pub email: String,
   pub password_hash: Option<String>,
   pub token: String,
-  pub published: DateTimeWithTimeZone,
+  pub created_at: DateTimeWithTimeZone,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

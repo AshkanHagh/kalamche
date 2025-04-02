@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  setting::structs::JwtConfig,
+  settings::structs::JwtConfig,
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,18 +76,14 @@ pub fn sign_refresh_token(config: &JwtConfig, sub: Uuid) -> KalamcheResult<Strin
 #[derive(Debug, Serialize, Deserialize)]
 pub struct VerificationClaims {
   pub sub: Uuid,
-  pub code: String,
+  pub code: u32,
   pub aud: String,
   pub iss: String,
   pub t_type: String,
   pub exp: usize,
 }
 
-pub fn sign_verification_token(
-  config: &JwtConfig,
-  sub: Uuid,
-  code: String,
-) -> KalamcheResult<String> {
+pub fn sign_verification_token(config: &JwtConfig, sub: Uuid, code: u32) -> KalamcheResult<String> {
   let claims = VerificationClaims {
     sub,
     code,

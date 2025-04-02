@@ -9,8 +9,13 @@ pub struct Register {
 
 #[derive(Debug, Deserialize)]
 pub struct VerifyEmailRegistration {
-  pub code: String,
+  pub code: u32,
   pub token: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct ResendVerification {
+  pub email: String,
 }
 
 #[derive(Debug, Serialize)]

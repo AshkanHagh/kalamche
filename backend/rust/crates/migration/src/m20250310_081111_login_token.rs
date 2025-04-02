@@ -20,7 +20,7 @@ impl MigrationTrait for Migration {
           )
           .col(ColumnDef::new(LoginToken::Ip).string_len(20).not_null())
           .col(
-            ColumnDef::new(LoginToken::Published)
+            ColumnDef::new(LoginToken::CreatedAt)
               .timestamp_with_time_zone()
               .not_null(),
           )
@@ -93,5 +93,5 @@ enum LoginToken {
   UserId,
   TokenHash,
   Ip,
-  Published,
+  CreatedAt,
 }

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
   error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType, KalamcheResult},
-  setting::structs::OAuthProviderConfig,
+  settings::structs::OAuthProviderConfig,
 };
 
 pub struct OAuthClient {

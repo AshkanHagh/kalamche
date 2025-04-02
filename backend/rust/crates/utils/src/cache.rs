@@ -4,7 +4,7 @@ use std::ops::Deref;
 
 use crate::{
   error::{KalamcheErrorType, KalamcheResult},
-  setting::structs::RedisConfig,
+  settings::structs::RedisConfig,
 };
 
 const DEFAULT_CACHE_TTL: usize = 60 * 60;

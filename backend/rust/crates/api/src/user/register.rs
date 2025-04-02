@@ -13,17 +13,16 @@ use database::source::{
 };
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  setting::SETTINGS,
+  settings::SETTINGS,
   utils::{
     hash::hash_passwrod,
-    random::generate_random_string,
+    random::generate_verification_code,
     token::sign_verification_token,
     validation::{is_email_valid, is_password_valid},
   },
 };
-use uuid::Uuid;
 
-#[post("/signup")]
+#[post("/register")]
 pub async fn register(
   context: Data<KalamcheContext>,
   payload: Json<Register>,
@@ -34,32 +33,32 @@ pub async fn register(
   // returns error if exists
   User::email_exists(context.pool(), &payload.email).await?;
 
-  if PendingUser::find_by_email(context.pool(), &payload.email).await? {
+  if PendingUser::exists_by_email(context.pool(), &payload.email).await? {
     return Err(KalamcheError::from(
       KalamcheErrorType::AccountVerificationIsPending,
     ));
   }
 
-  let pending_user_id = Uuid::new_v4();
-  let verification_code = generate_random_string();
-  let verification_token = sign_verification_token(
-    SETTINGS.get_jwt(),
-    pending_user_id,
-    verification_code.clone(),
-  )?;
-
-  let _ = PendingUser::insert(
+  let pending_user = PendingUser::insert(
     context.pool(),
     PendingUserInsertForm {
-      id: pending_user_id,
       email: payload.email.clone(),
-      token: verification_token.clone(),
+      token: "".to_string(),
       password_hash: Some(hash_passwrod(&payload.password)?),
     },
   )
   .await?;
 
-  send_account_verification_email(&payload.email, &verification_code).await?;
+  let verification_code = generate_verification_code();
+  let verification_token = sign_verification_token(
+    SETTINGS.get_jwt(),
+    pending_user.id,
+    verification_code.clone(),
+  )?;
+
+  PendingUser::update_token(context.pool(), pending_user.id, verification_token.clone()).await?;
+
+  send_account_verification_email(&payload.email, verification_code).await?;
 
   Ok(Json(RegisterResponse {
     success: true,

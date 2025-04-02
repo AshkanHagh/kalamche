@@ -26,7 +26,7 @@ use database::{
 };
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  setting::SETTINGS,
+  settings::SETTINGS,
   utils::{hash::hash_passwrod, token::verify_verification_token},
 };
 
@@ -46,6 +46,8 @@ pub async fn authenticate_with_oauth(
       .await?
       .ok_or(KalamcheErrorType::InvalidOAuthAuthorization)?,
     None => {
+      User::email_exists(context.pool(), &oauth_user.email).await?;
+
       let user = insert_new_user(
         context.pool(),
         UserInsertForm {
@@ -111,35 +113,38 @@ pub async fn verify_email_registration(
     .await?
     .ok_or(KalamcheErrorType::AccountNotRegistered)?;
 
-  let token_age = Utc::now().fixed_offset() - pending_user.published;
+  // age of the verification token by subtracting the token's created_at time from the current time
+  let token_age = Utc::now().fixed_offset() - pending_user.created_at;
+
+  // Check if the verification token has expired
   if token_age > Duration::minutes(SETTINGS.get_jwt().verfication_expiry as i64) {
     return Err(KalamcheError::from(
       KalamcheErrorType::ExpiredVerificationCode,
     ));
   }
 
-  // TODO: seprate some of the args in insert new user
   let user = match User::find_user_by_email(context.pool(), &pending_user.email).await? {
     Some(user) => user,
     None => {
+      // there is a low chanse to throw error
       let user_name = pending_user
         .email
         .split("@")
         .next()
-        .unwrap_or("unknown")
+        .ok_or(KalamcheError::from(KalamcheErrorType::InvalidEmailAddress))?
         .to_string();
+
+      let password_hash = pending_user
+        .password_hash
+        .ok_or(KalamcheErrorType::InvalidCredentials)?;
 
       insert_new_user(
         context.pool(),
         UserInsertForm {
           name: user_name,
           email: pending_user.email,
-          password_hash: Some(
-            pending_user
-              .password_hash
-              .ok_or(KalamcheErrorType::InvalidCredentials)?,
-          ),
-          avatar_url: "https://avatar.iran.liara.run/public".to_string(),
+          password_hash: Some(password_hash),
+          avatar_url: "#".to_string(), // default avatar_url is #
         },
       )
       .await?

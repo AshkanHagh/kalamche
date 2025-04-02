@@ -10,7 +10,7 @@ impl MigrationTrait for Migration {
       .create_table(
         Table::create()
           .table(Permission::Table)
-          .col(ColumnDef::new(Permission::Id).primary_key().uuid())
+          .col(ColumnDef::new(Permission::Id).uuid().primary_key())
           .col(ColumnDef::new(Permission::Name).string_len(50).not_null())
           .to_owned(),
       )

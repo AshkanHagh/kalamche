@@ -11,7 +11,7 @@ pub struct LoginToken {
   pub token_hash: String,
   pub ip: String,
   // time of login
-  pub published: DateTime<FixedOffset>,
+  pub created_at: DateTime<FixedOffset>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]

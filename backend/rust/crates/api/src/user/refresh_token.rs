@@ -11,8 +11,11 @@ use database::source::{
 };
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  setting::SETTINGS,
-  utils::token::{sign_access_token, sign_refresh_token, verify_refresh_token},
+  settings::SETTINGS,
+  utils::{
+    hash::verify_passwrod,
+    token::{sign_access_token, sign_refresh_token, verify_refresh_token},
+  },
 };
 
 #[get("/token/refresh")]
@@ -31,8 +34,7 @@ pub async fn refresh_token(
 
   let login_token = LoginToken::find_by_user_id(context.pool(), user.id).await?;
 
-  // FIX: compare with hashed token
-  if login_token.token_hash != refresh_token.value() {
+  if !verify_passwrod(refresh_token.value(), &login_token.token_hash)? {
     return Err(KalamcheError::from(KalamcheErrorType::NotLoggedIn));
   }
 

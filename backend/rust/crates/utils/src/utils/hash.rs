@@ -15,13 +15,13 @@ pub fn hash_passwrod(password: &str) -> KalamcheResult<String> {
   Ok(password_hash)
 }
 
-pub fn verify_passwrod(password: &str, hash: &str) -> KalamcheResult<()> {
-  let parsed_hash =
-    PasswordHash::new(hash).map_err(|_| KalamcheError::from(KalamcheErrorType::InvalidPassword))?;
+pub fn verify_passwrod(password: &str, hash: &str) -> KalamcheResult<bool> {
+  let parsed_hash = PasswordHash::new(hash)
+    .map_err(|_| KalamcheError::from(KalamcheErrorType::InvalidCredentials))?;
 
-  Argon2::default()
+  let matches = Argon2::default()
     .verify_password(password.as_bytes(), &parsed_hash)
-    .map_err(|_| KalamcheError::from(KalamcheErrorType::InvalidPassword))?;
+    .is_ok();
 
-  Ok(())
+  Ok(matches)
 }

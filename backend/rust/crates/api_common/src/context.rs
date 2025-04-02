@@ -1,7 +1,7 @@
 use database::connection::Database;
 use reqwest::Client;
 use std::sync::Arc;
-use utils::utils::cache::RedisCache;
+use utils::cache::RedisCache;
 
 use crate::oauth_provider::OAuthManager;
 

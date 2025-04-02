@@ -20,15 +20,14 @@ use database::source::{
 };
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  setting::SETTINGS,
+  settings::SETTINGS,
   utils::{
     hash::{hash_passwrod, verify_passwrod},
-    random::generate_random_string,
+    random::generate_verification_code,
     token::sign_verification_token,
     validation::{is_email_valid, is_password_valid},
   },
 };
-use uuid::Uuid;
 
 #[post("/login")]
 pub async fn login(
@@ -41,42 +40,44 @@ pub async fn login(
 
   let user = User::find_user_by_email(context.pool(), &payload.email)
     .await?
-    .ok_or(KalamcheErrorType::AccountNotRegistered)?;
+    .ok_or(KalamcheErrorType::InvalidCredentials)?;
 
-  verify_passwrod(
+  let matches = verify_passwrod(
     &payload.password,
     &user
       .password_hash
       .as_ref()
       .ok_or(KalamcheErrorType::AccountUsesOAuth)?,
   )?;
+  if !matches {
+    return Err(KalamcheError::from(KalamcheErrorType::InvalidCredentials));
+  }
 
   let login_token = LoginToken::find_by_user_id(context.pool(), user.id).await?;
-  if Utc::now() - login_token.published.with_timezone(&Utc) >= Duration::hours(12) {
-    let pending_user = PendingUser::find_by_email(context.pool(), &user.email).await?;
+  if Utc::now() - login_token.created_at.with_timezone(&Utc) >= Duration::hours(12) {
+    let pending_user = PendingUser::exists_by_email(context.pool(), &user.email).await?;
     if pending_user {
       return Err(KalamcheError::from(
         KalamcheErrorType::AccountVerificationIsPending,
       ));
     }
 
-    let pending_user_id = Uuid::new_v4();
-    let code = generate_random_string();
-    let verification_token =
-      sign_verification_token(SETTINGS.get_jwt(), pending_user_id, code.clone())?;
-
-    PendingUser::insert(
+    let pending_user = PendingUser::insert(
       context.pool(),
       PendingUserInsertForm {
-        id: pending_user_id,
         email: payload.email,
-        token: verification_token.clone(),
+        token: "".to_owned(),
         password_hash: None,
       },
     )
     .await?;
 
-    send_account_verification_email(&user.email, &code).await?;
+    let code = generate_verification_code();
+    let verification_token = sign_verification_token(SETTINGS.get_jwt(), pending_user.id, code)?;
+
+    PendingUser::update_token(context.pool(), pending_user.id, verification_token.clone()).await?;
+
+    send_account_verification_email(&user.email, code).await?;
     return Ok(HttpResponse::Ok().json(RegisterResponse {
       success: true,
       verification_token,

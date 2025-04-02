@@ -1,9 +1,5 @@
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use rand::{thread_rng, Rng};
 
-pub fn generate_random_string() -> String {
-  thread_rng()
-    .sample_iter(&Alphanumeric)
-    .take(6)
-    .map(char::from)
-    .collect()
+pub fn generate_verification_code() -> u32 {
+  thread_rng().gen_range(100_000..=999_999)
 }

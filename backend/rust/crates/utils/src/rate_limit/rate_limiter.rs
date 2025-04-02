@@ -4,8 +4,8 @@ use strum::Display;
 use uuid::Uuid;
 
 use crate::{
+  cache::RedisCache,
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  utils::cache::RedisCache,
 };
 
 #[derive(Debug, PartialEq, Clone, Copy)]

@@ -3,8 +3,8 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use utils::{
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-  setting::structs::OAuthConfig,
-  utils::oauth::{OAuthClient, OAuthUser},
+  oauth::{OAuthClient, OAuthUser},
+  settings::structs::OAuthConfig,
 };
 
 pub struct OAuthManager {

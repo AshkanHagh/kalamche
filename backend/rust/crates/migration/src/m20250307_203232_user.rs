@@ -10,7 +10,7 @@ impl MigrationTrait for Migration {
       .create_table(
         Table::create()
           .table(User::Table)
-          .col(ColumnDef::new(User::Id).primary_key().uuid())
+          .col(ColumnDef::new(User::Id).uuid().primary_key())
           .col(ColumnDef::new(User::Name).string_len(255).not_null())
           .col(string_len(User::Email, 255).not_null())
           .col(ColumnDef::new(User::AvatarUrl).string_len(300).not_null())

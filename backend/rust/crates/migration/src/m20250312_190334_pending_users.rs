@@ -10,12 +10,7 @@ impl MigrationTrait for Migration {
       .create_table(
         Table::create()
           .table(PendingUser::Table)
-          .col(
-            ColumnDef::new(PendingUser::Id)
-              .uuid()
-              .primary_key()
-              .not_null(),
-          )
+          .col(ColumnDef::new(PendingUser::Id).uuid().primary_key())
           .col(
             ColumnDef::new(PendingUser::Email)
               .string_len(255)
@@ -29,7 +24,7 @@ impl MigrationTrait for Migration {
               .not_null(),
           )
           .col(
-            ColumnDef::new(PendingUser::Published)
+            ColumnDef::new(PendingUser::CreatedAt)
               .timestamp_with_time_zone()
               .not_null(),
           )
@@ -62,5 +57,5 @@ enum PendingUser {
   Email,
   PasswordHash,
   Token,
-  Published,
+  CreatedAt,
 }

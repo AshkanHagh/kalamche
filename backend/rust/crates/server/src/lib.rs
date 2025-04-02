@@ -3,10 +3,10 @@ use api_common::{context::KalamcheContext, oauth_provider::OAuthManager};
 use database::{connection::Database, migration::run_migration};
 use reqwest::Client;
 use utils::{
+  cache::RedisCache,
   error::{KalamcheErrorType, KalamcheResult},
   rate_limit::RateLimiter,
-  setting::SETTINGS,
-  utils::cache::RedisCache,
+  settings::SETTINGS,
 };
 
 pub mod routes_v1;
@@ -15,7 +15,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
   env_logger::init();
   log::info!("starting server");
 
-  let pool = Database::new(&SETTINGS.get_database()).await?;
+  let pool = Database::new(SETTINGS.get_database()).await?;
   run_migration(&pool).await?;
 
   let client = Client::new();
