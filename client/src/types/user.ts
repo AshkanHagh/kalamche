@@ -3,12 +3,17 @@ export type User = {
   name: string
   email: string
   avatarUrl: string
-  subscription: Subscription
+  wallet: Wallet
   permissions: string[]
   createdAt: string
 }
 
-export type Subscription = {
-  status: "active" | "inactive"
-  endDate?: string
+export type Wallet = {
+  frTokens: number
+  lastTransaction: LastTransaction
+}
+
+export type LastTransaction = {
+  createdAt: string
+  frTokens: number
 }

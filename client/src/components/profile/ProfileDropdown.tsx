@@ -17,8 +17,8 @@ import { Button } from "@/components/ui/button"
 import { user } from "@/data/mockData"
 import UserAvatar from "./UserAvatar"
 import EditProfile from "./EditProfile"
-import SubscriptionInfo from "./SubscriptionInfo"
 import Link from "next/link"
+import WalletInfo from "./WalletInfo"
 
 export function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false)
@@ -75,11 +75,7 @@ export function ProfileDropdown() {
         )}
 
         <DropdownMenuSeparator />
-        <SubscriptionInfo
-          createdAt={user.createdAt}
-          setIsOpen={setIsOpen}
-          subscription={user.subscription}
-        />
+        <WalletInfo />
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>

@@ -352,9 +352,9 @@ export const user: User = {
   email: "jane.smith@example.com",
   permissions: ["shop:read", "user:read", "product:read"],
   avatarUrl: "#",
-  subscription: {
-    status: "active" as const,
-    endDate: "2026-03-05T07:03:51-0800"
+  wallet: {
+    frTokens: 1000,
+    lastTransaction: { createdAt: "2025-04-03T12:39:51-0800", frTokens: 400 }
   },
   createdAt: "2010-03-05T07:03:51-0800"
 }

@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge"
 import { getErrorMessage } from "./api/errorMessages"
 import { AxiosError } from "axios"
 import { HandleApiErrorReturn, ServerError, ServerStatusCode } from "@/types"
+import { formatDistanceToNowStrict } from "date-fns"
 
 export const cn = (...inputs: ClassValue[]) => {
   return twMerge(clsx(inputs))
@@ -39,3 +40,11 @@ export const handleApiError = (
   }
   return errorData
 }
+
+export const timeAgo = (date: string) => {
+  if (!date) return "Invalid date"
+
+  return formatDistanceToNowStrict(new Date(date), { addSuffix: true })
+}
+
+export default timeAgo
