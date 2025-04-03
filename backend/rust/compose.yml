@@ -1,4 +1,18 @@
 services:
+  kalamche:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "7319:7319"
+    environment:
+      - RUST_LOG = "server=debug,database=debug,utils=debug,api=debug,actix_server=debug"
+    env_file:
+      - ./.env
+    depends_on:
+      - postgres
+      - redis
+
   mailhog:
     image: registry.docker.ir/mailhog/mailhog
     ports:
@@ -6,7 +20,7 @@ services:
       - "8025:8025" # Web UI
 
   minio:
-    image: quay.io/minio/minio:latest
+    image: registry.docker.ir/minio/minio:latest
     ports:
       - "9000:9000" # api
       - "9001:9001" # ui
@@ -18,7 +32,7 @@ services:
       - minio_data:/data
 
   postgres:
-    image: postgres:16.4-alpine
+    image: registry.docker.ir/postgres:16.4-alpine
     restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -30,7 +44,7 @@ services:
       - 5432:5432
 
   redis:
-    image: redis/redis-stack:latest
+    image: registry.docker.ir/redis/redis-stack:latest
     restart: always
     ports:
       - 6379:6379
