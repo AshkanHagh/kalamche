@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 #[derive(Debug, Deserialize, Serialize, FromQueryResult)]
 #[serde(rename_all = "camelCase")]
-pub struct FrToken {
+pub struct FrTokenPlan {
   pub id: Uuid,
   pub name: String,
   pub description: String,

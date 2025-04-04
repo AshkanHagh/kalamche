@@ -10,23 +10,23 @@ impl MigrationTrait for Migration {
     manager
       .create_table(
         Table::create()
-          .table(FrToken::Table)
-          .col(ColumnDef::new(FrToken::Id).uuid().primary_key())
-          .col(ColumnDef::new(FrToken::Name).string_len(255).not_null())
+          .table(FrTokenPlan::Table)
+          .col(ColumnDef::new(FrTokenPlan::Id).uuid().primary_key())
+          .col(ColumnDef::new(FrTokenPlan::Name).string_len(255).not_null())
           .col(
-            ColumnDef::new(FrToken::Description)
+            ColumnDef::new(FrTokenPlan::Description)
               .string_len(500)
               .not_null(),
           )
-          .col(ColumnDef::new(FrToken::FrTokens).integer().not_null())
-          .col(ColumnDef::new(FrToken::Price).big_integer().not_null())
+          .col(ColumnDef::new(FrTokenPlan::FrTokens).integer().not_null())
+          .col(ColumnDef::new(FrTokenPlan::Price).big_integer().not_null())
           .col(
-            ColumnDef::new(FrToken::PricePerFrToken)
+            ColumnDef::new(FrTokenPlan::PricePerFrToken)
               .small_integer()
               .not_null(),
           )
           .col(
-            ColumnDef::new(FrToken::CreatedAt)
+            ColumnDef::new(FrTokenPlan::CreatedAt)
               .timestamp_with_time_zone()
               .not_null(),
           )
@@ -40,7 +40,12 @@ impl MigrationTrait for Migration {
   async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
     // Replace the sample below with your own migration scripts
     manager
-      .drop_table(Table::drop().table(FrToken::Table).if_exists().to_owned())
+      .drop_table(
+        Table::drop()
+          .table(FrTokenPlan::Table)
+          .if_exists()
+          .to_owned(),
+      )
       .await?;
 
     Ok(())
@@ -48,7 +53,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-pub enum FrToken {
+pub enum FrTokenPlan {
   Table,
   Id,
   Name,

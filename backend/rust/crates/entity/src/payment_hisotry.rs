@@ -21,13 +21,13 @@ pub struct Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
   #[sea_orm(
-    belongs_to = "super::fr_token::Entity",
+    belongs_to = "super::fr_token_plan::Entity",
     from = "Column::FrTokenId",
-    to = "super::fr_token::Column::Id",
+    to = "super::fr_token_plan::Column::Id",
     on_update = "NoAction",
     on_delete = "Cascade"
   )]
-  FrToken,
+  FrTokenPlan,
   #[sea_orm(
     belongs_to = "super::user::Entity",
     from = "Column::UserId",
@@ -38,9 +38,9 @@ pub enum Relation {
   User,
 }
 
-impl Related<super::fr_token::Entity> for Entity {
+impl Related<super::fr_token_plan::Entity> for Entity {
   fn to() -> RelationDef {
-    Relation::FrToken.def()
+    Relation::FrTokenPlan.def()
   }
 }
 

@@ -2,7 +2,7 @@
 
 pub mod prelude;
 
-pub mod fr_token;
+pub mod fr_token_plan;
 pub mod login_token;
 pub mod oauth_account;
 pub mod payment_hisotry;

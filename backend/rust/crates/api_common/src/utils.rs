@@ -1,7 +1,9 @@
 use actix_web::{
   cookie::{time::Duration as CookieDuration, Cookie, SameSite},
+  http::header::Header,
   HttpRequest,
 };
+use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use database::source::{
   login_token::{LoginToken, LoginTokenInsertForm},
   user::{User, UserRecord},
@@ -86,14 +88,22 @@ pub async fn update_login_token_user_cache(
   LoginToken::insert(context.pool(), insert_form).await?;
 
   let user_record = User::into_record(user, permissions);
-  context
-    .cache
-    .set(
-      format!("user:{}", user_record.id).as_ref(),
-      &user_record,
-      Some(60 * 60 * 24),
-    )
-    .await?;
-
   Ok(user_record)
 }
+
+pub fn read_auth_token(req: &HttpRequest) -> KalamcheResult<Option<String>> {
+  if let Ok(header) = Authorization::<Bearer>::parse(req) {
+    Ok(Some(header.as_ref().token().to_string()))
+  } else {
+    Ok(None)
+  }
+}
+
+// pub async fn find_user_id_from_jwt(token: &str, context: &KalamcheContext) -> KalamcheResult<Uuid> {
+//   // let claims = verify_access_token(SETTINGS.get_jwt(), token).with_kalamche_type();
+//   // let user = User::find_by_id(context.pool(), claims.sub)
+//   //   .await?
+//   //   .ok_or(KalamcheErrorType::NotLoggedIn);
+
+//   todo!()
+// }

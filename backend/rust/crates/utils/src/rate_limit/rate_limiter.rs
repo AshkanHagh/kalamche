@@ -1,10 +1,12 @@
-use redis::AsyncCommands;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+  net::IpAddr,
+  time::{SystemTime, UNIX_EPOCH},
+};
 use strum::Display;
 use uuid::Uuid;
 
 use crate::{
-  cache::RedisCache,
+  cache::Peak,
   error::{KalamcheError, KalamcheErrorType, KalamcheResult},
 };
 
@@ -68,11 +70,11 @@ pub enum ActionType {
   Image,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct RateLimitChecker {
   pub action_type: ActionType,
   pub bucket_config: BucketConfig,
-  pub redis_pool: RedisCache,
+  pub cache: Peak<String, u32>,
   pub key: String,
 }
 
@@ -82,8 +84,12 @@ impl RateLimitChecker {
     self
   }
 
-  pub fn for_ip(&mut self, ip: &str) -> &mut Self {
-    self.key = format!("ip:{}", ip);
+  pub fn for_ip(&mut self, ip: &IpAddr) -> &mut Self {
+    self.key = match ip {
+      IpAddr::V4(ipv4) => format!("ipv4:{}", ipv4),
+      IpAddr::V6(ipv6) => format!("ipv6:{}", ipv6),
+    };
+
     self
   }
 
@@ -95,11 +101,9 @@ impl RateLimitChecker {
       self.action_type.to_string()
     );
 
-    let pool = &mut self.redis_pool.0;
-
     let now = InstantSecs::now();
-    let (tokens, last_checked): (Option<u32>, Option<u32>) =
-      pool.mget((&bucket_key, &last_checked_key)).await?;
+    let tokens = self.cache.get(&bucket_key)?;
+    let last_checked = self.cache.get(&last_checked_key)?;
 
     let bucket = Bucket {
       tokens: tokens.unwrap_or(self.bucket_config.capacity),
@@ -114,9 +118,8 @@ impl RateLimitChecker {
     }
 
     let new_tokens = updated_bucket.tokens - 1;
-    let _: () = pool
-      .mset(&[(&bucket_key, new_tokens), (&last_checked_key, now.secs)])
-      .await?;
+    self.cache.insert(bucket_key, new_tokens)?;
+    self.cache.insert(last_checked_key, now.secs)?;
 
     Ok(())
   }

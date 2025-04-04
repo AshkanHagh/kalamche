@@ -26,7 +26,7 @@ pub async fn resend_verification_code(
   // find pending user and delete for new insert
   let pending_user = PendingUser::find_by_email(context.pool(), &payload.email)
     .await?
-    .ok_or(KalamcheErrorType::AccountNotRegistered)?;
+    .ok_or(KalamcheErrorType::NotRegistered)?;
 
   PendingUser::delete_by_id(context.pool(), pending_user.id).await?;
 

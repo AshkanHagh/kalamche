@@ -7,14 +7,17 @@ use std::net::{IpAddr, Ipv4Addr};
 pub struct Settings {
   pub database: DatabaseConfig,
 
-  #[default(Some(Default::default()))]
-  pub cache: Option<RedisConfig>,
-
-  #[default(Some(Default::default()))]
+  #[default(None)]
   pub oauth_providers: Option<OAuthConfig>,
 
   #[default(Default::default())]
   pub email: EmailConfig,
+
+  #[default(Default::default())]
+  pub jwt: JwtConfig,
+
+  #[default(Default::default())]
+  pub payment: PaymentConfig,
 
   #[default("localhost")]
   pub hostname: String,
@@ -25,11 +28,11 @@ pub struct Settings {
   #[default(7319)]
   pub port: u16,
 
+  #[default("http://localhost:7318")]
+  pub allowed_origin_url: String,
+
   #[default(false)]
   pub tls_enabled: bool,
-
-  #[default(Default::default())]
-  pub jwt: JwtConfig,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
@@ -56,15 +59,6 @@ pub struct DatabaseConfig {
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
 #[serde(default)]
-pub struct RedisConfig {
-  #[default("redis://localhost:6379")]
-  pub connection: String,
-  #[default(0)]
-  pub pool_size: u32,
-}
-
-#[derive(Debug, Deserialize, Serialize, SmartDefault)]
-#[serde(default)]
 pub struct JwtConfig {
   #[default("access_token_secret")]
   pub at_secret: String,
@@ -84,7 +78,7 @@ pub struct JwtConfig {
   #[default("verification_token_secret")]
   pub verification_secret: String,
 
-  #[default("http://localhost:7319/auth/email/verifiy")]
+  #[default("http://localhost:7319")]
   pub verification_redirect_url: String,
 }
 
@@ -129,4 +123,16 @@ pub struct EmailConfig {
 
   #[default(false)]
   pub tls: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, SmartDefault)]
+pub struct PaymentConfig {
+  #[default("example")]
+  pub secret: String,
+
+  #[default("http://localhost:7319")]
+  pub success_url: String,
+
+  #[default("http://localhost:7319")]
+  pub cancel_url: String,
 }

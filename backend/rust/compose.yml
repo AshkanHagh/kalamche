@@ -1,17 +1,17 @@
 services:
-  kalamche:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    ports:
-      - "7319:7319"
-    environment:
-      - RUST_LOG = "server=debug,database=debug,utils=debug,api=debug,actix_server=debug"
-    env_file:
-      - ./.env
-    depends_on:
-      - postgres
-      - redis
+  # kalamche:
+  #   build:
+  #     context: ./
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "7319:7319"
+  #   environment:
+  #     - RUST_LOG = "server=debug,database=debug,utils=debug,api=debug,actix_server=debug"
+  #     - RUST_BACKTRACE=full
+  #   env_file:
+  #     - ./.env
+  #   depends_on:
+  #     - postgres
 
   mailhog:
     image: registry.docker.ir/mailhog/mailhog
@@ -42,14 +42,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
-
-  redis:
-    image: registry.docker.ir/redis/redis-stack:latest
-    restart: always
-    ports:
-      - 6379:6379
-    volumes:
-      - redis_data:/var/lib/redis/data
 
 volumes:
   postgres_data:

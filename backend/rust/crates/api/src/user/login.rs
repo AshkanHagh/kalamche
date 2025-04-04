@@ -40,7 +40,7 @@ pub async fn login(
 
   let user = User::find_user_by_email(context.pool(), &payload.email)
     .await?
-    .ok_or(KalamcheErrorType::InvalidCredentials)?;
+    .ok_or(KalamcheErrorType::InvalidEmailAddress)?;
 
   let matches = verify_passwrod(
     &payload.password,
@@ -50,16 +50,14 @@ pub async fn login(
       .ok_or(KalamcheErrorType::AccountUsesOAuth)?,
   )?;
   if !matches {
-    return Err(KalamcheError::from(KalamcheErrorType::InvalidCredentials));
+    return Err(KalamcheError::from(KalamcheErrorType::InvalidEmailAddress));
   }
 
   let login_token = LoginToken::find_by_user_id(context.pool(), user.id).await?;
   if Utc::now() - login_token.created_at.with_timezone(&Utc) >= Duration::hours(12) {
     let pending_user = PendingUser::exists_by_email(context.pool(), &user.email).await?;
     if pending_user {
-      return Err(KalamcheError::from(
-        KalamcheErrorType::AccountVerificationIsPending,
-      ));
+      return Err(KalamcheError::from(KalamcheErrorType::PendingToVerify));
     }
 
     let pending_user = PendingUser::insert(

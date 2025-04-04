@@ -13,3 +13,4 @@ actix-web = { workspace = true }
 reqwest = { workspace = true }
 env_logger = { workspace = true }
 log = { workspace = true }
+actix-cors = { workspace = true }

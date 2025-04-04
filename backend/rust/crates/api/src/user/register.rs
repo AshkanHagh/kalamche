@@ -34,9 +34,7 @@ pub async fn register(
   User::email_exists(context.pool(), &payload.email).await?;
 
   if PendingUser::exists_by_email(context.pool(), &payload.email).await? {
-    return Err(KalamcheError::from(
-      KalamcheErrorType::AccountVerificationIsPending,
-    ));
+    return Err(KalamcheError::from(KalamcheErrorType::PendingToVerify));
   }
 
   let pending_user = PendingUser::insert(

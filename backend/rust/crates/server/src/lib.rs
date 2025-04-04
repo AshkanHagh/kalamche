@@ -1,10 +1,13 @@
+use actix_cors::Cors;
 use actix_web::{middleware, web::Data, App, HttpServer};
-use api_common::{context::KalamcheContext, oauth_provider::OAuthManager};
+use api_common::context::KalamcheContext;
 use database::{connection::Database, migration::run_migration};
 use reqwest::Client;
 use utils::{
-  cache::RedisCache,
+  cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},
+  oauth::OAuthManager,
+  payment::PaymentClient,
   rate_limit::RateLimiter,
   settings::SETTINGS,
 };
@@ -18,21 +21,30 @@ pub async fn strat_server() -> KalamcheResult<()> {
   let pool = Database::new(SETTINGS.get_database()).await?;
   run_migration(&pool).await?;
 
-  let client = Client::new();
-  let cache = RedisCache::new(SETTINGS.get_cache()).await?;
+  let reqwest_client = Client::new();
+  let cache = Peak::new(10_000, 60 * 5, 60);
+
   let rate_limiter = RateLimiter::new(&cache);
   let oauth = OAuthManager::new(
     SETTINGS
       .get_oauth()
       .as_ref()
-      .ok_or(KalamcheErrorType::OAuthNotConfigured)?,
-    client.clone(),
+      .ok_or(KalamcheErrorType::OAuthRegistrationClosed)?,
+    reqwest_client.clone(),
   )?;
-  let context = Data::new(KalamcheContext::new(pool, client, cache, oauth));
+  let payment_client = PaymentClient::new(&SETTINGS.get_payment());
+
+  let context = Data::new(KalamcheContext::new(
+    pool,
+    reqwest_client,
+    oauth,
+    payment_client,
+  ));
 
   let bind = (SETTINGS.bind, SETTINGS.port);
   HttpServer::new(move || {
     App::new()
+      .wrap(config_cors())
       .wrap(middleware::Logger::default())
       .wrap(middleware::Compress::default())
       .app_data(context.clone())
@@ -44,4 +56,10 @@ pub async fn strat_server() -> KalamcheResult<()> {
   .await?;
 
   Ok(())
+}
+
+fn config_cors() -> Cors {
+  Cors::default()
+    .allowed_origin(&SETTINGS.allowed_origin_url)
+    .supports_credentials()
 }

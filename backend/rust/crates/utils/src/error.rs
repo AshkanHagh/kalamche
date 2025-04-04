@@ -1,3 +1,4 @@
+use oauth2::http::StatusCode;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fmt::{self, Debug};
@@ -6,37 +7,68 @@ use strum::{Display, EnumIter};
 #[derive(Display, EnumIter, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum KalamcheErrorType {
-  NotFound,
-  InternalServerError,
-  EmailMissing,
-  InvalidCredentials,
-  InvalidFieldInRequestBody,
-  InvalidOAuthAuthorization,
-  OAuthLoginFailure,
-  OAuthRegistrationUnavailable,
-  OAuthNoVerifiedPrimaryEmail,
-  OAuthNotConfigured,
-  OAuthLoginFailed,
-  RedisNotConfigured,
-  FaildToMigrate,
+  PendingToVerify,
+  NotRegistered,
+  InvalidCode,
+  ExpiredCode,
+  AccountUsesOAuth,
+  InvalidRateLimitActionType,
+  CouldntUpdateUser,
+  EmailNotVerified,
+  EmailRequired,
+  // CouldntUpdatePrivateMessage,
+  // PictrsResponseError(String),
+  ImageUrlMissingPathSegments,
+  ImageUrlMissingLastPathSegment,
+  // NoContentTypeHeader,
+  NotAnImageType,
+  InvalidImageUpload,
+  // ImageUploadDisabled,
   NotLoggedIn,
+  InvalidPassword,
+  ProductDescriptionLengthOverflow,
+  // RegistrationApplicationIsPending,
+  // CouldntCreateComment,
+  // LanguageNotAllowed,
+  CouldntUpdateProduct,
+  // NoProductEditAllowed,
+  // InvalidDefaultProductListingType,
+  EmailAlreadyExists,
+  InvalidEmailAddress,
+  NoIdGiven,
+  IncorrectLogin,
+  AuthorizationHeaderRequired,
+  InvalidBearerToken,
+  NoEmailSetup,
+  RateLimitError,
+  InvalidName,
+  InvalidCodeVerifier,
+  InvalidProductTitle,
+  InvalidBodyField,
+  UserAlreadyExists,
+  CouldntCreateProduct,
+  SystemErrLogin,
+  CacheSystemErr(String),
+  BlockedUrl,
+  CouldntGetProducts,
+  InvalidUrl,
+  EmailSendFailed,
+  InvalidRegex,
+  FaildToMigrate,
   CaptchaIncorrect,
   CouldntCreateImageCaptcha,
-  InvalidToken,
-  TokenExpired,
-  InvalidAud,
-  InvalidIss,
-  InvalidEmailAddress,
-  EmailSendFaild,
-  EmailAlreadyExists,
-  InvalidPassword,
-  AccountVerificationIsPending,
-  AccountNotRegistered,
-  InvalidVerificationCode,
-  ExpiredVerificationCode,
-  AccountUsesOAuth,
-  RateLimitError,
-  InvalidRateLimitActionType,
+  TooManyItems,
+  // Unknown(String),
+  OAuthAuthorizationInvalid,
+  OAuthLoginFailed,
+  OAuthRegistrationClosed,
+  // PaymentClientError,
+  // PaymentCheckoutSessionFailed,
+  // PaymentPaymentVerificationFailed,
+  // PaymentSessionExpired,
+  // PaymentInvalidPaymentStatus,
+  NotFound,
+  InternalServerError,
 }
 
 pub type KalamcheResult<T> = std::result::Result<T, KalamcheError>;
@@ -84,9 +116,26 @@ impl fmt::Display for KalamcheError {
 impl actix_web::error::ResponseError for KalamcheError {
   fn status_code(&self) -> actix_web::http::StatusCode {
     match self.error_type {
-      KalamcheErrorType::NotFound => actix_web::http::StatusCode::NOT_FOUND,
-      KalamcheErrorType::InvalidFieldInRequestBody => actix_web::http::StatusCode::BAD_REQUEST,
-      KalamcheErrorType::InvalidOAuthAuthorization => actix_web::http::StatusCode::BAD_REQUEST,
+      KalamcheErrorType::NotFound => StatusCode::NOT_FOUND,
+      KalamcheErrorType::InvalidBodyField
+      | KalamcheErrorType::OAuthLoginFailed
+      | KalamcheErrorType::AccountUsesOAuth
+      | KalamcheErrorType::OAuthAuthorizationInvalid
+      | KalamcheErrorType::AuthorizationHeaderRequired
+      | KalamcheErrorType::PendingToVerify
+      | KalamcheErrorType::NotRegistered
+      | KalamcheErrorType::InvalidPassword
+      | KalamcheErrorType::InvalidEmailAddress
+      | KalamcheErrorType::InvalidCode
+      | KalamcheErrorType::InvalidCodeVerifier
+      | KalamcheErrorType::ExpiredCode
+      | KalamcheErrorType::EmailRequired
+      | KalamcheErrorType::EmailNotVerified
+      | KalamcheErrorType::EmailAlreadyExists => StatusCode::BAD_REQUEST,
+      KalamcheErrorType::NotLoggedIn | KalamcheErrorType::InvalidBearerToken => {
+        StatusCode::UNAUTHORIZED
+      }
+      KalamcheErrorType::RateLimitError => StatusCode::TOO_MANY_REQUESTS,
       _ => actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
     }
   }

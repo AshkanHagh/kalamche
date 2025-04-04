@@ -44,7 +44,7 @@ pub async fn authenticate_with_oauth(
   let user = match OAuthAccount::find_by_oauth_id(context.pool(), &oauth_user.id).await? {
     Some(account) => User::find_by_id(context.pool(), account.user_id)
       .await?
-      .ok_or(KalamcheErrorType::InvalidOAuthAuthorization)?,
+      .ok_or(KalamcheErrorType::OAuthAuthorizationInvalid)?,
     None => {
       User::email_exists(context.pool(), &oauth_user.email).await?;
 
@@ -104,23 +104,19 @@ pub async fn verify_email_registration(
   let claims = verify_verification_token(SETTINGS.get_jwt(), &payload.token)?;
 
   if payload.code != claims.code {
-    return Err(KalamcheError::from(
-      KalamcheErrorType::InvalidVerificationCode,
-    ));
+    return Err(KalamcheError::from(KalamcheErrorType::InvalidCodeVerifier));
   }
 
   let pending_user = PendingUser::find_by_id(context.pool(), claims.sub)
     .await?
-    .ok_or(KalamcheErrorType::AccountNotRegistered)?;
+    .ok_or(KalamcheErrorType::NotRegistered)?;
 
   // age of the verification token by subtracting the token's created_at time from the current time
   let token_age = Utc::now().fixed_offset() - pending_user.created_at;
 
   // Check if the verification token has expired
   if token_age > Duration::minutes(SETTINGS.get_jwt().verfication_expiry as i64) {
-    return Err(KalamcheError::from(
-      KalamcheErrorType::ExpiredVerificationCode,
-    ));
+    return Err(KalamcheError::from(KalamcheErrorType::InvalidCodeVerifier));
   }
 
   let user = match User::find_user_by_email(context.pool(), &pending_user.email).await? {
@@ -134,9 +130,10 @@ pub async fn verify_email_registration(
         .ok_or(KalamcheError::from(KalamcheErrorType::InvalidEmailAddress))?
         .to_string();
 
+      // this never return error
       let password_hash = pending_user
         .password_hash
-        .ok_or(KalamcheErrorType::InvalidCredentials)?;
+        .ok_or(KalamcheErrorType::InvalidPassword)?;
 
       insert_new_user(
         context.pool(),
@@ -144,7 +141,7 @@ pub async fn verify_email_registration(
           name: user_name,
           email: pending_user.email,
           password_hash: Some(password_hash),
-          avatar_url: "#".to_string(), // default avatar_url is #
+          avatar_url: "#".to_string(), // default avatar_url
         },
       )
       .await?

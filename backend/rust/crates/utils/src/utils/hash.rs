@@ -16,8 +16,8 @@ pub fn hash_passwrod(password: &str) -> KalamcheResult<String> {
 }
 
 pub fn verify_passwrod(password: &str, hash: &str) -> KalamcheResult<bool> {
-  let parsed_hash = PasswordHash::new(hash)
-    .map_err(|_| KalamcheError::from(KalamcheErrorType::InvalidCredentials))?;
+  let parsed_hash =
+    PasswordHash::new(hash).map_err(|_| KalamcheError::from(KalamcheErrorType::InvalidPassword))?;
 
   let matches = Argon2::default()
     .verify_password(password.as_bytes(), &parsed_hash)

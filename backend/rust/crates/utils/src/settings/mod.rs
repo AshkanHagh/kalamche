@@ -3,7 +3,7 @@ use std::{
   sync::LazyLock,
 };
 use structs::{
-  DatabaseConfig, EmailConfig, JwtConfig, OAuthConfig, OAuthProviderConfig, RedisConfig, Settings,
+  DatabaseConfig, EmailConfig, JwtConfig, OAuthConfig, OAuthProviderConfig, PaymentConfig, Settings,
 };
 
 pub mod structs;
@@ -18,21 +18,16 @@ pub static SETTINGS: LazyLock<Settings> = LazyLock::new(|| {
 });
 
 impl Settings {
-  pub(crate) fn init() -> Self {
+  pub(self) fn init() -> Self {
     Self {
       database: DatabaseConfig {
         connection: Self::get_var("DATABASE_URL"),
-        pool_size: Self::get_var("DATABASE_POOL_SIZE").parse().unwrap(),
+        pool_size: 10,
         max_lifetime: 30,
         connect_timeout: 10,
         acquire_timeout: 10,
         idle_timeout: 10,
       },
-
-      cache: Some(RedisConfig {
-        connection: Self::get_var("REDIS_URL"),
-        pool_size: 0,
-      }),
 
       oauth_providers: Some(OAuthConfig {
         github: Some(OAuthProviderConfig {
@@ -65,19 +60,23 @@ impl Settings {
         verification_redirect_url: Self::get_var("VERIFICATION_REDIRECT_URL"),
       },
 
+      // by default kalamche uses stripe for payment process
+      payment: PaymentConfig {
+        secret: Self::get_var("STRIPE_SECRET_KEY"),
+        success_url: Self::get_var("PAYMENT_SUCCESS_REDIRECT_URL"),
+        cancel_url: Self::get_var("PAYMENT_CANCEL_REDIRECT_URL"),
+      },
+
       bind: IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-      hostname: "localhost".to_owned(),
+      hostname: Self::get_var("HOSTNAME"),
       port: 7319,
+      allowed_origin_url: Self::get_var("CORS_ORIGIN"),
       tls_enabled: false,
     }
   }
 
   pub fn get_database(&self) -> &DatabaseConfig {
     &self.database
-  }
-
-  pub fn get_cache(&self) -> &Option<RedisConfig> {
-    &self.cache
   }
 
   pub fn get_oauth(&self) -> &Option<OAuthConfig> {
@@ -90,6 +89,10 @@ impl Settings {
 
   pub fn get_email(&self) -> &EmailConfig {
     &self.email
+  }
+
+  pub fn get_payment(&self) -> &PaymentConfig {
+    &self.payment
   }
 
   fn get_var(key: &str) -> String {

@@ -1,0 +1,9 @@
+[package]
+name = "routes"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+api_common = { path = "../api_common" }
+utils = { path = "../utils" }
+actix-web = { workspace = true }

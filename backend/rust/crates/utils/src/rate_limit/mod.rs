@@ -1,42 +1,29 @@
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures::future::{ok, Ready};
 use rate_limiter::{ActionType, BucketConfig, RateLimitChecker};
-use std::{collections::HashMap, future::Future, pin::Pin, rc::Rc};
+use std::{collections::HashMap, future::Future, net::IpAddr, pin::Pin, rc::Rc};
 
-use crate::{cache::RedisCache, error::KalamcheErrorType};
+use crate::{
+  cache::Peak,
+  error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType},
+};
 
 pub mod rate_limiter;
 
 #[derive(Clone)]
 pub struct RateLimiter {
-  redis_pool: RedisCache,
+  cache: Peak<String, u32>,
   bucket_configs: HashMap<ActionType, BucketConfig>,
 }
 
+// bucket configs are all set for development
 impl RateLimiter {
-  #[rustfmt::skip]
-  pub fn new(redis_pool: &RedisCache) -> Self {
+  pub fn new(cache: &Peak<String, u32>) -> Self {
     let mut bucket_configs = HashMap::new();
-
-    bucket_configs.insert(
-      ActionType::Register,
-      BucketConfig { capacity: 3, secs_to_refill: 5 },
-    );
-    bucket_configs.insert(
-      ActionType::Image,
-      BucketConfig { capacity: 10, secs_to_refill: 5 },
-    );
-    bucket_configs.insert(
-      ActionType::Product,
-      BucketConfig { capacity: 10, secs_to_refill: 5 },
-    );
-    bucket_configs.insert(
-      ActionType::Search,
-      BucketConfig { capacity: 10, secs_to_refill: 5 },
-    );
+    Self::with_test_config(&mut bucket_configs);
 
     Self {
-      redis_pool: redis_pool.clone(),
+      cache: cache.clone(),
       bucket_configs,
     }
   }
@@ -67,9 +54,40 @@ impl RateLimiter {
     RateLimitChecker {
       action_type,
       bucket_config: config.clone(),
-      redis_pool: self.redis_pool.clone(),
+      cache: self.cache.clone(),
       key: "".to_string(),
     }
+  }
+
+  fn with_test_config(bucket_configs: &mut HashMap<ActionType, BucketConfig>) {
+    bucket_configs.insert(
+      ActionType::Register,
+      BucketConfig {
+        capacity: 5,
+        secs_to_refill: 30,
+      },
+    );
+    bucket_configs.insert(
+      ActionType::Image,
+      BucketConfig {
+        capacity: 6,
+        secs_to_refill: 3600,
+      },
+    );
+    bucket_configs.insert(
+      ActionType::Product,
+      BucketConfig {
+        capacity: 6,
+        secs_to_refill: 3600,
+      },
+    );
+    bucket_configs.insert(
+      ActionType::Search,
+      BucketConfig {
+        capacity: 60,
+        secs_to_refill: 600,
+      },
+    );
   }
 }
 
@@ -120,33 +138,18 @@ where
     let service = self.service.clone();
 
     Box::pin(async move {
-      let ip = req
-        .connection_info()
-        .realip_remote_addr()
-        .unwrap_or("127.0.0.1")
-        .to_string();
+      let ip = match req.connection_info().realip_remote_addr() {
+        Some(ip) => {
+          let ip: IpAddr = ip
+            .parse()
+            .with_kalamche_type(KalamcheErrorType::RateLimitError)?;
+          Ok(ip)
+        }
+        None => Err(KalamcheError::from(KalamcheErrorType::RateLimitError)),
+      }?;
 
       checker.for_ip(&ip).check().await?;
       service.call(req).await
     })
   }
 }
-
-// fn get_ip(conn_info: &ConnectionInfo) -> IpAddr {
-//   conn_info
-//     .realip_remote_addr()
-//     .and_then(parse_ip)
-//     .unwrap_or(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)))
-// }
-
-// fn parse_ip(addr: &str) -> Option<IpAddr> {
-//   if let Some(s) = addr.strip_suffix(']') {
-//     IpAddr::from_str(s.get(1..)?).ok()
-//   } else if let Ok(ip) = IpAddr::from_str(addr) {
-//     Some(ip)
-//   } else if let Ok(socket) = SocketAddr::from_str(addr) {
-//     Some(socket.ip())
-//   } else {
-//     None
-//   }
-// }

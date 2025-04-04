@@ -103,7 +103,7 @@ impl OAuthClient {
     match self.name.as_str() {
       "github" => self.map_github_user(user_info, other_info),
       _ => Err(KalamcheError::from(
-        KalamcheErrorType::InvalidOAuthAuthorization,
+        KalamcheErrorType::OAuthAuthorizationInvalid,
       )),
     }
   }
@@ -122,7 +122,7 @@ impl OAuthClient {
     let user_primary_email = user_emails
       .into_iter()
       .find(|email| email.primary && email.verified)
-      .ok_or(KalamcheErrorType::OAuthNoVerifiedPrimaryEmail)?;
+      .ok_or(KalamcheErrorType::EmailRequired)?;
 
     Ok(OAuthUser {
       id: user_info.id.to_string(),

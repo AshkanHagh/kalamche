@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::{sea_query::extension::postgres::Type, *};
 
-use crate::{m20250307_203232_user::User, m20250402_132748_fr_token_plans::FrToken};
+use crate::{m20250307_203232_user::User, m20250402_132748_fr_token_plans::FrTokenPlan};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -64,7 +64,7 @@ impl MigrationTrait for Migration {
           .name("fk_payment_histories_fr_token_id")
           .from(PaymentHisotry::Table, PaymentHisotry::FrTokenId)
           .on_delete(ForeignKeyAction::Cascade)
-          .to(FrToken::Table, FrToken::Id)
+          .to(FrTokenPlan::Table, FrTokenPlan::Id)
           .to_owned(),
       )
       .await?;
