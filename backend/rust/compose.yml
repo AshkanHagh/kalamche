@@ -1,18 +1,4 @@
 services:
-  # kalamche:
-  #   build:
-  #     context: ./
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "7319:7319"
-  #   environment:
-  #     - RUST_LOG = "server=debug,database=debug,utils=debug,api=debug,actix_server=debug"
-  #     - RUST_BACKTRACE=full
-  #   env_file:
-  #     - ./.env
-  #   depends_on:
-  #     - postgres
-
   mailhog:
     image: registry.docker.ir/mailhog/mailhog
     ports:
