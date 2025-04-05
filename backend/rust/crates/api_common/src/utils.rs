@@ -1,7 +1,7 @@
 use actix_web::{
   cookie::{time::Duration as CookieDuration, Cookie, SameSite},
   http::header::Header,
-  HttpRequest,
+  HttpMessage, HttpRequest,
 };
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use database::source::{
@@ -10,9 +10,9 @@ use database::source::{
 };
 use utils::{
   email::send_email,
-  error::KalamcheResult,
+  error::{KalamcheErrorType, KalamcheResult},
   settings::SETTINGS,
-  utils::token::{sign_access_token, sign_refresh_token},
+  utils::token::{sign_access_token, sign_refresh_token, verify_access_token},
 };
 use uuid::Uuid;
 
@@ -51,12 +51,7 @@ pub async fn send_account_verification_email(email: &str, code: u32) -> Kalamche
   send_email(
     "verification code",
     email,
-    &format!(
-      "<h1>{}</h1>\n<h1>url: {}?code={}</h1>",
-      code,
-      SETTINGS.get_jwt().verification_redirect_url,
-      code,
-    ),
+    &format!("<h1>{}</h1>", code,),
     SETTINGS.get_email(),
   )
 }
@@ -99,11 +94,20 @@ pub fn read_auth_token(req: &HttpRequest) -> KalamcheResult<Option<String>> {
   }
 }
 
-// pub async fn find_user_id_from_jwt(token: &str, context: &KalamcheContext) -> KalamcheResult<Uuid> {
-//   // let claims = verify_access_token(SETTINGS.get_jwt(), token).with_kalamche_type();
-//   // let user = User::find_by_id(context.pool(), claims.sub)
-//   //   .await?
-//   //   .ok_or(KalamcheErrorType::NotLoggedIn);
+pub async fn find_user_from_jwt(token: &str, context: &KalamcheContext) -> KalamcheResult<User> {
+  let claims = verify_access_token(SETTINGS.get_jwt(), token)?;
+  let user = User::find_by_id(context.pool(), claims.sub)
+    .await?
+    .ok_or(KalamcheErrorType::NotLoggedIn)?;
 
-//   todo!()
-// }
+  Ok(user)
+}
+
+pub fn get_user_from_req(req: &mut HttpRequest) -> KalamcheResult<User> {
+  let user = req
+    .extensions_mut()
+    .remove::<User>()
+    .ok_or(KalamcheErrorType::NotLoggedIn)?;
+
+  Ok(user)
+}

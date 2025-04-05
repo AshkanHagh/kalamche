@@ -60,10 +60,10 @@ pub struct DatabaseConfig {
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
 #[serde(default)]
 pub struct JwtConfig {
-  #[default("access_token_secret")]
+  #[default("secret")]
   pub at_secret: String,
 
-  #[default("refresh_token_secret")]
+  #[default("secret")]
   pub rt_secret: String,
 
   #[default(2)] // 2 day
@@ -75,11 +75,8 @@ pub struct JwtConfig {
   #[default(10)] // 10m
   pub verfication_expiry: usize,
 
-  #[default("verification_token_secret")]
+  #[default("secret")]
   pub verification_secret: String,
-
-  #[default("http://localhost:7319")]
-  pub verification_redirect_url: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
