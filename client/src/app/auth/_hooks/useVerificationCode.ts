@@ -10,7 +10,6 @@ const useVerificationCode = (length: number, isOpen: boolean = false) => {
   const [digits, setDigits] = useState<string[]>(Array(length).fill(""))
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   useEffect(() => {
-    console.log(inputRefs)
     setTimeout(() => {
       inputRefs.current[0]?.focus()
     }, 100)
@@ -20,7 +19,6 @@ const useVerificationCode = (length: number, isOpen: boolean = false) => {
     const inputValue = e.target.value
     if (!inputValue || inputValue.length > 1 || !/^\d*$/.test(inputValue))
       return
-    console.log(inputValue)
     setDigits((prev) => {
       const newDigits = [...prev]
       newDigits[index] = inputValue

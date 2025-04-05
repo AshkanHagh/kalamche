@@ -32,8 +32,7 @@ export const handleApiError = (
     const statusCode = status as ServerStatusCode
     errorData.data = data
     errorData.errorMessage = getErrorMessage(statusCode, endpoint)
-  }
-  if (error.request) {
+  } else if (error.request) {
     // The request was made but no response was received
     errorData.errorMessage =
       "No response received from the server. Please check your internet connection."

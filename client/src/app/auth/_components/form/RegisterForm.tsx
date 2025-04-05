@@ -9,10 +9,16 @@ import { RegisterFormValues, registerSchema } from "../../_schema/formSchema"
 import FormInput from "./FormInput"
 import TermsCheckbox from "./TermsCheckbox"
 import VerificationCodeModal from "../VerificationCodeModal/VerificationCodeModal"
-import { useState } from "react"
+import useRegister from "../../_services/useRegister"
+import { RegisterBody } from "../../_types"
+import useVerification from "../../_services/useVerification"
+import { handleApiError } from "@/lib/utils"
+import { toast } from "sonner"
 
 const RegisterForm = () => {
-  const [isOpen, setIsOpen] = useState<boolean>(false)
+  const { register, data } = useRegister()
+  const { isOpen, setIsOpen, onResend, onVerify } = useVerification()
+  const verificationToken = data?.verificationToken
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -29,8 +35,17 @@ const RegisterForm = () => {
     formState: { isSubmitting }
   } = form
 
-  const onSubmit = (data: RegisterFormValues) => {
-    console.log(data)
+  const onSubmit = async ({ email, password }: RegisterFormValues) => {
+    const body: RegisterBody = { email, password }
+    await register(
+      body,
+      () => setIsOpen(true),
+      (error) => {
+        const { errorMessage } = handleApiError(error)
+        toast.error(errorMessage)
+        console.log(error)
+      }
+    )
   }
 
   return (
@@ -65,44 +80,37 @@ const RegisterForm = () => {
             type="password"
           />
           <TermsCheckbox control={control} name="terms" />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting}
-            onClick={() => setIsOpen((prev) => !prev)}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Please wait
               </>
             ) : (
-              "Create Account"
+              "Send Code"
             )}
           </Button>
+          {verificationToken && (
+            <div className="mt-4 text-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsOpen(true)}
+                className="w-full"
+              >
+                Enter Code
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
       <VerificationCodeModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onResend={async () => {
-          await new Promise((resolve) => {
-            setTimeout(() => {
-              resolve("")
-            }, 1000)
-          })
-          console.log(123)
-        }}
-        onVerify={async (code) => {
-          await new Promise((resolve) => {
-            setTimeout(() => {
-              return resolve(code)
-            }, 2000)
-          })
-          console.log(code)
-        }}
+        onResend={onResend}
+        onVerify={(code) => onVerify({ code, token: verificationToken })}
         codeLength={6}
-        email={"shahinfallah@gmail.com"}
+        email={form.getValues("email")}
       />
     </>
   )

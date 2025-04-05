@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:7319"
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL
 import axios from "axios"
 
 export default axios.create({

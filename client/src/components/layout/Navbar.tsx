@@ -15,12 +15,15 @@ import {
 } from "../ui/dropdown-menu"
 import { Children } from "react"
 import { ProfileDropdown } from "../profile/ProfileDropdown"
+import { useAppSelector } from "@/lib/redux/hooks/useRedux"
 
 type NavbarProps = {
   children: React.ReactNode
 }
 
 export const Navbar = ({ children }: NavbarProps) => {
+  const { user } = useAppSelector((state) => state.auth)
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -37,7 +40,7 @@ export const Navbar = ({ children }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-4">
-          {true ? (
+          {user ? (
             <ProfileDropdown />
           ) : (
             <Button asChild variant="outline" size="sm">

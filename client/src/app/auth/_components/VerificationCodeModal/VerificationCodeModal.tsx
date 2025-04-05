@@ -18,7 +18,7 @@ import ResendCode from "./ResendCode"
 type VerificationCodeModalProps = {
   isOpen: boolean
   onClose: () => void
-  onVerify: (code: string) => Promise<void>
+  onVerify: (code: number) => Promise<void>
   onResend: () => Promise<void>
   email?: string
   codeLength?: number
@@ -40,7 +40,7 @@ const VerificationCodeModal = ({
   const handleVerify = async () => {
     const code = digits.join("")
     setIsVerifying(true)
-    await onVerify(code)
+    await onVerify(Number(code))
     setIsVerifying(false)
   }
 
