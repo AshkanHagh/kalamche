@@ -6,9 +6,10 @@ edition.workspace = true
 [dependencies]
 api = { path = "../api" }
 api_common = { path = "../api_common" }
+api_crud = { path = "../api_crud" }
 utils = { path = "../utils" }
 database = { path = "../database" }
-api_crud = { path = "../api_crud" }
+routes = { path = "../routes" }
 actix-web = { workspace = true }
 reqwest = { workspace = true }
 env_logger = { workspace = true }

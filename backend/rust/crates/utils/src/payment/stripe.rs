@@ -3,6 +3,7 @@ use stripe::{
   CreateCheckoutSessionLineItems, CreateCustomer, CreatePrice, CreateProduct, Currency, Customer,
   CustomerId, IdOrCreate, ListCustomers, Price, Product,
 };
+use uuid::Uuid;
 
 use crate::{
   error::KalamcheResult,
@@ -14,6 +15,7 @@ pub struct StripePayment {
 }
 
 pub struct ProductForm {
+  pub id: Uuid,
   pub name: String,
   pub description: String,
   pub price: i64,
@@ -30,7 +32,7 @@ impl StripePayment {
     &self,
     user_email: &str,
     product_form: ProductForm,
-  ) -> KalamcheResult<String> {
+  ) -> KalamcheResult<(String, String)> {
     let customer_id = self.find_or_create_user(user_email).await?;
 
     let product = {
@@ -49,7 +51,9 @@ impl StripePayment {
 
     let checkout_session = {
       let mut session_params = CreateCheckoutSession::new();
-      session_params.success_url = Some(&SETTINGS.get_payment().success_url);
+      let mut success_url = SETTINGS.get_payment().success_url.clone();
+
+      session_params.success_url = Some(&success_url);
       session_params.cancel_url = Some(&SETTINGS.get_payment().cancel_url);
       session_params.customer = Some(customer_id);
       session_params.mode = Some(CheckoutSessionMode::Payment);
@@ -59,10 +63,19 @@ impl StripePayment {
         ..Default::default()
       }]);
 
-      CheckoutSession::create(&self.client, session_params).await?
+      let checkout = CheckoutSession::create(&self.client, session_params).await?;
+      success_url.insert_str(
+        success_url.len(),
+        &format!("/{}/{}", product_form.id, checkout.id),
+      );
+
+      checkout
     };
 
-    Ok(checkout_session.url.unwrap())
+    Ok((
+      checkout_session.url.unwrap(),
+      checkout_session.id.to_string(),
+    ))
   }
 
   async fn find_or_create_user(&self, user_email: &str) -> KalamcheResult<CustomerId> {

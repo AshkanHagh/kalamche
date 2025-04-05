@@ -19,7 +19,7 @@ impl PaymentClient {
     &self,
     user_email: &str,
     product_form: ProductForm,
-  ) -> KalamcheResult<String> {
+  ) -> KalamcheResult<(String, String)> {
     self
       .client
       .create_checkout_url(user_email, product_form)

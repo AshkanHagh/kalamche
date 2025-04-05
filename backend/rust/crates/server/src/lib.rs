@@ -2,7 +2,6 @@ use actix_cors::Cors;
 use actix_web::{middleware, web::Data, App, HttpServer};
 use api_common::context::KalamcheContext;
 use database::{connection::Database, migration::run_migration};
-use reqwest::Client;
 use utils::{
   cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},
@@ -21,7 +20,10 @@ pub async fn strat_server() -> KalamcheResult<()> {
   let pool = Database::new(SETTINGS.get_database()).await?;
   run_migration(&pool).await?;
 
-  let reqwest_client = Client::new();
+  let reqwest_client = reqwest::ClientBuilder::new()
+    .redirect(reqwest::redirect::Policy::none())
+    .build()
+    .unwrap();
   let cache = Peak::new(10_000, 60 * 5, 60);
 
   let rate_limiter = RateLimiter::new(&cache);
@@ -62,4 +64,6 @@ fn config_cors() -> Cors {
   Cors::default()
     .allowed_origin(&SETTINGS.allowed_origin_url)
     .supports_credentials()
+    .allow_any_header()
+    .allow_any_origin()
 }

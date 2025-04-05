@@ -1,4 +1,56 @@
-use actix_web::web::Data;
-use api_common::context::KalamcheContext;
+use actix_web::{
+  get,
+  web::{Data, Json, Path},
+  HttpRequest,
+};
+use api_common::{
+  context::KalamcheContext,
+  utils::get_user_from_req,
+  wallet::{PurchaseFrToken, PurchaseFrTokenResponse},
+};
+use database::source::{
+  fr_token_plan::FrTokenPlan,
+  payment_history::{PaymentHistory, PaymentHistoryInsertForm, PaymentStatus},
+};
+use utils::{error::KalamcheResult, payment::stripe::ProductForm};
 
-pub async fn create_checkout(context: Data<KalamcheContext>) {}
+#[get("/{token_id}")]
+pub async fn create_checkout(
+  mut req: HttpRequest,
+  context: Data<KalamcheContext>,
+  params: Path<PurchaseFrToken>,
+) -> KalamcheResult<Json<PurchaseFrTokenResponse>> {
+  let user = get_user_from_req(&mut req)?;
+
+  let fr_token_plan = FrTokenPlan::find_by_id(context.pool(), params.token_id).await?;
+  let checkout_session = context
+    .payment_client()
+    .create_checkout_url(
+      &user.email,
+      ProductForm {
+        id: fr_token_plan.id,
+        name: fr_token_plan.name,
+        description: fr_token_plan.description,
+        price: fr_token_plan.price,
+      },
+    )
+    .await?;
+
+  PaymentHistory::insert(
+    context.pool(),
+    PaymentHistoryInsertForm {
+      user_id: user.id,
+      fr_token_id: fr_token_plan.id,
+      session_id: checkout_session.1, // .1: payment provider unique id like(session id, authrizity key)
+      fr_tokens: fr_token_plan.fr_tokens,
+      price: fr_token_plan.price,
+      status: PaymentStatus::Pending,
+    },
+  )
+  .await?;
+
+  Ok(Json(PurchaseFrTokenResponse {
+    success: true,
+    url: checkout_session.0, // .0: checkout url
+  }))
+}

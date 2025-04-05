@@ -15,6 +15,7 @@ pub struct Model {
   pub fr_tokens: i32,
   pub status: PaymentStatus,
   pub transaction_id: String,
+  pub session_id: String,
   pub created_at: DateTimeWithTimeZone,
 }
 
