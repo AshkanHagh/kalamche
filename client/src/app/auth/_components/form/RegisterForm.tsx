@@ -107,7 +107,7 @@ const RegisterForm = () => {
       <VerificationCodeModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        onResend={onResend}
+        onResend={() => onResend(form.getValues("email"))}
         onVerify={(code) => onVerify({ code, token: verificationToken })}
         codeLength={6}
         email={form.getValues("email")}

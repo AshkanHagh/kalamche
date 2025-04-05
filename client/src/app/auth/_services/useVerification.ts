@@ -1,5 +1,5 @@
 import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
-import { Login, VerifyCodeBody } from "../_types"
+import { Login, VerificationResponse, VerifyCodeBody } from "../_types"
 import useVerifyCode from "./useVerifyCode"
 import { setCredentials } from "@/lib/redux/slices/authSlice"
 import { AxiosError } from "axios"
@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { handleApiError } from "@/lib/utils"
 import { useCallback, useState } from "react"
+import useResendCode from "./useResendCode"
 
 const useVerification = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
@@ -15,6 +16,7 @@ const useVerification = () => {
     string | null
   >(null)
   const { verifyCode } = useVerifyCode()
+  const { resendCode } = useResendCode()
   const dispatch = useAppDispatch()
   const { replace } = useRouter()
 
@@ -28,13 +30,21 @@ const useVerification = () => {
     [dispatch, replace]
   )
 
-  const handleVerifyCodeError = useCallback(
-    (error: AxiosError<ServerError>) => {
-      const { errorMessage } = handleApiError(error)
-      toast.error(errorMessage)
+  const handleResendCodeSuccess = useCallback(
+    (data: VerificationResponse, email: string) => {
+      const newToken = data.verificationToken
+      setNewVerificationToken(newToken)
+      toast.success(
+        `Email has seA new verification code has been sent to ${email}`
+      )
     },
     []
   )
+
+  const handleError = useCallback((error: AxiosError<ServerError>) => {
+    const { errorMessage } = handleApiError(error)
+    toast.error(errorMessage)
+  }, [])
 
   const onVerify = async ({
     code,
@@ -51,13 +61,16 @@ const useVerification = () => {
     await verifyCode(
       { code, token: verificationToken },
       handleVerifyCodeSuccess,
-      handleVerifyCodeError
+      handleError
     )
   }
 
-  const onResend = async () => {
-    console.log("resend code")
-    setNewVerificationToken("Test Token")
+  const onResend = async (email: string) => {
+    await resendCode(
+      email,
+      (data) => handleResendCodeSuccess(data, email),
+      handleError
+    )
   }
 
   return { isOpen, setIsOpen, onVerify, onResend }

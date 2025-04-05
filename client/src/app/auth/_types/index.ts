@@ -1,6 +1,6 @@
 import { User } from "@/types"
 
-export type RegisterResponse = {
+export type VerificationResponse = {
   success: boolean
   verificationToken: string
 }
