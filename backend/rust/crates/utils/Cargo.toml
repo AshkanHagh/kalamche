@@ -25,5 +25,4 @@ log = { workspace = true }
 reqwest = { workspace = true }
 oauth2 = { workspace = true }
 argon2 = { workspace = true }
-async-stripe = { workspace = true }
 futures = { workspace = true }

@@ -1,3 +1,4 @@
+use chrono::Utc;
 use entity::payment_hisotry::{self, Model};
 use sea_orm::{ActiveValue::Set, EntityTrait};
 use utils::error::{KalamcheError, KalamcheResult};
@@ -10,6 +11,7 @@ use crate::{
 
 impl PaymentHistory {
   pub async fn insert(pool: &Database, form: PaymentHistoryInsertForm) -> KalamcheResult<()> {
+    // transaction_id: initial value set to "".
     let model = payment_hisotry::ActiveModel {
       id: Set(Uuid::new_v4()),
       fr_token_id: Set(form.fr_token_id),
@@ -18,7 +20,8 @@ impl PaymentHistory {
       price: Set(form.price),
       status: Set(form.status),
       session_id: Set(form.session_id),
-      ..Default::default()
+      transaction_id: Set("".to_string()),
+      created_at: Set(Utc::now().fixed_offset()),
     };
 
     let _ = payment_hisotry::Entity::insert(model).exec(&**pool).await?;

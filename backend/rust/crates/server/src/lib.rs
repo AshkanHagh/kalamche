@@ -34,7 +34,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
       .ok_or(KalamcheErrorType::OAuthRegistrationClosed)?,
     reqwest_client.clone(),
   )?;
-  let payment_client = PaymentClient::new(&SETTINGS.get_payment());
+  let payment_client = PaymentClient::new(&SETTINGS.get_payment(), &reqwest_client);
 
   let context = Data::new(KalamcheContext::new(
     pool,

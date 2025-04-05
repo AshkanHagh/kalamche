@@ -1,28 +1,27 @@
-use stripe::{ProductForm, StripePayment};
+use reqwest::Client;
+use structs::{CreateCheckout, ProductForm};
+use zibal::ZibalPayment;
 
 use crate::{error::KalamcheResult, settings::structs::PaymentConfig};
 
-pub mod stripe;
+pub mod structs;
+pub mod zibal;
 
 pub struct PaymentClient {
-  pub client: StripePayment,
+  pub client: ZibalPayment,
 }
 
 impl PaymentClient {
-  pub fn new(config: &PaymentConfig) -> Self {
+  pub fn new(config: &PaymentConfig, reqwest_client: &Client) -> Self {
     Self {
-      client: StripePayment::new(config),
+      client: ZibalPayment::new(config, reqwest_client),
     }
   }
 
   pub async fn create_checkout_url(
     &self,
-    user_email: &str,
     product_form: ProductForm,
-  ) -> KalamcheResult<(String, String)> {
-    self
-      .client
-      .create_checkout_url(user_email, product_form)
-      .await
+  ) -> KalamcheResult<CreateCheckout> {
+    self.client.create_checkout_url(product_form).await
   }
 }

@@ -12,7 +12,7 @@ use database::source::{
   fr_token_plan::FrTokenPlan,
   payment_history::{PaymentHistory, PaymentHistoryInsertForm, PaymentStatus},
 };
-use utils::{error::KalamcheResult, payment::stripe::ProductForm};
+use utils::{error::KalamcheResult, payment::structs::ProductForm};
 
 #[get("/{token_id}")]
 pub async fn create_checkout(
@@ -25,23 +25,21 @@ pub async fn create_checkout(
   let fr_token_plan = FrTokenPlan::find_by_id(context.pool(), params.token_id).await?;
   let checkout_session = context
     .payment_client()
-    .create_checkout_url(
-      &user.email,
-      ProductForm {
-        id: fr_token_plan.id,
-        name: fr_token_plan.name,
-        description: fr_token_plan.description,
-        price: fr_token_plan.price,
-      },
-    )
+    .create_checkout_url(ProductForm {
+      id: fr_token_plan.id,
+      name: fr_token_plan.name,
+      description: fr_token_plan.description,
+      price: fr_token_plan.price,
+    })
     .await?;
 
+  // session_id: payment provider unique id like(session id, authrizity key)
   PaymentHistory::insert(
     context.pool(),
     PaymentHistoryInsertForm {
       user_id: user.id,
       fr_token_id: fr_token_plan.id,
-      session_id: checkout_session.1, // .1: payment provider unique id like(session id, authrizity key)
+      session_id: checkout_session.payment_id,
       fr_tokens: fr_token_plan.fr_tokens,
       price: fr_token_plan.price,
       status: PaymentStatus::Pending,
@@ -51,6 +49,6 @@ pub async fn create_checkout(
 
   Ok(Json(PurchaseFrTokenResponse {
     success: true,
-    url: checkout_session.0, // .0: checkout url
+    url: checkout_session.url,
   }))
 }
