@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Loader2 } from "lucide-react"
-import useVerificationCode from "../../_hooks/useVerificationCode"
+import useVerificationCodeLogic from "../../_hooks/useVerificationCodeLogic"
 import ResendCode from "./ResendCode"
 
 type VerificationCodeModalProps = {
@@ -35,7 +35,7 @@ const VerificationCodeModal = ({
   const [isVerifying, setIsVerifying] = useState(false)
 
   const { digits, inputRefs, handleChange, handleKeyDown } =
-    useVerificationCode(codeLength, isOpen)
+    useVerificationCodeLogic(codeLength, isOpen)
 
   const handleVerify = async () => {
     const code = digits.join("")

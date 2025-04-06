@@ -1,6 +1,6 @@
 import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
 import { Login, VerificationResponse, VerifyCodeBody } from "../_types"
-import useVerifyCode from "./useVerifyCode"
+import useVerifyCode from "../_services/useVerifyCode"
 import { setCredentials } from "@/lib/redux/slices/authSlice"
 import { AxiosError } from "axios"
 import { ServerError } from "@/types"
@@ -8,9 +8,9 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { handleApiError } from "@/lib/utils"
 import { useCallback, useState } from "react"
-import useResendCode from "./useResendCode"
+import useResendCode from "../_services/useResendCode"
 
-const useVerification = () => {
+const useManageVerification = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
   const [newVerificationToken, setNewVerificationToken] = useState<
     string | null
@@ -19,27 +19,6 @@ const useVerification = () => {
   const { resendCode } = useResendCode()
   const dispatch = useAppDispatch()
   const { replace } = useRouter()
-
-  const handleVerifyCodeSuccess = useCallback(
-    ({ accessToken, user }: Login) => {
-      dispatch(setCredentials({ accessToken: accessToken, user: user }))
-      setIsOpen(false)
-      toast.success("Verify successful.")
-      replace("/")
-    },
-    [dispatch, replace]
-  )
-
-  const handleResendCodeSuccess = useCallback(
-    (data: VerificationResponse, email: string) => {
-      const newToken = data.verificationToken
-      setNewVerificationToken(newToken)
-      toast.success(
-        `Email has seA new verification code has been sent to ${email}`
-      )
-    },
-    []
-  )
 
   const handleError = useCallback((error: AxiosError<ServerError>) => {
     const { errorMessage } = handleApiError(error)
@@ -55,6 +34,13 @@ const useVerification = () => {
       return
     }
 
+    const handleVerifyCodeSuccess = ({ accessToken, user }: Login) => {
+      dispatch(setCredentials({ accessToken: accessToken, user: user }))
+      setIsOpen((prev) => !prev)
+      toast.success("Verify successful.")
+      replace("/")
+    }
+
     const verificationToken = newVerificationToken
       ? newVerificationToken
       : token
@@ -66,13 +52,15 @@ const useVerification = () => {
   }
 
   const onResend = async (email: string) => {
-    await resendCode(
-      email,
-      (data) => handleResendCodeSuccess(data, email),
-      handleError
-    )
+    const handleResendCodeSuccess = (data: VerificationResponse) => {
+      const newToken = data.verificationToken
+      setNewVerificationToken(newToken)
+      toast.success(`New verification code has been sent to ${email}`)
+    }
+
+    await resendCode(email, handleResendCodeSuccess, handleError)
   }
 
   return { isOpen, setIsOpen, onVerify, onResend }
 }
-export default useVerification
+export default useManageVerification

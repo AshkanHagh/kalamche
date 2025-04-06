@@ -1,39 +1,29 @@
 import axios from "@/lib/api/axios"
 import { ServerError } from "@/types"
 import { AxiosError } from "axios"
-import { useState } from "react"
-import { RegisterBody, VerificationResponse } from "../_types"
+import { AuthBody, VerificationResponse } from "../_types"
 
 type OnSuccess = (data: VerificationResponse) => void
 type OnError = (error: AxiosError<ServerError>) => void
 
 const useRegister = () => {
-  const [data, setData] = useState<VerificationResponse | null>(null)
-  const [error, setError] = useState<AxiosError<ServerError> | null>(null)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-
   const register = async (
-    form: RegisterBody,
+    form: AuthBody,
     onSuccess?: OnSuccess,
     onError?: OnError
   ) => {
-    setError(null)
-    setIsLoading(true)
     try {
       const { data } = await axios.post<VerificationResponse>(
         "/auth/register",
         form
       )
-      setData(data)
       if (onSuccess) onSuccess(data)
     } catch (e) {
       const error = e as AxiosError<ServerError>
-      setError(error)
       if (onError) onError(error)
     } finally {
-      setIsLoading(false)
     }
   }
-  return { register, data, error, isLoading }
+  return { register }
 }
 export default useRegister

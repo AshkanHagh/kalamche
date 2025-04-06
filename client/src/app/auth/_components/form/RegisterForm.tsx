@@ -10,15 +10,20 @@ import FormInput from "./FormInput"
 import TermsCheckbox from "./TermsCheckbox"
 import VerificationCodeModal from "../VerificationCodeModal/VerificationCodeModal"
 import useRegister from "../../_services/useRegister"
-import { RegisterBody } from "../../_types"
-import useVerification from "../../_services/useVerification"
+import { AuthBody, VerificationResponse } from "../../_types"
+import useManageVerification from "../../_hooks/useManageVerification"
 import { handleApiError } from "@/lib/utils"
 import { toast } from "sonner"
+import { useState } from "react"
+import { AxiosError } from "axios"
+import { ServerError } from "@/types"
 
 const RegisterForm = () => {
-  const { register, data } = useRegister()
-  const { isOpen, setIsOpen, onResend, onVerify } = useVerification()
-  const verificationToken = data?.verificationToken
+  const { register } = useRegister()
+  const { isOpen, setIsOpen, onResend, onVerify } = useManageVerification()
+  const [verificationToken, setVerificationToken] = useState<
+    string | undefined
+  >(undefined)
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -36,16 +41,19 @@ const RegisterForm = () => {
   } = form
 
   const onSubmit = async ({ email, password }: RegisterFormValues) => {
-    const body: RegisterBody = { email, password }
-    await register(
-      body,
-      () => setIsOpen(true),
-      (error) => {
-        const { errorMessage } = handleApiError(error)
-        toast.error(errorMessage)
-        console.log(error)
-      }
-    )
+    const body: AuthBody = { email, password }
+
+    const handleRegisterSuccess = async (data: VerificationResponse) => {
+      const token = data.verificationToken
+      setIsOpen(true)
+      setVerificationToken(token)
+    }
+    const handleRegisterError = async (error: AxiosError<ServerError>) => {
+      const { errorMessage } = handleApiError(error)
+      toast.error(errorMessage)
+    }
+
+    await register(body, handleRegisterSuccess, handleRegisterError)
   }
 
   return (

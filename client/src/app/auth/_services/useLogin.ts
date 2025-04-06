@@ -1,19 +1,19 @@
 import axios from "@/lib/api/axios"
 import { ServerError } from "@/types"
 import { AxiosError } from "axios"
-import { Login, VerifyCodeBody } from "../_types"
+import { AuthBody, LoginResponse } from "../_types"
 
-type OnSuccess = (data: Login) => void
+type OnSuccess = (data: LoginResponse) => void
 type OnError = (error: AxiosError<ServerError>) => void
 
-const useVerifyCode = () => {
-  const verifyCode = async (
-    verifyCodeBody: VerifyCodeBody,
+const useLogin = () => {
+  const login = async (
+    form: AuthBody,
     onSuccess?: OnSuccess,
     onError?: OnError
   ) => {
     try {
-      const { data } = await axios.post<Login>("/auth/verify", verifyCodeBody)
+      const { data } = await axios.post<LoginResponse>("/auth/login", form)
       if (onSuccess) onSuccess(data)
     } catch (e) {
       const error = e as AxiosError<ServerError>
@@ -21,6 +21,6 @@ const useVerifyCode = () => {
     } finally {
     }
   }
-  return { verifyCode }
+  return { login }
 }
-export default useVerifyCode
+export default useLogin
