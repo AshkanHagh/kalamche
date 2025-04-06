@@ -34,7 +34,7 @@ const VerificationCodeModal = ({
 }: VerificationCodeModalProps) => {
   const [isVerifying, setIsVerifying] = useState(false)
 
-  const { digits, inputRefs, handleChange, handleKeyDown } =
+  const { digits, inputRefs, handleChange, handleKeyDown, handlePaste } =
     useVerificationCodeLogic(codeLength, isOpen)
 
   const handleVerify = async () => {
@@ -73,6 +73,7 @@ const VerificationCodeModal = ({
                   inputMode="numeric"
                   onChange={(e) => handleChange(e, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
+                  onPaste={handlePaste}
                   value={value}
                   autoComplete="one-time-code"
                 />

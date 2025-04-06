@@ -2,6 +2,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type ClipboardEvent,
   type ChangeEvent,
   type KeyboardEvent
 } from "react"
@@ -27,8 +28,22 @@ const useVerificationCode = (length: number, isOpen: boolean = false) => {
     inputRefs.current[index + 1]?.focus()
   }
 
+  const handleArrowNavigation = (key: string, index: number) => {
+    if ((key === "ArrowLeft" || key === "ArrowDown") && index >= 1) {
+      console.log("left Clicked")
+      inputRefs.current[index - 1]?.focus()
+    }
+    if ((key === "ArrowRight" || key === "ArrowUp") && index <= length - 2) {
+      console.log(index)
+      console.log("right Clicked")
+      inputRefs.current[index + 1]?.focus()
+    }
+  }
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>, index: number) => {
     const key = e.key
+    handleArrowNavigation(key, index)
+
     if (key !== "Backspace") return
 
     setDigits((prev) => {
@@ -43,7 +58,32 @@ const useVerificationCode = (length: number, isOpen: boolean = false) => {
       return newDigits
     })
   }
-  return { digits, inputRefs, handleChange, handleKeyDown }
+
+  const handlePaste = (e: ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault()
+    const newDigits: string[] = []
+    const pastedData: string[] = e.clipboardData
+      .getData("text/plain")
+      .trim()
+      .split("")
+
+    const pastedDataDigits = pastedData
+      .filter((char) => /\d/.test(char))
+      .slice(0, length)
+
+    for (let i = 0; i < length; i++) {
+      newDigits[i] = pastedDataDigits[i] ? pastedDataDigits[i] : ""
+    }
+    setDigits(newDigits)
+
+    const nextEmptyIndex = newDigits.findIndex((digit) => !digit)
+    if (nextEmptyIndex !== -1) {
+      inputRefs.current[nextEmptyIndex]?.focus()
+    } else {
+      inputRefs.current[length - 1]?.focus()
+    }
+  }
+  return { digits, inputRefs, handleChange, handleKeyDown, handlePaste }
 }
 
 export default useVerificationCode
