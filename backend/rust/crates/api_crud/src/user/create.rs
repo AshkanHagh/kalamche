@@ -5,15 +5,15 @@ use actix_web::{
 };
 use api_common::{
   context::KalamcheContext,
-  oauth_provider::AuthenticateWithOAuth,
-  user::{LoginResponse, VerifyEmailRegistration},
+  oauth_provider::{AuthenticateWithOAuth, AuthenticateWithOAuthResponse},
+  user::{VerifyEmail, VerifyEmailResponse},
   utils::{
     build_cookie, create_token, get_user_ip, update_login_token_user_cache, RT_COOKIE_MAX_AGE,
     RT_COOKIE_NAME,
   },
 };
 use chrono::{Duration, Utc};
-use database::{
+use db_schema::{
   connection::Database,
   source::{
     login_token::LoginTokenInsertForm,
@@ -88,18 +88,22 @@ pub async fn authenticate_with_oauth(
   .await?;
 
   let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(HttpResponse::Created().cookie(cookie).json(LoginResponse {
-    success: true,
-    access_token,
-    user: user_record,
-  }))
+  Ok(
+    HttpResponse::Created()
+      .cookie(cookie)
+      .json(AuthenticateWithOAuthResponse {
+        success: true,
+        access_token,
+        user: user_record,
+      }),
+  )
 }
 
 #[post("/verify")]
 pub async fn verify_email_registration(
   context: Data<KalamcheContext>,
   req: HttpRequest,
-  Json(payload): Json<VerifyEmailRegistration>,
+  Json(payload): Json<VerifyEmail>,
 ) -> KalamcheResult<HttpResponse> {
   let claims = verify_verification_token(SETTINGS.get_jwt(), &payload.token)?;
 
@@ -166,11 +170,15 @@ pub async fn verify_email_registration(
   .await?;
 
   let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(HttpResponse::Created().cookie(cookie).json(LoginResponse {
-    success: true,
-    access_token,
-    user: user_record,
-  }))
+  Ok(
+    HttpResponse::Created()
+      .cookie(cookie)
+      .json(VerifyEmailResponse {
+        success: true,
+        access_token,
+        user: user_record,
+      }),
+  )
 }
 
 pub async fn insert_new_user(pool: &Database, insert_form: UserInsertForm) -> KalamcheResult<User> {

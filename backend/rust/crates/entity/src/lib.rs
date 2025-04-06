@@ -5,7 +5,7 @@ pub mod prelude;
 pub mod fr_token_plan;
 pub mod login_token;
 pub mod oauth_account;
-pub mod payment_hisotry;
+pub mod payment_history;
 pub mod pending_user;
 pub mod permission;
 pub mod sea_orm_active_enums;

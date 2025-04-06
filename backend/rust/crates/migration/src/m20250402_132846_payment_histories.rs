@@ -25,32 +25,37 @@ impl MigrationTrait for Migration {
     manager
       .create_table(
         Table::create()
-          .table(PaymentHisotry::Table)
-          .col(ColumnDef::new(PaymentHisotry::Id).uuid().primary_key())
-          .col(ColumnDef::new(PaymentHisotry::FrTokenId).uuid().not_null())
-          .col(ColumnDef::new(PaymentHisotry::UserId).uuid().not_null())
+          .table(PaymentHistory::Table)
+          .col(ColumnDef::new(PaymentHistory::Id).uuid().primary_key())
+          .col(ColumnDef::new(PaymentHistory::FrTokenId).uuid().not_null())
+          .col(ColumnDef::new(PaymentHistory::UserId).uuid().not_null())
           .col(
-            ColumnDef::new(PaymentHisotry::Price)
+            ColumnDef::new(PaymentHistory::Price)
               .big_integer()
               .not_null(),
           )
           .col(
-            ColumnDef::new(PaymentHisotry::FrTokens)
+            ColumnDef::new(PaymentHistory::FrTokens)
               .integer()
               .not_null(),
           )
           .col(
-            ColumnDef::new(PaymentHisotry::Status)
+            ColumnDef::new(PaymentHistory::Status)
               .custom(PaymentStatus::Enum)
               .not_null(),
           )
           .col(
-            ColumnDef::new(PaymentHisotry::TransactionId)
+            ColumnDef::new(PaymentHistory::TransactionId)
               .string_len(100)
               .not_null(),
           )
           .col(
-            ColumnDef::new(PaymentHisotry::CreatedAt)
+            ColumnDef::new(PaymentHistory::SessionId)
+              .string_len(100)
+              .not_null(),
+          )
+          .col(
+            ColumnDef::new(PaymentHistory::CreatedAt)
               .timestamp_with_time_zone()
               .not_null(),
           )
@@ -62,7 +67,7 @@ impl MigrationTrait for Migration {
       .create_foreign_key(
         ForeignKey::create()
           .name("fk_payment_histories_fr_token_id")
-          .from(PaymentHisotry::Table, PaymentHisotry::FrTokenId)
+          .from(PaymentHistory::Table, PaymentHistory::FrTokenId)
           .on_delete(ForeignKeyAction::Cascade)
           .to(FrTokenPlan::Table, FrTokenPlan::Id)
           .to_owned(),
@@ -73,7 +78,7 @@ impl MigrationTrait for Migration {
       .create_foreign_key(
         ForeignKey::create()
           .name("fk_payment_histories_user_id")
-          .from(PaymentHisotry::Table, PaymentHisotry::UserId)
+          .from(PaymentHistory::Table, PaymentHistory::UserId)
           .on_delete(ForeignKeyAction::Cascade)
           .to(User::Table, User::Id)
           .to_owned(),
@@ -88,7 +93,7 @@ impl MigrationTrait for Migration {
     manager
       .drop_table(
         Table::drop()
-          .table(PaymentHisotry::Table)
+          .table(PaymentHistory::Table)
           .if_exists()
           .to_owned(),
       )
@@ -98,7 +103,7 @@ impl MigrationTrait for Migration {
       .drop_foreign_key(
         ForeignKey::drop()
           .name("fk_payment_histories_user_id")
-          .table(PaymentHisotry::Table)
+          .table(PaymentHistory::Table)
           .to_owned(),
       )
       .await?;
@@ -107,7 +112,7 @@ impl MigrationTrait for Migration {
       .drop_foreign_key(
         ForeignKey::drop()
           .name("fk_payment_histories_fr_token_id")
-          .table(PaymentHisotry::Table)
+          .table(PaymentHistory::Table)
           .to_owned(),
       )
       .await?;
@@ -126,7 +131,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(DeriveIden)]
-enum PaymentHisotry {
+enum PaymentHistory {
   Table,
   Id,
   FrTokenId,
@@ -135,6 +140,7 @@ enum PaymentHisotry {
   FrTokens,
   Status,
   TransactionId,
+  SessionId,
   CreatedAt,
 }
 

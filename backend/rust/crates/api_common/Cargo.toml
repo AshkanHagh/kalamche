@@ -5,7 +5,7 @@ edition.workspace = true
 
 [dependencies]
 utils = { path = "../utils" }
-database = { path = "../database" }
+db_schema = { path = "../db_schema" }
 actix-web = { workspace = true }
 reqwest = { workspace = true }
 serde = { workspace = true }

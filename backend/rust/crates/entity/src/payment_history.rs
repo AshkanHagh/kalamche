@@ -5,7 +5,7 @@ use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize, Deserialize)]
-#[sea_orm(table_name = "payment_hisotry")]
+#[sea_orm(table_name = "payment_history")]
 pub struct Model {
   #[sea_orm(primary_key, auto_increment = false)]
   pub id: Uuid,
@@ -15,6 +15,7 @@ pub struct Model {
   pub fr_tokens: i32,
   pub status: PaymentStatus,
   pub transaction_id: String,
+  pub session_id: String,
   pub created_at: DateTimeWithTimeZone,
 }
 

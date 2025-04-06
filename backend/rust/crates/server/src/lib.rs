@@ -1,8 +1,11 @@
 use actix_cors::Cors;
-use actix_web::{middleware, web::Data, App, HttpServer};
+use actix_web::{
+  middleware::{self, Logger},
+  web::Data,
+  App, HttpServer,
+};
 use api_common::context::KalamcheContext;
-use database::{connection::Database, migration::run_migration};
-use reqwest::Client;
+use db_schema::{connection::Database, migration::run_migration};
 use utils::{
   cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},
@@ -16,12 +19,14 @@ pub mod routes_v1;
 
 pub async fn strat_server() -> KalamcheResult<()> {
   env_logger::init();
-  log::info!("starting server");
 
   let pool = Database::new(SETTINGS.get_database()).await?;
   run_migration(&pool).await?;
 
-  let reqwest_client = Client::new();
+  let reqwest_client = reqwest::ClientBuilder::new()
+    .redirect(reqwest::redirect::Policy::none())
+    .build()
+    .unwrap();
   let cache = Peak::new(10_000, 60 * 5, 60);
 
   let rate_limiter = RateLimiter::new(&cache);
@@ -32,7 +37,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
       .ok_or(KalamcheErrorType::OAuthRegistrationClosed)?,
     reqwest_client.clone(),
   )?;
-  let payment_client = PaymentClient::new(&SETTINGS.get_payment());
+  let payment_client = PaymentClient::new(&SETTINGS.get_payment(), &reqwest_client);
 
   let context = Data::new(KalamcheContext::new(
     pool,
@@ -44,6 +49,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
   let bind = (SETTINGS.bind, SETTINGS.port);
   HttpServer::new(move || {
     App::new()
+      .wrap(Logger::default())
       .wrap(config_cors())
       .wrap(middleware::Logger::default())
       .wrap(middleware::Compress::default())
@@ -62,4 +68,6 @@ fn config_cors() -> Cors {
   Cors::default()
     .allowed_origin(&SETTINGS.allowed_origin_url)
     .supports_credentials()
+    .allow_any_header()
+    .allow_any_method()
 }

@@ -4,10 +4,10 @@ use actix_web::{
 };
 use api_common::{
   context::KalamcheContext,
-  user::{RegisterResponse, ResendVerification},
+  user::{ResendVerificationEmail, ResendVerificationEmailResponse},
   utils::send_account_verification_email,
 };
-use database::source::pending_user::{PendingUser, PendingUserInsertForm};
+use db_schema::source::pending_user::{PendingUser, PendingUserInsertForm};
 use utils::{
   error::{KalamcheErrorType, KalamcheResult},
   settings::SETTINGS,
@@ -19,8 +19,8 @@ use utils::{
 #[post("/verify/resend")]
 pub async fn resend_verification_code(
   context: Data<KalamcheContext>,
-  payload: Json<ResendVerification>,
-) -> KalamcheResult<Json<RegisterResponse>> {
+  payload: Json<ResendVerificationEmail>,
+) -> KalamcheResult<Json<ResendVerificationEmailResponse>> {
   is_email_valid(&payload.email)?;
 
   // find pending user and delete for new insert
@@ -48,7 +48,7 @@ pub async fn resend_verification_code(
 
   send_account_verification_email(&payload.email, verification_code).await?;
 
-  Ok(Json(RegisterResponse {
+  Ok(Json(ResendVerificationEmailResponse {
     success: true,
     verification_token,
   }))

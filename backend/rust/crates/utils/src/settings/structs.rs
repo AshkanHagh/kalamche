@@ -122,7 +122,7 @@ pub struct EmailConfig {
   pub tls: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, SmartDefault)]
+#[derive(Debug, Clone, Deserialize, Serialize, SmartDefault)]
 pub struct PaymentConfig {
   #[default("example")]
   pub secret: String,

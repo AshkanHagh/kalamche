@@ -3,7 +3,7 @@
 pub use super::fr_token_plan::Entity as FrTokenPlan;
 pub use super::login_token::Entity as LoginToken;
 pub use super::oauth_account::Entity as OauthAccount;
-pub use super::payment_hisotry::Entity as PaymentHisotry;
+pub use super::payment_history::Entity as PaymentHistory;
 pub use super::pending_user::Entity as PendingUser;
 pub use super::permission::Entity as Permission;
 pub use super::user::Entity as User;

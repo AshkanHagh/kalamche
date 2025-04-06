@@ -1,9 +1,9 @@
-pub mod fr_token;
+pub mod fr_token_plan;
 pub mod login_token;
 pub mod oauth_account;
 pub mod payment_history;
 pub mod pending_user;
 pub mod permission;
 pub mod user;
-pub mod user_permissin;
+pub mod user_permission;
 pub mod wallet;
