@@ -1,5 +1,5 @@
 use entity::fr_token_plan::{self, Model};
-use sea_orm::EntityTrait;
+use sea_orm::{EntityTrait, QuerySelect};
 use utils::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
 use uuid::Uuid;
 
@@ -13,6 +13,16 @@ impl FrTokenPlan {
       .ok_or(KalamcheErrorType::NotFound)?;
 
     Ok(FrTokenPlan::try_from(plan)?)
+  }
+
+  pub async fn list_all_plans(pool: &Database) -> KalamcheResult<Vec<FrTokenPlan>> {
+    let plans = fr_token_plan::Entity::find()
+      .limit(9)
+      .into_model::<FrTokenPlan>()
+      .all(&**pool)
+      .await?;
+
+    Ok(plans)
   }
 }
 

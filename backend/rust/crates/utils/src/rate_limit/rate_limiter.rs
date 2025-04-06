@@ -68,6 +68,7 @@ pub enum ActionType {
   Search,
   Product,
   Image,
+  Payment,
 }
 
 #[derive(Clone)]

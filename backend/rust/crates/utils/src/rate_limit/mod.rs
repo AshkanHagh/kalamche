@@ -44,6 +44,10 @@ impl RateLimiter {
     self.new_checker(ActionType::Image)
   }
 
+  pub fn payment(&self) -> RateLimitChecker {
+    self.new_checker(ActionType::Payment)
+  }
+
   fn new_checker(&self, action_type: ActionType) -> RateLimitChecker {
     let config = self
       .bucket_configs
@@ -63,29 +67,40 @@ impl RateLimiter {
     bucket_configs.insert(
       ActionType::Register,
       BucketConfig {
-        capacity: 5,
-        secs_to_refill: 30,
+        capacity: 300,
+        secs_to_refill: 5,
       },
     );
+
     bucket_configs.insert(
       ActionType::Image,
       BucketConfig {
-        capacity: 6,
-        secs_to_refill: 3600,
+        capacity: 300,
+        secs_to_refill: 5,
       },
     );
+
     bucket_configs.insert(
       ActionType::Product,
       BucketConfig {
-        capacity: 6,
-        secs_to_refill: 3600,
+        capacity: 300,
+        secs_to_refill: 5,
       },
     );
+
     bucket_configs.insert(
       ActionType::Search,
       BucketConfig {
-        capacity: 60,
-        secs_to_refill: 600,
+        capacity: 300,
+        secs_to_refill: 5,
+      },
+    );
+
+    bucket_configs.insert(
+      ActionType::Payment,
+      BucketConfig {
+        capacity: 300,
+        secs_to_refill: 5,
       },
     );
   }

@@ -1,4 +1,4 @@
-use db_schema::source::payment_history::PaymentHistory;
+use db_schema::source::{fr_token_plan::FrTokenPlan, payment_history::PaymentHistory};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -30,4 +30,11 @@ pub struct PurchaseFrTokenResponse {
 pub struct VerifyPaymentResponse {
   pub success: bool,
   pub payment: PaymentHistory,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListAllPlansResponse {
+  pub success: bool,
+  pub plans: Vec<FrTokenPlan>,
 }

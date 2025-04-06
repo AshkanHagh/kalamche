@@ -21,8 +21,9 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
       )
       .service(
         scope("/payment")
-          // .wrap(rate_limit.)
+          .wrap(rate_limit.payment())
           .wrap(from_fn(authorization::authorization_middleware))
+          .service(api::ppt::list_all_plans::list_all_plans)
           .service(api::ppt::purchase_fr_token::create_checkout)
           .service(api::ppt::wallet::create::verify_payment),
       ),
