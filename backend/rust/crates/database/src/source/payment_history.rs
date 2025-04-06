@@ -19,7 +19,6 @@ pub struct PaymentHistory {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
 pub struct PaymentHistoryInsertForm {
   pub fr_token_id: Uuid,
   pub user_id: Uuid,
@@ -27,4 +26,10 @@ pub struct PaymentHistoryInsertForm {
   pub fr_tokens: i32,
   pub status: PaymentStatus,
   pub session_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct PaymentHistoryUpdateForm {
+  pub status: PaymentStatus,
+  pub transaction_id: String,
 }

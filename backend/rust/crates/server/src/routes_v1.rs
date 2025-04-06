@@ -23,7 +23,8 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
         scope("/payment")
           // .wrap(rate_limit.)
           .wrap(from_fn(authorization::authorization_middleware))
-          .service(api::wallet::purchase_fr_token::create_checkout),
+          .service(api::wallet::purchase_fr_token::create_checkout)
+          .service(api_crud::wallet::create::verify_payment),
       ),
   );
 }

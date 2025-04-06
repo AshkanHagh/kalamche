@@ -64,7 +64,7 @@ pub enum KalamcheErrorType {
   OAuthRegistrationClosed,
   // PaymentClientError,
   PaymentGatewayFailed,
-  // PaymentVerificationFailed,
+  PaymentVerificationFailed,
   // PaymentSessionExpired,
   // PaymentInvalidPaymentStatus,
   NotFound,

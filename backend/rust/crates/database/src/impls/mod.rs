@@ -6,3 +6,4 @@ pub mod pending_user;
 pub mod permission;
 pub mod user;
 pub mod user_permission;
+pub mod wallet;

@@ -1,13 +1,14 @@
+use chrono::NaiveDateTime;
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
+  error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType, KalamcheResult},
   settings::structs::PaymentConfig,
 };
 
-use super::structs::{CreateCheckout, ProductForm};
+use super::structs::{self, CreateCheckout, ProductForm};
 
 // Zibal payment struct for interacting with the Zibal API.
 // See: https://help.zibal.ir/IPG/API/
@@ -18,7 +19,7 @@ pub struct ZibalPayment {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaymentRequestForm {
+struct PaymentRequestForm {
   merchant: String,
   amount: i64,
   callback_url: String,
@@ -29,9 +30,31 @@ pub struct PaymentRequestForm {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PaymentRequestResponse {
+struct PaymentRequestResponse {
   track_id: i64,
   result: u8,
+  message: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct VerifyPayment {
+  merchant: String,
+  track_id: i64,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(unused)]
+struct VerifyPaymentResponse {
+  paid_at: NaiveDateTime,
+  card_number: Option<String>,
+  status: i8,
+  amount: i64,
+  ref_number: Option<i32>,
+  description: String,
+  order_id: Uuid,
+  result: i16,
   message: String,
 }
 
@@ -71,6 +94,34 @@ impl ZibalPayment {
     Ok(CreateCheckout {
       url: payment_gateway_url,
       payment_id: payment_res.track_id.to_string(),
+    })
+  }
+
+  pub async fn verify_payment(&self, session_id: &str) -> KalamcheResult<structs::VerifyPayment> {
+    let verify_res = self
+      .client
+      .post("https://gateway.zibal.ir/v1/verify")
+      .json(&VerifyPayment {
+        merchant: self.config.secret.clone(),
+        track_id: session_id
+          .parse()
+          .with_kalamche_type(KalamcheErrorType::PaymentVerificationFailed)?,
+      })
+      .send()
+      .await?
+      .json::<VerifyPaymentResponse>()
+      .await?;
+
+    if verify_res.result != 100 {
+      return Err(KalamcheError::from(
+        KalamcheErrorType::PaymentVerificationFailed,
+      ));
+    }
+
+    Ok(structs::VerifyPayment {
+      amount: verify_res.amount,
+      card_number: verify_res.card_number.unwrap_or("62741****44".to_owned()),
+      transaction_id: session_id.to_owned(),
     })
   }
 }

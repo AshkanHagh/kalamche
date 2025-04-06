@@ -11,3 +11,9 @@ pub struct ProductForm {
   pub description: String,
   pub price: i64,
 }
+
+pub struct VerifyPayment {
+  pub amount: i64,
+  pub transaction_id: String,
+  pub card_number: String,
+}

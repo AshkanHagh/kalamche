@@ -1,5 +1,9 @@
 use actix_cors::Cors;
-use actix_web::{middleware, web::Data, App, HttpServer};
+use actix_web::{
+  middleware::{self, Logger},
+  web::Data,
+  App, HttpServer,
+};
 use api_common::context::KalamcheContext;
 use database::{connection::Database, migration::run_migration};
 use utils::{
@@ -15,7 +19,6 @@ pub mod routes_v1;
 
 pub async fn strat_server() -> KalamcheResult<()> {
   env_logger::init();
-  log::info!("starting server");
 
   let pool = Database::new(SETTINGS.get_database()).await?;
   run_migration(&pool).await?;
@@ -46,6 +49,7 @@ pub async fn strat_server() -> KalamcheResult<()> {
   let bind = (SETTINGS.bind, SETTINGS.port);
   HttpServer::new(move || {
     App::new()
+      .wrap(Logger::default())
       .wrap(config_cors())
       .wrap(middleware::Logger::default())
       .wrap(middleware::Compress::default())
@@ -65,5 +69,5 @@ fn config_cors() -> Cors {
     .allowed_origin(&SETTINGS.allowed_origin_url)
     .supports_credentials()
     .allow_any_header()
-    .allow_any_origin()
+    .allow_any_method()
 }

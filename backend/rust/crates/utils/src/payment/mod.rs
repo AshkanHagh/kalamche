@@ -24,4 +24,8 @@ impl PaymentClient {
   ) -> KalamcheResult<CreateCheckout> {
     self.client.create_checkout_url(product_form).await
   }
+
+  pub async fn verify_payment(&self, session_id: &str) -> KalamcheResult<structs::VerifyPayment> {
+    self.client.verify_payment(session_id).await
+  }
 }
