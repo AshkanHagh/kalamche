@@ -1,4 +1,4 @@
-use database::connection::Database;
+use db_schema::connection::Database;
 use reqwest::Client;
 use std::sync::Arc;
 use utils::{oauth::OAuthManager, payment::PaymentClient};

@@ -8,7 +8,7 @@ use api_common::{
   utils::get_user_from_req,
   wallet::{PurchaseFrToken, PurchaseFrTokenResponse},
 };
-use database::source::{
+use db_schema::source::{
   fr_token_plan::FrTokenPlan,
   payment_history::{PaymentHistory, PaymentHistoryInsertForm, PaymentStatus},
 };

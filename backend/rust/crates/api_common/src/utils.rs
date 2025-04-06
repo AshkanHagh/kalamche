@@ -4,7 +4,7 @@ use actix_web::{
   HttpMessage, HttpRequest,
 };
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use database::source::{
+use db_schema::source::{
   login_token::{LoginToken, LoginTokenInsertForm},
   user::{User, UserRecord},
 };

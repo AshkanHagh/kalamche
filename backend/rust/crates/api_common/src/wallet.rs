@@ -1,4 +1,4 @@
-use database::source::payment_history::PaymentHistory;
+use db_schema::source::payment_history::PaymentHistory;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

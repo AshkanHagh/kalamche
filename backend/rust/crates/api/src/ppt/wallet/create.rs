@@ -6,7 +6,7 @@ use api_common::{
   context::KalamcheContext,
   wallet::{VerifyPayment, VerifyPaymentResponse},
 };
-use database::source::{
+use db_schema::source::{
   payment_history::{PaymentHistory, PaymentHistoryUpdateForm, PaymentStatus},
   wallet::{Wallet, WalletInsertForm},
 };

@@ -17,14 +17,14 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
           .service(api::user::login::login)
           .service(api_crud::user::create::authenticate_with_oauth)
           .service(api_crud::user::create::verify_email_registration)
-          .service(api::user::resend_verification::resend_verification_code),
+          .service(api::user::resend_verification_email::resend_verification_code),
       )
       .service(
         scope("/payment")
           // .wrap(rate_limit.)
           .wrap(from_fn(authorization::authorization_middleware))
-          .service(api::wallet::purchase_fr_token::create_checkout)
-          .service(api_crud::wallet::create::verify_payment),
+          .service(api::ppt::purchase_fr_token::create_checkout)
+          .service(api::ppt::wallet::create::verify_payment),
       ),
   );
 }

@@ -368,7 +368,7 @@ dependencies = [
  "actix-web",
  "api_common",
  "chrono",
- "database",
+ "db_schema",
  "jsonwebtoken",
  "log",
  "reqwest 0.12.12",
@@ -385,7 +385,7 @@ version = "0.1.0"
 dependencies = [
  "actix-web",
  "actix-web-httpauth",
- "database",
+ "db_schema",
  "reqwest 0.12.12",
  "serde",
  "tokio",
@@ -400,7 +400,7 @@ dependencies = [
  "actix-web",
  "api_common",
  "chrono",
- "database",
+ "db_schema",
  "jsonwebtoken",
  "log",
  "reqwest 0.12.12",
@@ -1047,7 +1047,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "database"
+name = "db_schema"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -3514,7 +3514,7 @@ dependencies = [
  "api",
  "api_common",
  "api_crud",
- "database",
+ "db_schema",
  "env_logger",
  "log",
  "reqwest 0.12.12",

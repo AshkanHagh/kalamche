@@ -5,7 +5,7 @@ use actix_web::{
   App, HttpServer,
 };
 use api_common::context::KalamcheContext;
-use database::{connection::Database, migration::run_migration};
+use db_schema::{connection::Database, migration::run_migration};
 use utils::{
   cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},

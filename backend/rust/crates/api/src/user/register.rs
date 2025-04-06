@@ -7,7 +7,7 @@ use api_common::{
   user::{Register, RegisterResponse},
   utils::send_account_verification_email,
 };
-use database::source::{
+use db_schema::source::{
   pending_user::{PendingUser, PendingUserInsertForm},
   user::User,
 };

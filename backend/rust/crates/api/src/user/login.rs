@@ -5,14 +5,14 @@ use actix_web::{
 };
 use api_common::{
   context::KalamcheContext,
-  user::{LoginResponse, Register, RegisterResponse},
+  user::{Login, LoginPendingResponse, LoginResponse},
   utils::{
     build_cookie, create_token, get_user_ip, send_account_verification_email,
     update_login_token_user_cache, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME,
   },
 };
 use chrono::{Duration, Utc};
-use database::source::{
+use db_schema::source::{
   login_token::{LoginToken, LoginTokenInsertForm},
   pending_user::{PendingUser, PendingUserInsertForm},
   user::User,
@@ -33,7 +33,7 @@ use utils::{
 pub async fn login(
   context: Data<KalamcheContext>,
   req: HttpRequest,
-  Json(payload): Json<Register>,
+  Json(payload): Json<Login>,
 ) -> KalamcheResult<HttpResponse> {
   is_email_valid(&payload.email)?;
   is_password_valid(&payload.password)?;
@@ -76,9 +76,10 @@ pub async fn login(
     PendingUser::update_token(context.pool(), pending_user.id, verification_token.clone()).await?;
 
     send_account_verification_email(&user.email, code).await?;
-    return Ok(HttpResponse::Ok().json(RegisterResponse {
+    return Ok(HttpResponse::Ok().json(LoginPendingResponse {
       success: true,
       verification_token,
+      verify_email_sent: true,
     }));
   }
 
@@ -102,5 +103,6 @@ pub async fn login(
     success: true,
     access_token,
     user: user_record,
+    verify_email_sent: false,
   }))
 }

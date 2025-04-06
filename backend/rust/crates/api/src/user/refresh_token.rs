@@ -4,7 +4,7 @@ use api_common::{
   user::RefreshTokenResponse,
   utils::{build_cookie, get_user_ip, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
 };
-use database::source::{
+use db_schema::source::{
   login_token::{LoginToken, LoginTokenInsertForm},
   user::User,
   user_permissin::UserPermission,

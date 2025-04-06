@@ -6,7 +6,7 @@ edition = "2021"
 members = [
   "crates/api",
   "crates/utils",
-  "crates/database",
+  "crates/db_schema",
   "crates/server",
   "crates/migration",
   "crates/entity",
@@ -23,7 +23,6 @@ sea-orm = { version = "1.1.7", features = [
   "sqlx-postgres",
   "runtime-tokio-rustls",
   "with-chrono",
-  "with-json",
   "with-uuid",
   "macros",
 ] }
