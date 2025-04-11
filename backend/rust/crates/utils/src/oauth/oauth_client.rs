@@ -100,9 +100,10 @@ impl OAuthClient {
       None => None,
     };
 
+    // use enum
     match self.name.as_str() {
       "github" => self.map_github_user(user_info, other_info),
-      "discrod" => self.map_discord_user(user_info),
+      "discord" => self.map_discord_user(user_info),
       _ => Err(KalamcheError::from(
         KalamcheErrorType::OAuthAuthorizationInvalid,
       )),
