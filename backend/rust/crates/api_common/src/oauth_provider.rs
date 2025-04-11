@@ -1,5 +1,6 @@
-use db_schema::source::user::UserRecord;
 use serde::{Deserialize, Serialize};
+
+use crate::user::MyUserInfo;
 
 #[derive(Debug, Deserialize)]
 pub struct GetAuthorizeUrl {
@@ -25,5 +26,6 @@ pub struct GetAuthrizeUrlResponse {
 pub struct AuthenticateWithOAuthResponse {
   pub success: bool,
   pub access_token: String,
-  pub user: UserRecord,
+  #[serde(rename = "user")]
+  pub my_user: MyUserInfo,
 }

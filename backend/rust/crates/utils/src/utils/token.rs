@@ -16,7 +16,6 @@ pub struct ATClaims {
   pub sub: Uuid,
   pub aud: String,
   pub iss: String,
-  pub scope: Vec<String>,
   pub exp: usize,
 }
 
@@ -37,14 +36,9 @@ pub struct VerificationClaims {
   pub exp: usize,
 }
 
-pub fn sign_access_token(
-  config: &JwtConfig,
-  sub: Uuid,
-  scope: Vec<String>,
-) -> KalamcheResult<String> {
+pub fn sign_access_token(config: &JwtConfig, sub: Uuid) -> KalamcheResult<String> {
   let claims = ATClaims {
     sub,
-    scope,
     aud: TOKEN_AUD.to_owned(),
     iss: TOKEN_ISS.to_owned(),
     exp: (Utc::now() + Duration::minutes(config.at_expiry as i64)).timestamp() as usize,

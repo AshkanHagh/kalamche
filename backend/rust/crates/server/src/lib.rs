@@ -5,7 +5,7 @@ use actix_web::{
   App, HttpServer,
 };
 use api_common::context::KalamcheContext;
-use db_schema::{connection::Database, migration::run_migration};
+use db_schema::{connection::build_pool, schema_setup::migration};
 use utils::{
   cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},
@@ -19,16 +19,14 @@ pub mod routes_v1;
 
 pub async fn strat_server() -> KalamcheResult<()> {
   env_logger::init();
-
-  let pool = Database::new(SETTINGS.get_database()).await?;
-  run_migration(&pool).await?;
+  migration()?;
 
   let reqwest_client = reqwest::ClientBuilder::new()
     .redirect(reqwest::redirect::Policy::none())
     .build()
     .unwrap();
+  let pool = build_pool()?;
   let cache = Peak::new(10_000, 60 * 5, 60);
-
   let rate_limiter = RateLimiter::new(&cache);
   let oauth = OAuthManager::new(
     SETTINGS

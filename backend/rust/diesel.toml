@@ -1,0 +1,9 @@
+# For documentation on how to configure this file,
+# see https://diesel.rs/guides/configuring-diesel-cli
+
+[print_schema]
+file = "crates/db_schema/src/schema.rs"
+custom_type_derives = ["diesel::query_builder::QueryId"]
+
+[migrations_directory]
+dir = "/home/haghdoost/Desktop/Codes/github1/kalamche/backend/rust/migrations"

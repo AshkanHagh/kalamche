@@ -22,6 +22,7 @@ pub enum KalamcheErrorType {
   InvalidImageUpload,
   NotLoggedIn,
   InvalidPassword,
+  RegistrationCooldown,
   ProductDescriptionLengthOverflow,
   CouldntUpdateProduct,
   EmailAlreadyExists,
@@ -71,8 +72,8 @@ where
 {
   fn from(t: T) -> Self {
     let cause = t.into();
-    let error_type = match cause.downcast_ref::<sea_orm::DbErr>() {
-      Some(&sea_orm::DbErr::RecordNotFound(_)) => KalamcheErrorType::NotFound,
+    let error_type = match cause.downcast_ref::<diesel::result::Error>() {
+      Some(&diesel::NotFound) => KalamcheErrorType::NotFound,
       _ => KalamcheErrorType::InternalServerError,
     };
 
@@ -118,6 +119,7 @@ impl actix_web::error::ResponseError for KalamcheError {
       | KalamcheErrorType::ExpiredCode
       | KalamcheErrorType::EmailRequired
       | KalamcheErrorType::EmailNotVerified
+      | KalamcheErrorType::RegistrationCooldown
       | KalamcheErrorType::EmailAlreadyExists => StatusCode::BAD_REQUEST,
       KalamcheErrorType::NotLoggedIn | KalamcheErrorType::InvalidBearerToken => {
         StatusCode::UNAUTHORIZED

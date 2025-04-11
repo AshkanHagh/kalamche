@@ -7,6 +7,7 @@ edition.workspace = true
 utils = { path = "../utils" }
 api_common = { path = "../api_common" }
 db_schema = { path = "../db_schema" }
+db_view = { path = "../db_view" }
 tokio = { workspace = true }
 chrono = { workspace = true }
 serde_json = { workspace = true }

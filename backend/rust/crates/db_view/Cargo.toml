@@ -1,0 +1,17 @@
+[package]
+name = "db_view"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+db_schema = { path = "../db_schema" }
+utils = { path = "../utils" }
+diesel = { workspace = true, features = [
+  "chrono",
+  "postgres",
+  "serde_json",
+  "uuid",
+] }
+diesel-async = { workspace = true, features = ["deadpool", "postgres"] }
+serde = { workspace = true }
+uuid = { workspace = true }

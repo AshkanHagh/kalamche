@@ -22,7 +22,7 @@ pub async fn create_checkout(
 ) -> KalamcheResult<Json<PurchaseFrTokenResponse>> {
   let user = get_user_from_req(&mut req)?;
 
-  let fr_token_plan = FrTokenPlan::find_by_id(context.pool(), params.token_id).await?;
+  let fr_token_plan = FrTokenPlan::find_by_id(&mut context.pool(), params.token_id).await?;
   let checkout_session = context
     .payment_client()
     .create_checkout_url(ProductForm {
@@ -34,18 +34,17 @@ pub async fn create_checkout(
     .await?;
 
   // session_id: payment provider unique id like(session id, authrizity key)
-  PaymentHistory::insert(
-    context.pool(),
-    PaymentHistoryInsertForm {
-      user_id: user.id,
-      fr_token_id: fr_token_plan.id,
-      session_id: checkout_session.payment_id,
-      fr_tokens: fr_token_plan.fr_tokens,
-      price: fr_token_plan.price,
-      status: PaymentStatus::Pending,
-    },
-  )
-  .await?;
+  // transaction_id validate later on verify payment
+  let payment_history_form = PaymentHistoryInsertForm {
+    user_id: user.id,
+    fr_token_id: fr_token_plan.id,
+    session_id: checkout_session.payment_id,
+    fr_tokens: fr_token_plan.fr_tokens,
+    price: fr_token_plan.price,
+    status: PaymentStatus::Pending,
+    transaction_id: "".to_string(),
+  };
+  PaymentHistory::insert(&mut context.pool(), payment_history_form).await?;
 
   Ok(Json(PurchaseFrTokenResponse {
     success: true,

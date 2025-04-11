@@ -6,17 +6,21 @@ use actix_web::{
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use db_schema::source::{
   login_token::{LoginToken, LoginTokenInsertForm},
-  user::{User, UserRecord},
+  user::User,
 };
+use db_view::structs::UserView;
 use utils::{
   email::send_email,
   error::{KalamcheErrorType, KalamcheResult},
   settings::SETTINGS,
-  utils::token::{sign_access_token, sign_refresh_token, verify_access_token},
+  utils::{
+    hash::hash_passwrod,
+    token::{sign_access_token, sign_refresh_token, verify_access_token},
+  },
 };
 use uuid::Uuid;
 
-use crate::context::KalamcheContext;
+use crate::{context::KalamcheContext, user::MyUserInfo};
 
 pub const RT_COOKIE_NAME: &str = "refresh_token";
 pub const RT_COOKIE_MAX_AGE: CookieDuration = CookieDuration::days(2);
@@ -32,21 +36,32 @@ pub fn build_cookie<'a>(value: &'a str, name: &'a str, duration: CookieDuration)
   cookie
 }
 
-pub async fn create_token(
+pub async fn refresh_tokens(
+  context: &KalamcheContext,
+  req: &HttpRequest,
   user_id: Uuid,
-  permissions: Vec<String>,
 ) -> KalamcheResult<(String, String)> {
   let (access_token, refresh_token) =
     tokio::task::spawn_blocking(move || -> KalamcheResult<(String, String)> {
-      let access_token = sign_access_token(SETTINGS.get_jwt(), user_id, permissions)?;
+      let access_token = sign_access_token(SETTINGS.get_jwt(), user_id)?;
       let refresh_token = sign_refresh_token(SETTINGS.get_jwt(), user_id)?;
       Ok((access_token, refresh_token))
     })
     .await??;
 
+  LoginToken::insert_or_update(
+    &mut context.pool(),
+    LoginTokenInsertForm {
+      user_id,
+      ip: get_user_ip(req),
+      token_hash: hash_passwrod(&refresh_token)?,
+    },
+  )
+  .await?;
+
   Ok((access_token, refresh_token))
 }
-
+// pub async fn send_verification_email_if_required() {}
 pub async fn send_account_verification_email(email: &str, code: u32) -> KalamcheResult<()> {
   send_email(
     "verification code",
@@ -74,18 +89,6 @@ pub fn get_user_ip(req: &HttpRequest) -> String {
     .unwrap_or_else(|| "127.0.0.1".to_string())
 }
 
-pub async fn update_login_token_user_cache(
-  context: &KalamcheContext,
-  insert_form: LoginTokenInsertForm,
-  user: User,
-  permissions: Vec<String>,
-) -> KalamcheResult<UserRecord> {
-  LoginToken::insert(context.pool(), insert_form).await?;
-
-  let user_record = User::into_record(user, permissions);
-  Ok(user_record)
-}
-
 pub fn read_auth_token(req: &HttpRequest) -> KalamcheResult<Option<String>> {
   if let Ok(header) = Authorization::<Bearer>::parse(req) {
     Ok(Some(header.as_ref().token().to_string()))
@@ -96,7 +99,7 @@ pub fn read_auth_token(req: &HttpRequest) -> KalamcheResult<Option<String>> {
 
 pub async fn find_user_from_jwt(token: &str, context: &KalamcheContext) -> KalamcheResult<User> {
   let claims = verify_access_token(SETTINGS.get_jwt(), token)?;
-  let user = User::find_by_id(context.pool(), claims.sub)
+  let user = User::find_by_id(&mut context.pool(), claims.sub)
     .await?
     .ok_or(KalamcheErrorType::NotLoggedIn)?;
 
@@ -110,4 +113,9 @@ pub fn get_user_from_req(req: &mut HttpRequest) -> KalamcheResult<User> {
     .ok_or(KalamcheErrorType::NotLoggedIn)?;
 
   Ok(user)
+}
+
+pub async fn get_my_user(context: &KalamcheContext, user_id: Uuid) -> KalamcheResult<MyUserInfo> {
+  let user_view = UserView::read(&mut context.pool(), user_id).await?;
+  Ok(MyUserInfo { user_view })
 }

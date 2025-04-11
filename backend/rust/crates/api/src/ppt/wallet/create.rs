@@ -8,7 +8,7 @@ use api_common::{
 };
 use db_schema::source::{
   payment_history::{PaymentHistory, PaymentHistoryUpdateForm, PaymentStatus},
-  wallet::{Wallet, WalletInsertForm},
+  wallet::{Wallet, WalletUpdateForm},
 };
 use utils::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
 
@@ -26,7 +26,7 @@ pub async fn verify_payment(
   }
 
   let payment_history =
-    PaymentHistory::find_by_session_id(context.pool(), &query.session_id).await?;
+    PaymentHistory::find_by_session_id(&mut context.pool(), &query.session_id).await?;
   if payment_history.status != PaymentStatus::Pending {
     return Err(KalamcheError::from(
       KalamcheErrorType::PaymentVerificationFailed,
@@ -38,24 +38,17 @@ pub async fn verify_payment(
     .verify_payment(&query.session_id)
     .await?;
 
-  let updated_payment_history = PaymentHistory::update(
-    &context.pool,
-    payment_history.id,
-    PaymentHistoryUpdateForm {
-      status: PaymentStatus::Completed,
-      transaction_id: verify_payment.transaction_id,
-    },
-  )
-  .await?;
+  let payment_form = PaymentHistoryUpdateForm {
+    status: PaymentStatus::Completed,
+    transaction_id: verify_payment.transaction_id,
+  };
+  let updated_payment_history =
+    PaymentHistory::update(&mut context.pool(), payment_history.id, payment_form).await?;
 
-  let _ = Wallet::insert_or_update_wallet(
-    context.pool(),
-    WalletInsertForm {
-      user_id: payment_history.user_id,
-      fr_tokens: payment_history.fr_tokens,
-    },
-  )
-  .await?;
+  let wallet_form = WalletUpdateForm {
+    fr_tokens: payment_history.fr_tokens,
+  };
+  let _ = Wallet::update_wallet(&mut context.pool(), payment_history.user_id, wallet_form).await?;
 
   Ok(Json(VerifyPaymentResponse {
     success: true,

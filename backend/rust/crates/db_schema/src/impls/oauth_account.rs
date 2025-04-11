@@ -1,32 +1,37 @@
-use entity::oauth_account;
-use sea_orm::{prelude::*, ActiveValue::Set};
+use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, SelectableHelper};
+use diesel_async::RunQueryDsl;
 use utils::error::KalamcheResult;
 
 use crate::{
-  connection::Database,
+  connection::{get_conn, DbPool},
   source::oauth_account::{OAuthAccount, OAuthAccountInsertForm},
 };
 
 impl OAuthAccount {
-  pub async fn insert(pool: &Database, payload: OAuthAccountInsertForm) -> KalamcheResult<()> {
-    let model = oauth_account::ActiveModel {
-      oauth_user_id: Set(payload.oauth_user_id),
-      user_id: Set(payload.user_id),
-    };
+  pub async fn insert(pool: &mut DbPool<'_>, form: OAuthAccountInsertForm) -> KalamcheResult<()> {
+    use crate::schema::oauth_accounts;
+    let conn = &mut get_conn(pool).await?;
+    diesel::insert_into(oauth_accounts::table)
+      .values(&form)
+      .execute(conn)
+      .await?;
 
-    oauth_account::Entity::insert(model).exec(&*pool.0).await?;
     Ok(())
   }
 
   pub async fn find_by_oauth_id(
-    pool: &Database,
+    pool: &mut DbPool<'_>,
     oauth_id: &str,
   ) -> KalamcheResult<Option<OAuthAccount>> {
-    let account = oauth_account::Entity::find()
-      .filter(oauth_account::Column::OauthUserId.eq(oauth_id))
-      .into_model::<OAuthAccount>()
-      .one(&*pool.0)
-      .await?;
+    use crate::schema::oauth_accounts::dsl::*;
+    let conn = &mut get_conn(pool).await?;
+
+    let account = oauth_accounts
+      .filter(oauth_user_id.eq(oauth_id))
+      .select(OAuthAccount::as_select())
+      .first(conn)
+      .await
+      .optional()?;
 
     Ok(account)
   }

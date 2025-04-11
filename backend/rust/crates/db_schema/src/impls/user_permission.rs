@@ -1,53 +1,62 @@
-use entity::{permission, user_permission};
-use sea_orm::{prelude::*, ActiveValue::Set};
-use utils::error::{KalamcheErrorType, KalamcheResult};
+use diesel::{ExpressionMethods, JoinOnDsl, QueryDsl, SelectableHelper};
+use diesel_async::RunQueryDsl;
+use utils::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
+use uuid::Uuid;
 
 use crate::{
-  connection::Database,
-  source::{permission::Permission, user_permissin::UserPermission},
+  connection::{get_conn, DbPool},
+  source::{
+    permission::Permission,
+    user_permissin::{UserPermission, UserPermissionInsertForm},
+  },
 };
 
 impl UserPermission {
   pub async fn insert_with_default_permission(
-    pool: &Database,
+    pool: &mut DbPool<'_>,
     user_id: Uuid,
-    permissions: Vec<Permission>,
   ) -> KalamcheResult<()> {
-    let models = permissions
-      .iter()
-      .map(|permission| user_permission::ActiveModel {
-        id: Set(Uuid::new_v4()),
-        user_id: Set(user_id),
-        permission_id: Set(permission.id),
-      })
-      .collect::<Vec<user_permission::ActiveModel>>();
+    use crate::schema::user_permissions;
 
-    user_permission::Entity::insert_many(models)
-      .exec(&*pool.0)
+    let permissions = Permission::find_default_permission(pool).await?;
+    let form: Vec<UserPermissionInsertForm> = permissions
+      .iter()
+      .map(|permission| UserPermissionInsertForm {
+        user_id,
+        permission_id: permission.id,
+      })
+      .collect();
+
+    let conn = &mut get_conn(pool).await?;
+    diesel::insert_into(user_permissions::table)
+      .values(&form)
+      .execute(conn)
       .await?;
 
     Ok(())
   }
 
-  pub async fn find_user_permissions(
-    pool: &Database,
+  pub async fn find_permissions_str_by_user_id(
+    pool: &mut DbPool<'_>,
     user_id: Uuid,
   ) -> KalamcheResult<Vec<String>> {
-    let user_permissions = user_permission::Entity::find()
-      .filter(user_permission::Column::UserId.eq(user_id))
-      .find_also_related(permission::Entity)
-      .into_model::<UserPermission, Permission>()
-      .all(&*pool.0)
-      .await?;
+    use crate::schema::permissions;
+    use crate::schema::user_permissions::dsl::{self, user_permissions};
+    let conn = &mut get_conn(pool).await?;
 
     let permissions = user_permissions
-      .into_iter()
-      .map(|permission| -> KalamcheResult<String> {
-        let permission = permission.1.ok_or(KalamcheErrorType::NotFound)?;
-        Ok(permission.name)
-      })
-      .collect::<KalamcheResult<Vec<String>>>()?;
+      .filter(dsl::user_id.eq(user_id))
+      .inner_join(permissions::table.on(dsl::permission_id.eq(permissions::id)))
+      .select((UserPermission::as_select(), Permission::as_select()))
+      .load::<(UserPermission, Permission)>(conn)
+      .await
+      .with_kalamche_type(KalamcheErrorType::NotFound)?;
 
-    Ok(permissions)
+    let permissions_str = permissions
+      .into_iter()
+      .map(|(_, permission)| -> String { permission.name })
+      .collect::<Vec<String>>();
+
+    Ok(permissions_str)
   }
 }

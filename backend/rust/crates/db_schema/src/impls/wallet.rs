@@ -1,61 +1,76 @@
-use chrono::Utc;
-use entity::wallet;
-use sea_orm::{prelude::*, ActiveValue::Set, EntityTrait, QueryFilter};
-use utils::error::{KalamcheError, KalamcheResult};
+// use diesel::{ExpressionMethods, QueryDsl, SelectableHelper};
+use diesel::prelude::*;
+use diesel_async::RunQueryDsl;
+use utils::error::KalamcheResult;
 use uuid::Uuid;
 
 use crate::{
-  connection::Database,
-  source::wallet::{Wallet, WalletInsertForm},
+  connection::{get_conn, DbPool},
+  source::wallet::{Wallet, WalletInsertForm, WalletUpdateForm},
 };
 
 impl Wallet {
-  pub async fn insert_or_update_wallet(
-    pool: &Database,
-    form: WalletInsertForm,
+  pub async fn update_wallet(
+    pool: &mut DbPool<'_>,
+    user_id: Uuid,
+    mut form: WalletUpdateForm,
   ) -> KalamcheResult<Wallet> {
-    let wallet = wallet::Entity::find()
-      .filter(wallet::Column::UserId.eq(form.user_id))
-      .one(&**pool)
+    use crate::schema::wallets;
+    let conn = &mut get_conn(pool).await?;
+
+    let current_fr_tokens: i32 = wallets::table
+      .filter(wallets::user_id.eq(user_id))
+      .select(wallets::fr_tokens)
+      .first::<i32>(conn)
+      .await?;
+    form.fr_tokens += current_fr_tokens;
+
+    let wallet = diesel::update(wallets::table.filter(wallets::user_id.eq(user_id)))
+      .set(&form)
+      .returning(Wallet::as_returning())
+      .get_result(conn)
       .await?;
 
-    match wallet {
-      None => {
-        let model = wallet::ActiveModel {
-          id: Set(Uuid::new_v4()),
-          user_id: Set(form.user_id),
-          fr_tokens: Set(form.fr_tokens),
-          created_at: Set(Utc::now().fixed_offset()),
-          updated_at: Set(Utc::now().fixed_offset()),
-        };
-
-        let wallet = wallet::Entity::insert(model)
-          .exec_with_returning(&**pool)
-          .await?;
-
-        Ok(Wallet::try_from(wallet)?)
-      }
-      Some(wallet_model) => {
-        let mut model: wallet::ActiveModel = wallet_model.into();
-        model.fr_tokens = Set(form.fr_tokens);
-
-        let wallet = model.update(&**pool).await?;
-        Ok(Wallet::try_from(wallet)?)
-      }
-    }
+    Ok(wallet)
   }
-}
 
-impl TryFrom<wallet::Model> for Wallet {
-  type Error = KalamcheError;
+  pub async fn find_by_user_id(pool: &mut DbPool<'_>, user_id: Uuid) -> KalamcheResult<Wallet> {
+    // wallet always exists for user this might never throw error
+    use crate::schema::wallets::dsl::{self, wallets};
+    let conn = &mut get_conn(pool).await?;
 
-  fn try_from(model: wallet::Model) -> Result<Self, Self::Error> {
-    Ok(Self {
-      id: model.id,
-      user_id: model.user_id,
-      fr_tokens: model.fr_tokens,
-      created_at: model.created_at,
-      updated_at: model.updated_at,
-    })
+    let wallet = wallets
+      .filter(dsl::user_id.eq(user_id))
+      .select(Wallet::as_select())
+      .first(conn)
+      .await?;
+
+    Ok(wallet)
+  }
+
+  pub async fn insert_default_if_not_exists(
+    pool: &mut DbPool<'_>,
+    form: WalletInsertForm,
+  ) -> KalamcheResult<Wallet> {
+    use crate::schema::wallets;
+    let conn = &mut get_conn(pool).await?;
+
+    let wallet_exists = wallets::table
+      .filter(wallets::user_id.eq(form.user_id))
+      .select(Wallet::as_select())
+      .first(conn)
+      .await
+      .optional()?;
+
+    match wallet_exists {
+      Some(wallet) => Ok(wallet),
+      None => Ok(
+        diesel::insert_into(wallets::table)
+          .values(&form)
+          .returning(Wallet::as_returning())
+          .get_result(conn)
+          .await?,
+      ),
+    }
   }
 }

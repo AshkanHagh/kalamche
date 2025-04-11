@@ -1,4 +1,4 @@
-use db_schema::source::user::UserRecord;
+use db_view::structs::UserView;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
@@ -25,7 +25,8 @@ pub struct VerifyEmail {
 pub struct LoginResponse {
   pub success: bool,
   pub access_token: String,
-  pub user: UserRecord,
+  #[serde(rename = "user")]
+  pub my_user: MyUserInfo,
   pub verify_email_sent: bool,
 }
 
@@ -46,7 +47,8 @@ pub struct RegisterResponse {
 pub struct VerifyEmailResponse {
   pub success: bool,
   pub access_token: String,
-  pub user: UserRecord,
+  #[serde(rename = "user")]
+  pub my_user: MyUserInfo,
 }
 
 #[derive(Debug, Serialize)]
@@ -69,4 +71,12 @@ pub struct LoginPendingResponse {
 pub struct RefreshTokenResponse {
   pub success: bool,
   pub access_token: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+/// kalmche user info
+pub struct MyUserInfo {
+  #[serde(flatten)]
+  pub user_view: UserView,
 }

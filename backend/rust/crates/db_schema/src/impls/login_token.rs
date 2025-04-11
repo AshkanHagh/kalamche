@@ -1,56 +1,45 @@
 use chrono::Utc;
-use entity::login_token;
-use migration::OnConflict;
-use sea_orm::{prelude::*, ActiveValue::Set};
-use utils::error::{KalamcheErrorType, KalamcheResult};
+use diesel::{ExpressionMethods, QueryDsl, SelectableHelper};
+use diesel_async::RunQueryDsl;
+use utils::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
+use uuid::Uuid;
 
 use crate::{
-  connection::Database,
+  connection::{get_conn, DbPool},
   source::login_token::{LoginToken, LoginTokenInsertForm},
 };
 
 impl LoginToken {
-  pub async fn insert(pool: &Database, payload: LoginTokenInsertForm) -> KalamcheResult<()> {
-    let model = login_token::ActiveModel {
-      user_id: Set(payload.user_id),
-      token_hash: Set(payload.token_hash.clone()),
-      created_at: Set(Utc::now().fixed_offset()),
-      ip: Set(payload.ip),
-    };
-
-    login_token::Entity::insert(model)
-      .on_conflict(
-        OnConflict::column(login_token::Column::UserId)
-          .update_column(login_token::Column::TokenHash)
-          .update_column(login_token::Column::CreatedAt)
-          .to_owned(),
-      )
-      .exec(&*pool.0)
+  pub async fn insert_or_update(
+    pool: &mut DbPool<'_>,
+    form: LoginTokenInsertForm,
+  ) -> KalamcheResult<()> {
+    use crate::schema::login_tokens;
+    let conn = &mut get_conn(pool).await?;
+    diesel::insert_into(login_tokens::table)
+      .values(&form)
+      .on_conflict(login_tokens::user_id)
+      .do_update()
+      .set((
+        login_tokens::token_hash.eq(&form.token_hash),
+        login_tokens::created_at.eq(Utc::now()),
+      ))
+      .execute(conn)
       .await?;
 
     Ok(())
   }
 
-  pub async fn find_by_user_id(pool: &Database, user_id: Uuid) -> KalamcheResult<LoginToken> {
-    let token = login_token::Entity::find()
-      .filter(login_token::Column::UserId.eq(user_id))
-      .one(&*pool.0)
-      .await?
-      .ok_or(KalamcheErrorType::NotLoggedIn)?;
+  pub async fn find_by_user_id(pool: &mut DbPool<'_>, user_id: Uuid) -> KalamcheResult<LoginToken> {
+    use crate::schema::login_tokens::dsl::{self, login_tokens};
+    let conn = &mut get_conn(pool).await?;
+    let token = login_tokens
+      .filter(dsl::user_id.eq(user_id))
+      .select(LoginToken::as_select())
+      .first(conn)
+      .await
+      .with_kalamche_type(KalamcheErrorType::NotLoggedIn)?;
 
-    Ok(LoginToken::try_from(token)?)
-  }
-}
-
-impl TryFrom<login_token::Model> for LoginToken {
-  type Error = KalamcheErrorType;
-
-  fn try_from(model: login_token::Model) -> Result<Self, Self::Error> {
-    Ok(Self {
-      user_id: model.user_id,
-      token_hash: model.token_hash,
-      ip: model.ip,
-      created_at: model.created_at,
-    })
+    Ok(token)
   }
 }

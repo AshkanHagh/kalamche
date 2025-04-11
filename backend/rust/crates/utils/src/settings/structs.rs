@@ -30,9 +30,6 @@ pub struct Settings {
 
   #[default("http://localhost:7318")]
   pub allowed_origin_url: String,
-
-  #[default(false)]
-  pub tls_enabled: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]
@@ -42,19 +39,7 @@ pub struct DatabaseConfig {
   pub connection: String,
 
   #[default(10)]
-  pub pool_size: u32,
-
-  #[default(10)]
-  pub max_lifetime: u64,
-
-  #[default(10)]
-  pub connect_timeout: u64,
-
-  #[default(10)]
-  pub acquire_timeout: u64,
-
-  #[default(10)]
-  pub idle_timeout: u64,
+  pub pool_size: usize,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault)]

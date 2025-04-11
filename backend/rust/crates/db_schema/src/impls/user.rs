@@ -1,91 +1,68 @@
-use chrono::Utc;
-use entity::user;
-use sea_orm::{prelude::*, ActiveValue::Set, QuerySelect};
+use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, SelectableHelper};
+use diesel_async::RunQueryDsl;
 use utils::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
+use uuid::Uuid;
 
 use crate::{
-  connection::Database,
-  source::user::{User, UserInsertForm, UserRecord},
+  connection::{get_conn, DbPool},
+  source::user::{User, UserInsertForm},
 };
 
-impl TryFrom<user::Model> for User {
-  type Error = KalamcheError;
-
-  fn try_from(model: user::Model) -> Result<Self, Self::Error> {
-    Ok(Self {
-      id: model.id,
-      name: model.name,
-      email: model.email,
-      avatar_url: model.avatar_url,
-      password_hash: model.password_hash,
-      created_at: model.created_at,
-      updated_at: model.updated_at,
-    })
-  }
-}
-
 impl User {
-  pub fn into_record(model: User, permissions: Vec<String>) -> UserRecord {
-    UserRecord {
-      id: model.id,
-      name: model.name,
-      email: model.email,
-      avatar_url: model.avatar_url,
-      permissions,
-      created_at: model.created_at,
-    }
+  pub async fn find_by_email(
+    pool: &mut DbPool<'_>,
+    user_email: &str,
+  ) -> KalamcheResult<Option<User>> {
+    use crate::schema::users::dsl::*;
+    let conn = &mut get_conn(pool).await?;
+    let user = users
+      .filter(email.eq(user_email))
+      .select(User::as_select())
+      .first(conn)
+      .await
+      .optional()?;
+
+    Ok(user)
   }
 
-  pub async fn find_user_by_email(pool: &Database, email: &str) -> KalamcheResult<Option<User>> {
-    let user = user::Entity::find()
-      .filter(user::Column::Email.eq(email))
-      .into_model::<User>()
-      .one(&*pool.0)
+  pub async fn find_by_id(pool: &mut DbPool<'_>, user_id: Uuid) -> KalamcheResult<Option<User>> {
+    use crate::schema::users::dsl::*;
+    let conn = &mut get_conn(pool).await?;
+    let user = users
+      .find(user_id)
+      .select(User::as_select())
+      .first(conn)
+      .await
+      .optional()?;
+
+    Ok(user)
+  }
+
+  pub async fn insert(pool: &mut DbPool<'_>, form: UserInsertForm) -> KalamcheResult<User> {
+    use crate::schema::users;
+    let conn = &mut get_conn(pool).await?;
+    let user = diesel::insert_into(users::table)
+      .values(&form)
+      .returning(User::as_returning())
+      .get_result(conn)
       .await?;
 
     Ok(user)
   }
 
-  pub async fn find_by_id(pool: &Database, id: Uuid) -> KalamcheResult<Option<User>> {
-    let user = user::Entity::find()
-      .filter(user::Column::Id.eq(id))
-      .into_model::<User>()
-      .one(&*pool.0)
-      .await?;
+  pub async fn email_exists(pool: &mut DbPool<'_>, user_email: &str) -> KalamcheResult<()> {
+    use crate::schema::users::dsl::*;
+    let conn = &mut get_conn(pool).await?;
+    let exists = users
+      .filter(email.eq(user_email))
+      .select(User::as_select())
+      .first::<User>(conn)
+      .await
+      .optional()?;
 
-    Ok(user)
-  }
-
-  pub async fn insert(pool: &Database, insert_form: UserInsertForm) -> KalamcheResult<User> {
-    let model = user::ActiveModel {
-      id: Set(Uuid::new_v4()),
-      name: Set(insert_form.name),
-      email: Set(insert_form.email),
-      avatar_url: Set(insert_form.avatar_url),
-      password_hash: Set(insert_form.password_hash),
-      created_at: Set(Utc::now().fixed_offset()),
-      updated_at: Set(Utc::now().fixed_offset()),
-    };
-
-    let user = user::Entity::insert(model)
-      .exec_with_returning(&*pool.0)
-      .await?;
-
-    User::try_from(user)
-  }
-
-  pub async fn email_exists(pool: &Database, email: &str) -> KalamcheResult<()> {
-    let exists = user::Entity::find()
-      .filter(user::Column::Email.eq(email))
-      .column(user::Column::Email)
-      .one(&**pool)
-      .await?
-      .is_some();
-
-    if exists {
+    if exists.is_some() {
       return Err(KalamcheError::from(KalamcheErrorType::EmailAlreadyExists));
     }
-
     Ok(())
   }
 }

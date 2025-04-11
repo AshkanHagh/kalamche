@@ -1,80 +1,71 @@
-use chrono::Utc;
-use entity::payment_history::{self, Model};
-use sea_orm::{prelude::*, ActiveValue::Set, EntityTrait, QueryFilter};
-use utils::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
+use diesel::{ExpressionMethods, OptionalExtension, QueryDsl, SelectableHelper};
+use diesel_async::RunQueryDsl;
+use utils::error::KalamcheResult;
 use uuid::Uuid;
 
 use crate::{
-  connection::Database,
+  connection::{get_conn, DbPool},
   source::payment_history::{PaymentHistory, PaymentHistoryInsertForm, PaymentHistoryUpdateForm},
 };
 
 impl PaymentHistory {
-  pub async fn insert(pool: &Database, form: PaymentHistoryInsertForm) -> KalamcheResult<()> {
-    // transaction_id: initial value set to "".
-    let model = payment_history::ActiveModel {
-      id: Set(Uuid::new_v4()),
-      fr_token_id: Set(form.fr_token_id),
-      user_id: Set(form.user_id),
-      fr_tokens: Set(form.fr_tokens),
-      price: Set(form.price),
-      status: Set(form.status),
-      session_id: Set(form.session_id),
-      transaction_id: Set("".to_string()),
-      created_at: Set(Utc::now().fixed_offset()),
-    };
+  pub async fn insert(pool: &mut DbPool<'_>, form: PaymentHistoryInsertForm) -> KalamcheResult<()> {
+    use crate::schema::payment_history;
+    let conn = &mut get_conn(pool).await?;
 
-    let _ = payment_history::Entity::insert(model).exec(&**pool).await?;
+    diesel::insert_into(payment_history::table)
+      .values(&form)
+      .execute(conn)
+      .await?;
 
     Ok(())
   }
 
   pub async fn find_by_session_id(
-    pool: &Database,
+    pool: &mut DbPool<'_>,
     session_id: &str,
   ) -> KalamcheResult<PaymentHistory> {
-    let payment_history = payment_history::Entity::find()
-      .filter(payment_history::Column::SessionId.eq(session_id))
-      .one(&**pool)
-      .await?
-      .ok_or(KalamcheErrorType::NotFound)?;
+    use crate::schema::payment_history::dsl::{self, payment_history};
+    let conn = &mut get_conn(pool).await?;
+    let payment = payment_history
+      .filter(dsl::session_id.eq(session_id))
+      .select(PaymentHistory::as_select())
+      .first(conn)
+      .await?;
 
-    Ok(PaymentHistory::try_from(payment_history)?)
+    Ok(payment)
   }
 
   pub async fn update(
-    pool: &Database,
-    id: Uuid,
+    pool: &mut DbPool<'_>,
+    payment_id: Uuid,
     form: PaymentHistoryUpdateForm,
   ) -> KalamcheResult<PaymentHistory> {
-    let payment_history = payment_history::Entity::find_by_id(id)
-      .one(&**pool)
-      .await?
-      .ok_or(KalamcheErrorType::NotFound)?;
+    use crate::schema::payment_history::dsl::*;
+    let conn = &mut get_conn(pool).await?;
+    let payment = diesel::update(payment_history.find(payment_id))
+      .set(form)
+      .returning(PaymentHistory::as_returning())
+      .get_result(conn)
+      .await?;
 
-    let mut model: payment_history::ActiveModel = payment_history.into();
-    model.status = Set(form.status);
-    model.transaction_id = Set(form.transaction_id);
-
-    let payment_history = model.update(&**pool).await?;
-    Ok(PaymentHistory::try_from(payment_history)?)
+    Ok(payment)
   }
-}
 
-impl TryFrom<Model> for PaymentHistory {
-  type Error = KalamcheError;
+  pub async fn find_last_by_user_id(
+    pool: &mut DbPool<'_>,
+    user_id: Uuid,
+  ) -> KalamcheResult<Option<PaymentHistory>> {
+    use crate::schema::payment_history::dsl::{self, payment_history};
+    let conn = &mut get_conn(pool).await?;
+    let last_payment = payment_history
+      .filter(dsl::user_id.eq(user_id))
+      .order(dsl::created_at.desc())
+      .select(PaymentHistory::as_select())
+      .first(conn)
+      .await
+      .optional()?;
 
-  fn try_from(model: Model) -> Result<Self, Self::Error> {
-    Ok(Self {
-      id: model.id,
-      fr_token_id: model.fr_token_id,
-      user_id: model.user_id,
-      price: model.price,
-      fr_tokens: model.fr_tokens,
-      status: model.status,
-      transaction_id: model.transaction_id,
-      session_id: model.session_id,
-      created_at: model.created_at,
-    })
+    Ok(last_payment)
   }
 }

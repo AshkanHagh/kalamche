@@ -8,14 +8,13 @@ smart-default = "0.7.1"
 lettre = "0.11.12"
 rand = "0.8"
 regex = "1.11.1"
-
+diesel = { workspace = true }
 actix-web = { workspace = true }
 tokio = { workspace = true }
 dotenvy = { workspace = true }
 async-trait = { workspace = true }
 serde = { workspace = true }
 anyhow = { workspace = true }
-sea-orm = { workspace = true }
 strum = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }

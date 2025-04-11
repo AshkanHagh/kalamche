@@ -1,10 +1,15 @@
-use chrono::{DateTime, FixedOffset};
-pub use entity::sea_orm_active_enums::PaymentStatus;
-use sea_orm::FromQueryResult;
+use chrono::{DateTime, Utc};
+use diesel::{
+  prelude::{AsChangeset, Insertable, Queryable},
+  Selectable,
+};
+use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize, Serialize, FromQueryResult)]
+#[derive(Debug, Serialize, Deserialize, Queryable, Selectable)]
+#[diesel(table_name = crate::schema::payment_history)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 #[serde(rename_all = "camelCase")]
 pub struct PaymentHistory {
   pub id: Uuid,
@@ -15,10 +20,20 @@ pub struct PaymentHistory {
   pub status: PaymentStatus,
   pub transaction_id: String,
   pub session_id: String,
-  pub created_at: DateTime<FixedOffset>,
+  pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, DbEnum)]
+#[ExistingTypePath = "crate::schema::sql_types::PaymentStatus"]
+pub enum PaymentStatus {
+  Pending,
+  Completed,
+  Faild,
+}
+
+#[derive(Debug, Deserialize, Serialize, Insertable)]
+#[diesel(table_name = crate::schema::payment_history)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct PaymentHistoryInsertForm {
   pub fr_token_id: Uuid,
   pub user_id: Uuid,
@@ -26,9 +41,12 @@ pub struct PaymentHistoryInsertForm {
   pub fr_tokens: i32,
   pub status: PaymentStatus,
   pub session_id: String,
+  pub transaction_id: String,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize, Insertable, AsChangeset)]
+#[diesel(table_name = crate::schema::payment_history)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct PaymentHistoryUpdateForm {
   pub status: PaymentStatus,
   pub transaction_id: String,

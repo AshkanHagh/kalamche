@@ -10,7 +10,7 @@ use utils::error::KalamcheResult;
 pub async fn list_all_plans(
   context: Data<KalamcheContext>,
 ) -> KalamcheResult<Json<ListAllPlansResponse>> {
-  let plans = FrTokenPlan::list_all_plans(context.pool()).await?;
+  let plans = FrTokenPlan::list_all_plans(&mut context.pool()).await?;
 
   Ok(Json(ListAllPlansResponse {
     success: true,

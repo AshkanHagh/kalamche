@@ -22,11 +22,7 @@ impl Settings {
     Self {
       database: DatabaseConfig {
         connection: Self::get_var("DATABASE_URL"),
-        pool_size: 10,
-        max_lifetime: 30,
-        connect_timeout: 10,
-        acquire_timeout: 10,
-        idle_timeout: 10,
+        pool_size: 100,
       },
 
       oauth_providers: Some(OAuthConfig {
@@ -70,7 +66,6 @@ impl Settings {
       hostname: Self::get_var("HOSTNAME"),
       port: 7319,
       allowed_origin_url: Self::get_var("CORS_ORIGIN"),
-      tls_enabled: false,
     }
   }
 
