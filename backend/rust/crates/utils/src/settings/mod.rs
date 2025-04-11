@@ -35,6 +35,15 @@ impl Settings {
           user_info_url: "https://api.github.com/user".to_string(),
           other_info_url: Some("https://api.github.com/user/emails".to_string()),
         }),
+        discord: Some(OAuthProviderConfig {
+          client_id: Self::get_var("DISCORD_CLIENT_ID"),
+          client_secret: Self::get_var("DISCORD_CLIENT_SECRET"),
+          redirect_url: Self::get_var("DISCORD_REDIRECT_URL"),
+          auth_url: "https://discord.com/oauth2/authorize".to_string(),
+          token_url: "https://discord.com/api/oauth2/token".to_string(),
+          user_info_url: "https://discord.com/oauth2/@me".to_string(),
+          other_info_url: None,
+        }),
       }),
 
       email: EmailConfig {

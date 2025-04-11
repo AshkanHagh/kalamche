@@ -15,8 +15,10 @@ pub struct User {
   pub name: String,
   pub email: String,
   pub avatar_url: String,
+  #[serde(skip_serializing)]
   pub password_hash: Option<String>,
   pub created_at: DateTime<Utc>,
+  #[serde(skip_serializing)]
   pub updated_at: DateTime<Utc>,
 }
 

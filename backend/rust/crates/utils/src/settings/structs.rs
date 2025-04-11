@@ -69,6 +69,7 @@ pub struct JwtConfig {
 pub struct OAuthConfig {
   #[default(None)]
   pub github: Option<OAuthProviderConfig>,
+  pub discord: Option<OAuthProviderConfig>,
 }
 
 #[derive(Debug, Deserialize, Serialize, SmartDefault, Clone)]

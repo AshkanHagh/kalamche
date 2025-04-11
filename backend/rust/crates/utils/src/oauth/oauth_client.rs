@@ -102,6 +102,7 @@ impl OAuthClient {
 
     match self.name.as_str() {
       "github" => self.map_github_user(user_info, other_info),
+      "discrod" => self.map_discord_user(user_info),
       _ => Err(KalamcheError::from(
         KalamcheErrorType::OAuthAuthorizationInvalid,
       )),
@@ -131,6 +132,28 @@ impl OAuthClient {
       avatar_url: user_info.avatar_url,
     })
   }
+
+  fn map_discord_user(&self, info_value: serde_json::Value) -> KalamcheResult<OAuthUser> {
+    let user_info = serde_json::from_value::<DiscordUserRes>(info_value)
+      .with_kalamche_type(KalamcheErrorType::OAuthLoginFailed)?;
+
+    let user_avatar = user_info
+      .avatar
+      .map(|avatar| {
+        format!(
+          "https://cdn.discordapp.com/avatars/{}/{}.png",
+          user_info.id, avatar
+        )
+      })
+      .unwrap_or("#".to_string());
+
+    Ok(OAuthUser {
+      id: user_info.id.clone(),
+      name: user_info.username,
+      email: user_info.email.ok_or(KalamcheErrorType::EmailRequired)?,
+      avatar_url: user_avatar,
+    })
+  }
 }
 
 #[derive(Deserialize)]
@@ -146,4 +169,12 @@ pub struct GithubUserEmail {
   pub primary: bool,
   pub verified: bool,
   pub visibility: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct DiscordUserRes {
+  pub id: String,
+  pub username: String,
+  pub email: Option<String>,
+  pub avatar: Option<String>,
 }
