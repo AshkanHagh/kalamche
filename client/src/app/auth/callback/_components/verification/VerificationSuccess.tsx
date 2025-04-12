@@ -1,38 +1,39 @@
 "use client"
 
 import { CheckCircle2 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
 type VerificationSuccessProps = {
-  redirectUrl: string
+  onSuccess?: () => void
 }
 
-const VerificationSuccess = ({ redirectUrl }: VerificationSuccessProps) => {
+const VerificationSuccess = ({ onSuccess }: VerificationSuccessProps) => {
   const [redirectCountdown, setRedirectCountdown] = useState(3)
-  const { push } = useRouter()
+  const hasCalledSuccess = useRef(false)
 
   useEffect(() => {
-    const countdownInterval = setInterval(() => {
+    const intervalId = setInterval(() => {
       setRedirectCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(countdownInterval)
+          clearInterval(intervalId)
 
-          // Redirect to the provided URL
-          push(redirectUrl)
+          // prevent double call
+          if (!hasCalledSuccess.current) {
+            hasCalledSuccess.current = true
+            onSuccess?.()
+          }
+
           return 0
         }
         return prev - 1
       })
     }, 1000)
 
-    return () => clearInterval(countdownInterval)
+    return () => clearInterval(intervalId)
   }, [])
 
   return (
-    <div
-      className={`rounded-lg border border-green-200 bg-green-50 p-8 shadow-lg dark:border-green-900 dark:bg-green-900/20 transition-all duration-300`}
-    >
+    <div className="rounded-lg border border-green-200 bg-green-50 p-8 shadow-lg dark:border-green-900 dark:bg-green-900/20 transition-all duration-300">
       <div className="flex flex-col items-center justify-center space-y-4 text-center">
         <div className="rounded-full bg-green-100 p-3 dark:bg-green-900/30">
           <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
@@ -50,4 +51,5 @@ const VerificationSuccess = ({ redirectUrl }: VerificationSuccessProps) => {
     </div>
   )
 }
+
 export default VerificationSuccess

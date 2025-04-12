@@ -28,3 +28,14 @@ type LoginVerifiedResponse = {
 } & Login
 
 export type LoginResponse = LoginPendingResponse | LoginVerifiedResponse
+
+export type AuthProviders = "github" | "discord"
+
+export type SocialAuthResponse = {
+  success: boolean
+  url: string
+}
+
+export type CallbackVerifyPostMessage = {
+  type: string
+} & Login

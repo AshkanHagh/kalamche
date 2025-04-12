@@ -2,53 +2,43 @@
 
 import { useEffect, useState } from "react"
 import VerificationStatus from "../_components/verification/VerificationStatus"
+import useAuthCallback from "../../_services/useAuthCallback"
+import { useParams, useSearchParams } from "next/navigation"
+import { AuthProviders } from "../../_types"
 
-// Simulated server request function
-const verifyUser = async (): Promise<{
-  success: boolean
-  message: string
-  redirectUrl?: string
-}> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const isSuccess = true
-
-      if (isSuccess) {
-        resolve({
-          success: true,
-          message: "Your account has been successfully verified!",
-          redirectUrl: "/dashboard"
-        })
-      } else {
-        reject({
-          success: false,
-          message:
-            "Verification failed. The link may have expired or is invalid."
-        })
-      }
-    }, 2000) // Simulate network delay
-  })
+type Params = {
+  provider: AuthProviders
 }
 
 const CallbackPage = () => {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   )
+  const { authCallback, data } = useAuthCallback()
+  const { provider } = useParams<Params>()
+  const query = useSearchParams()
+  const state = query.get("state")
+  const code = query.get("code")
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        await verifyUser()
-        setStatus("success")
-      } catch (e) {
-        const error = e as Error
-        console.log(error)
-        setStatus("error")
-      }
+    const handleCallback = async () => {
+      if (!state || !code) return setStatus("error")
+      await authCallback(
+        { provider, code, state },
+        () => setStatus("success"),
+        () => setStatus("error")
+      )
     }
+    handleCallback()
+  }, [code, provider, state])
 
-    fetchData()
-  }, [])
+  const handleVerificationSuccess = () => {
+    const opener = window.opener
+    if (!opener) return
+    // TODO: Change Origin
+    opener.postMessage({ type: "CALLBACK_VERIFY", ...data }, "*")
+    window.close()
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4">
@@ -56,7 +46,7 @@ const CallbackPage = () => {
         <VerificationStatus
           errorMessage="something went wrong"
           status={status}
-          redirectUrl="/dashboard"
+          onSuccess={handleVerificationSuccess}
         />
       </div>
     </div>

@@ -1,12 +1,21 @@
 import { XCircle } from "lucide-react"
+import { useEffect } from "react"
 
 type VerificationErrorProps = {
   errorMessage: string
+  onError?: () => void
 }
 
 const VerificationError = ({
-  errorMessage = "Something went wrong"
+  errorMessage = "Something went wrong",
+  onError
 }: VerificationErrorProps) => {
+  if (onError) onError()
+
+  useEffect(() => {
+    if (onError) onError()
+  }, [onError])
+
   return (
     <div
       className={`rounded-lg border border-red-200 bg-red-50 p-8 shadow-lg dark:border-red-900 dark:bg-red-900/20 transition-all duration-300`}

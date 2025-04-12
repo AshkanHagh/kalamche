@@ -46,4 +46,21 @@ export const timeAgo = (date: string) => {
   return formatDistanceToNowStrict(new Date(date), { addSuffix: true })
 }
 
-export default timeAgo
+export const openBrowserPopup = (
+  url: string,
+  { width = 600, height = 600, windowName = "popup" } = {}
+) => {
+  const left = window.screenX + (window.outerWidth - width) / 2
+  const top = window.screenY + (window.outerHeight - height) / 2
+
+  const features = [
+    `width=${width}`,
+    `height=${height}`,
+    `left=${left}`,
+    `top=${top}`,
+    "resizable",
+    "scrollbars=yes"
+  ].join(",")
+
+  return window.open(url, windowName, features)
+}

@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 import { user } from "@/data/mockData"
-import timeAgo from "@/lib/utils"
+import { timeAgo } from "@/lib/utils"
 
 const WalletInfo = () => {
   const { frTokens, lastTransaction } = user.wallet

@@ -5,22 +5,24 @@ import VerificationSuccess from "./VerificationSuccess"
 type VerificationStatusProps = {
   status: "loading" | "success" | "error"
   errorMessage: string
-  redirectUrl: string
+  onSuccess?: () => void
+  onError?: () => void
 }
 
 const VerificationStatus = ({
   status,
   errorMessage,
-  redirectUrl
+  onSuccess,
+  onError
 }: VerificationStatusProps) => {
   switch (status) {
     case "loading":
       return <VerificationLoading />
 
     case "success":
-      return <VerificationSuccess redirectUrl={redirectUrl} />
+      return <VerificationSuccess onSuccess={onSuccess} />
     case "error":
-      return <VerificationError errorMessage={errorMessage} />
+      return <VerificationError errorMessage={errorMessage} onError={onError} />
   }
 }
 export default VerificationStatus
