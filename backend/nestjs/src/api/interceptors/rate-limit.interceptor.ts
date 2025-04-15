@@ -14,7 +14,7 @@ import { Request } from "express";
 import {
   KalamcheError,
   KalamcheErrorType,
-} from "src/common/error/error.exception";
+} from "src/common/error/kalamche-error";
 import { RATE_LIMIT_METADATA } from "../decorators/rate-limit.decorators";
 import { Reflector } from "@nestjs/core";
 

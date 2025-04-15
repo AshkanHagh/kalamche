@@ -1,7 +1,7 @@
 import {
   KalamcheError,
   KalamcheErrorType,
-} from "src/common/error/error.exception";
+} from "src/common/error/kalamche-error";
 import { RateLimitChecker } from "./rate-limit";
 import { BucketConfig } from "./types";
 import { Injectable } from "@nestjs/common";

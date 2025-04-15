@@ -4,24 +4,12 @@ import { BaseTokenClaims, JwtConfigOptions } from "./types";
 import {
   KalamcheError,
   KalamcheErrorType,
-} from "src/common/error/error.exception";
+} from "src/common/error/kalamche-error";
 
-/**
- * @description
- * Claims specific to an access token, which includes user permissions.
- */
 export interface AccessTokenClaims extends BaseTokenClaims {
-  /**
-   * @description
-   * The list of scopes granted to the user, defining their level of access.
-   */
   scope: string[];
 }
 
-/**
- * @description
- * Claims specific to a refresh token, used to obtain a new access token.
- */
 // eslint-disable-next-line
 export interface RefreshTokenClaims extends BaseTokenClaims {}
 

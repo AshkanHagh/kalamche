@@ -4,7 +4,7 @@ import { BucketConfig } from "./types";
 import {
   KalamcheError,
   KalamcheErrorType,
-} from "src/common/error/error.exception";
+} from "src/common/error/kalamche-error";
 
 /**
  * @description

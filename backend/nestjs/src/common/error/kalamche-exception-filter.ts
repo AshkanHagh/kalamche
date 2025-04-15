@@ -5,7 +5,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { Request, Response } from "express";
-import { KalamcheError } from "./error.exception";
+import { KalamcheError } from "./kalamche-error";
 
 @Catch()
 export class KalamcheExceptionsFilter implements ExceptionFilter {

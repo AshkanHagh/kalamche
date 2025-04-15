@@ -3,6 +3,7 @@ import { Argon2PasswordStrategy } from "./auth/password/argon2-password.strategy
 import { OAuthManager } from "./auth/oauth/oauth-manager";
 import { NodemailerSendEmail } from "./utils/email";
 import { RedisCacheStrategy } from "src/plugin/redis-cache-plugin/redis-cache-strategy";
+import { StripePaymentStrategy } from "./payment/stripe-payment-strategy";
 
 const oauthProvidersOptions = {
   github: {
@@ -15,17 +16,6 @@ const oauthProvidersOptions = {
     userInfoUrl: "https://api.github.com/user",
     otherInfoUrl: "https://api.github.com/user/emails",
   },
-};
-
-const emailOptions: EmailOptions = {
-  email: process.env.SMTP_SEND_EMAIL!,
-  host: process.env.SMTP_HOST!,
-  // port: parseInt(process.env.SMTP_PORT!),
-  port: 1025,
-  // tls: Boolean(process.env.SMTP_TLS_ENABLED),
-  tls: false,
-  user: process.env.SMTP_USER || null,
-  password: process.env.SMTP_PASSWORD || null,
 };
 
 export const defaultConfig: RuntimeAppConfig = {
@@ -66,7 +56,22 @@ export const defaultConfig: RuntimeAppConfig = {
     },
   },
 
-  emailOptions: new NodemailerSendEmail(emailOptions),
+  emailOptions: new NodemailerSendEmail({
+    email: process.env.SMTP_SEND_EMAIL!,
+    host: process.env.SMTP_HOST!,
+    // port: parseInt(process.env.SMTP_PORT!),
+    port: 1025,
+    // tls: Boolean(process.env.SMTP_TLS_ENABLED),
+    tls: false,
+    user: process.env.SMTP_USER || null,
+    password: process.env.SMTP_PASSWORD || null,
+  }),
+
+  paymentOptions: new StripePaymentStrategy({
+    secret: process.env.STRIPE_SECRET_KEY!,
+    successUrl: process.env.PAYMENT_SUCCESS_URL!,
+    cancelUrl: process.env.PAYMENT_CANCEL_URL!,
+  }),
 
   systemOpitons: {
     cacheStrategy: new RedisCacheStrategy({

@@ -7,7 +7,6 @@ import {
   OAuthAccountSchema,
   PendingUserSchema,
   User,
-  UserRecord,
   UserSchema,
 } from "src/drizzle/schema";
 import { Postgres } from "src/drizzle/types";
@@ -17,7 +16,7 @@ import { OAuthUser } from "src/config/auth/oauth/oauth-clients";
 import {
   RegisterDto,
   VerifyEmailRegistratonDto,
-} from "src/api/common/auth-generated-types";
+} from "src/api/common/auth-types";
 import { generateOTP } from "src/common/utils";
 import { eq } from "drizzle-orm";
 import {
@@ -29,7 +28,7 @@ import {
 import {
   KalamcheError,
   KalamcheErrorType,
-} from "src/common/error/error.exception";
+} from "src/common/error/kalamche-error";
 
 export class AuthService {
   constructor(
@@ -39,17 +38,6 @@ export class AuthService {
     private readonly tokenService: TokenService,
     private readonly permissionService: PermissionService,
   ) {}
-
-  public intoRecord(model: User, permissions: string[]): UserRecord {
-    return {
-      id: model.id,
-      name: model.name,
-      email: model.email,
-      permissions,
-      avatarUrl: model.avatarUrl,
-      createdAt: model.createdAt,
-    };
-  }
 
   public async authenticateWithOAuth(oauthUser: OAuthUser) {
     const [oauthAccount] = await this.connection
