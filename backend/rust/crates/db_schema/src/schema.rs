@@ -76,14 +76,34 @@ diesel::table! {
         id -> Uuid,
         #[max_length = 50]
         name -> Varchar,
+        #[max_length = 50]
+        resource -> Varchar,
+        #[max_length = 50]
+        action -> Varchar,
     }
 }
 
 diesel::table! {
-    user_permissions (id) {
-        id -> Uuid,
-        user_id -> Uuid,
+    role_permissions (role_id, permission_id) {
+        role_id -> Uuid,
         permission_id -> Uuid,
+    }
+}
+
+diesel::table! {
+    roles (id) {
+        id -> Uuid,
+        #[max_length = 50]
+        name -> Varchar,
+        #[max_length = 255]
+        description -> Varchar,
+    }
+}
+
+diesel::table! {
+    user_roles (user_id, role_id) {
+        user_id -> Uuid,
+        role_id -> Uuid,
     }
 }
 
@@ -117,8 +137,10 @@ diesel::joinable!(login_tokens -> users (user_id));
 diesel::joinable!(oauth_accounts -> users (user_id));
 diesel::joinable!(payment_history -> fr_token_plans (fr_token_id));
 diesel::joinable!(payment_history -> users (user_id));
-diesel::joinable!(user_permissions -> permissions (permission_id));
-diesel::joinable!(user_permissions -> users (user_id));
+diesel::joinable!(role_permissions -> permissions (permission_id));
+diesel::joinable!(role_permissions -> roles (role_id));
+diesel::joinable!(user_roles -> roles (role_id));
+diesel::joinable!(user_roles -> users (user_id));
 diesel::joinable!(wallets -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -128,7 +150,9 @@ diesel::allow_tables_to_appear_in_same_query!(
     payment_history,
     pending_users,
     permissions,
-    user_permissions,
+    role_permissions,
+    roles,
+    user_roles,
     users,
     wallets,
 );

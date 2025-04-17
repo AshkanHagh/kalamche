@@ -28,10 +28,6 @@ use utils::{
   },
 };
 
-// if !login_response.registration_created && !login_response.verify_email_sent {
-//   let jwt = Claims::generate(local_user.id, req, &context).await?;
-//   login_response.jwt = Some(jwt);
-// }
 #[post("/login")]
 pub async fn login(
   context: Data<KalamcheContext>,
@@ -57,6 +53,9 @@ pub async fn login(
   }
 
   let login_token = LoginToken::find_by_user_id(&mut context.pool(), user.id).await?;
+  // Login has two scenarios:
+  // 1. If the user's last interaction with the app was more than 12 hours ago, they must log in using 2FA.
+  // 2. If it was within 12 hours, a normal login is allowed.
   if Utc::now().signed_duration_since(login_token.created_at) >= Duration::hours(12) {
     let pending_user = PendingUser::exists_by_email(&mut context.pool(), &user.email).await?;
     if pending_user {

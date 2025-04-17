@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct UserView {
   #[serde(flatten)]
   pub user: User,
-  pub permissions: Vec<String>,
+  pub roles: Vec<String>,
   pub wallet: WalletView,
 }
 

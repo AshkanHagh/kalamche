@@ -14,7 +14,7 @@ use db_schema::source::{
   oauth_account::{OAuthAccount, OAuthAccountInsertForm},
   pending_user::PendingUser,
   user::{User, UserInsertForm},
-  user_permissin::UserPermission,
+  user_role::UserRole,
   wallet::{Wallet, WalletInsertForm},
 };
 use utils::{
@@ -145,7 +145,7 @@ pub async fn insert_new_user(
   insert_form: UserInsertForm,
 ) -> KalamcheResult<User> {
   let user = User::insert(&mut context.pool(), insert_form).await?;
-  UserPermission::insert_with_default_permission(&mut context.pool(), user.id).await?;
+  UserRole::insert_with_default_role(&mut context.pool(), user.id).await?;
 
   // default first signin wallet
   let wallet_form = WalletInsertForm {

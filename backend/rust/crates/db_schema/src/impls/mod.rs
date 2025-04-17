@@ -4,6 +4,7 @@ pub mod oauth_account;
 pub mod payment_history;
 pub mod pending_user;
 pub mod permission;
+pub mod role;
 pub mod user;
-pub mod user_permission;
+pub mod user_role;
 pub mod wallet;

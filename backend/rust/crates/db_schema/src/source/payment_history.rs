@@ -7,7 +7,7 @@ use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, Queryable, Selectable)]
+#[derive(Debug, Clone, Serialize, Deserialize, Queryable, Selectable)]
 #[diesel(table_name = crate::schema::payment_history)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[serde(rename_all = "camelCase")]
@@ -23,7 +23,7 @@ pub struct PaymentHistory {
   pub created_at: DateTime<Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, DbEnum)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, DbEnum, Clone)]
 #[ExistingTypePath = "crate::schema::sql_types::PaymentStatus"]
 pub enum PaymentStatus {
   Pending,
