@@ -1,21 +1,31 @@
 use oauth_client::{OAuthClient, OAuthUser};
 use reqwest::Client;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use crate::{
-  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
+  error::{KalamcheErrorType, KalamcheResult},
   settings::structs::OAuthConfig,
 };
 
+pub mod discord;
+pub mod github;
 pub mod oauth_client;
 
+#[derive(Debug, Serialize, Deserialize, Hash, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum OAuthProvider {
+  Github,
+  Discord,
+}
+
 pub struct OAuthManager {
-  pub clients: HashMap<String, OAuthClient>,
+  pub clients: HashMap<OAuthProvider, OAuthClient>,
 }
 
 impl OAuthManager {
   pub fn new(config: &OAuthConfig, client: Client) -> KalamcheResult<Self> {
-    let mut clients: HashMap<String, OAuthClient> = HashMap::new();
+    let mut clients: HashMap<OAuthProvider, OAuthClient> = HashMap::new();
 
     let github = config
       .github
@@ -27,23 +37,18 @@ impl OAuthManager {
       .as_ref()
       .ok_or(KalamcheErrorType::OAuthRegistrationClosed)?;
 
-    let github_provider = OAuthClient::new(github, "github", client.clone())?;
-    let discord_provider = OAuthClient::new(discord, "discord", client)?;
-    clients.insert(github_provider.name.to_owned(), github_provider);
-    clients.insert(discord_provider.name.to_owned(), discord_provider);
+    let github_provider = OAuthClient::new(github, client.clone())?;
+    let discord_provider = OAuthClient::new(discord, client)?;
+    clients.insert(OAuthProvider::Github, github_provider);
+    clients.insert(OAuthProvider::Discord, discord_provider);
 
     Ok(Self { clients })
   }
 
-  pub fn get_authorize_url(&self, provider: &str) -> KalamcheResult<String> {
+  pub fn get_authorize_url(&self, provider: &OAuthProvider) -> KalamcheResult<String> {
     let scopes = match provider {
-      "github" => vec!["user:read", "user:email"],
-      "discord" => vec!["email", "identify"],
-      _ => {
-        return Err(KalamcheError::from(
-          KalamcheErrorType::OAuthRegistrationClosed,
-        ))
-      }
+      OAuthProvider::Github => vec!["user:read", "user:email"],
+      OAuthProvider::Discord => vec!["email", "identify"],
     };
 
     let url = self
@@ -55,12 +60,16 @@ impl OAuthManager {
     Ok(url)
   }
 
-  pub async fn authenticate(&self, provider: &str, code: String) -> KalamcheResult<OAuthUser> {
+  pub async fn authenticate(
+    &self,
+    provider: &OAuthProvider,
+    code: String,
+  ) -> KalamcheResult<OAuthUser> {
     self
       .clients
       .get(provider)
       .ok_or(KalamcheErrorType::OAuthRegistrationClosed)?
-      .authenticate(code)
+      .authenticate(provider, code)
       .await
   }
 }

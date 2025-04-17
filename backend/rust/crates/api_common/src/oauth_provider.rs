@@ -1,15 +1,16 @@
 use serde::{Deserialize, Serialize};
+use utils::oauth::OAuthProvider;
 
 use crate::user::MyUserInfo;
 
 #[derive(Debug, Deserialize)]
 pub struct GetAuthorizeUrl {
-  pub provider: String,
+  pub provider: OAuthProvider,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct AuthenticateWithOAuth {
-  pub provider: String,
+  pub provider: OAuthProvider,
   pub state: String,
   pub code: String,
 }
