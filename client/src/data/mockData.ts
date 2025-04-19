@@ -350,7 +350,7 @@ export const user: User = {
   id: "user_123",
   name: "Jane Smith",
   email: "jane.smith@example.com",
-  permissions: ["shop:read", "user:read", "product:read"],
+  roles: ["admin"],
   avatarUrl: "#",
   wallet: {
     frTokens: 1000,

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
 import { logout, setCredentials } from "@/lib/redux/slices/authSlice"
 import { handleApiError } from "@/lib/utils"
-import { ServerError } from "@/types"
+import { ServerError, User } from "@/types"
 import { toast } from "sonner"
 
 type RefreshTokenResponse = {
@@ -13,18 +13,31 @@ type RefreshTokenResponse = {
   accessToken: string
 }
 
+type RefreshOptions = {
+  redirectOnFail?: boolean
+  silent?: boolean
+}
+
 const useRefreshToken = () => {
   const { auth } = useAppSelector((state) => state)
   const dispatch = useAppDispatch()
   const { push } = useRouter()
 
-  const refresh = async (): Promise<string | undefined> => {
+  const refresh = async (
+    options: RefreshOptions = { redirectOnFail: true, silent: false }
+  ): Promise<string | undefined> => {
     try {
       const response = await axios.get<RefreshTokenResponse>("token/refresh")
       const newAccessToken = response.data.accessToken
 
       if (newAccessToken) {
-        dispatch(setCredentials({ ...auth, accessToken: newAccessToken }))
+        dispatch(
+          setCredentials({
+            ...auth,
+            user: auth.user as User,
+            accessToken: newAccessToken
+          })
+        )
         return newAccessToken
       }
     } catch (e) {
@@ -32,12 +45,17 @@ const useRefreshToken = () => {
       const status = error.response?.status
 
       if (status === 400 || status === 401) {
-        dispatch(logout())
-        push("/auth/login")
-        return
+        if (options.redirectOnFail) {
+          dispatch(logout())
+          push("/auth/login")
+          return
+        }
       }
-      const { errorMessage } = handleApiError(error)
-      toast.error(errorMessage)
+
+      if (!options.silent) {
+        const { errorMessage } = handleApiError(error)
+        toast.error(errorMessage)
+      }
     }
   }
   return refresh

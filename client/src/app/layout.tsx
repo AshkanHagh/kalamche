@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono, Poppins } from "next/font/google"
 import "./globals.css"
 import MainLayout from "@/components/layout/MainLayout"
+import StoreProvider from "@/lib/redux/StoreProvider"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,9 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${geistMono.variable} ${geistSans.variable} antialiased font-sans`}
       >
-        <MainLayout>{children}</MainLayout>
+        <StoreProvider>
+          <MainLayout>{children}</MainLayout>
+        </StoreProvider>
       </body>
     </html>
   )
