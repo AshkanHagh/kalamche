@@ -1,7 +1,7 @@
 use actix_web::{
-  cookie::{time::Duration as CookieDuration, Cookie, SameSite},
+  cookie::{time::Duration as CookieDuration, Cookie, CookieJar, SameSite},
   http::header::Header,
-  HttpMessage, HttpRequest,
+  HttpMessage, HttpRequest, HttpResponse,
 };
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use db_schema::source::{
@@ -22,18 +22,31 @@ use uuid::Uuid;
 
 use crate::{context::KalamcheContext, user::MyUserInfo};
 
-pub const RT_COOKIE_NAME: &str = "refresh_token";
-pub const RT_COOKIE_MAX_AGE: CookieDuration = CookieDuration::days(2);
+pub const ACCESS_COOKIE_NAME: &str = "access_token";
+pub const REFRESH_COOKIE_NAME: &str = "refresh_token";
+pub const ACCESS_COOKIE_DURATION: CookieDuration = CookieDuration::minutes(15);
+pub const REFRESH_COOKIE_DURATION: CookieDuration = CookieDuration::days(2);
 
-pub fn build_cookie<'a>(value: &'a str, name: &'a str, duration: CookieDuration) -> Cookie<'a> {
-  let mut cookie = Cookie::new(name, value);
-  cookie.set_path("/");
-  cookie.set_http_only(true);
-  cookie.set_same_site(SameSite::Lax);
-  cookie.set_max_age(duration);
-  cookie.set_secure(false);
+pub fn build_auth_cookie_jar(access_token: &str, refresh_token: &str) -> CookieJar {
+  let mut access_token_cookie = Cookie::new(ACCESS_COOKIE_NAME, access_token.to_string());
+  access_token_cookie.set_path("/");
+  access_token_cookie.set_http_only(true);
+  access_token_cookie.set_same_site(SameSite::Lax);
+  access_token_cookie.set_max_age(ACCESS_COOKIE_DURATION);
+  access_token_cookie.set_secure(false);
 
-  cookie
+  let mut refresh_token_cookie = Cookie::new(REFRESH_COOKIE_NAME, refresh_token.to_string());
+  refresh_token_cookie.set_path("/");
+  refresh_token_cookie.set_http_only(true);
+  refresh_token_cookie.set_same_site(SameSite::Lax);
+  refresh_token_cookie.set_max_age(REFRESH_COOKIE_DURATION);
+  refresh_token_cookie.set_secure(false);
+
+  let mut jar = CookieJar::new();
+  jar.add_original(access_token_cookie);
+  jar.add_original(refresh_token_cookie);
+
+  jar
 }
 
 pub async fn refresh_tokens(
@@ -118,4 +131,11 @@ pub fn get_user_from_req(req: &mut HttpRequest) -> KalamcheResult<User> {
 pub async fn get_my_user(context: &KalamcheContext, user_id: Uuid) -> KalamcheResult<MyUserInfo> {
   let user_view = UserView::read(&mut context.pool(), user_id).await?;
   Ok(MyUserInfo { user_view })
+}
+
+pub fn set_cookie(jar: CookieJar, mut response: HttpResponse) -> KalamcheResult<HttpResponse> {
+  for cookie in jar.iter() {
+    response.add_cookie(cookie)?;
+  }
+  Ok(response)
 }

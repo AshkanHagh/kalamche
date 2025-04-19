@@ -7,8 +7,7 @@ use api_common::{
   context::KalamcheContext,
   user::{Login, LoginPendingResponse, LoginResponse},
   utils::{
-    build_cookie, get_my_user, refresh_tokens, send_account_verification_email, RT_COOKIE_MAX_AGE,
-    RT_COOKIE_NAME,
+    build_auth_cookie_jar, get_my_user, refresh_tokens, send_account_verification_email, set_cookie,
   },
 };
 use chrono::{Duration, Utc};
@@ -90,11 +89,13 @@ pub async fn login(
   let (access_token, refresh_token) = refresh_tokens(&context, &req, user.id).await?;
   let my_user = get_my_user(&context, user.id).await?;
 
-  let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(HttpResponse::Created().cookie(cookie).json(LoginResponse {
+  let jar = build_auth_cookie_jar(&access_token, &refresh_token);
+  let response = HttpResponse::Created().json(LoginResponse {
     success: true,
     access_token,
     my_user,
     verify_email_sent: false,
-  }))
+  });
+
+  set_cookie(jar, response)
 }

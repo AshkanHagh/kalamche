@@ -7,7 +7,7 @@ use api_common::{
   context::KalamcheContext,
   oauth_provider::{AuthenticateWithOAuth, AuthenticateWithOAuthResponse},
   user::{VerifyEmail, VerifyEmailResponse},
-  utils::{build_cookie, get_my_user, refresh_tokens, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
+  utils::{build_auth_cookie_jar, get_my_user, refresh_tokens, set_cookie},
 };
 use chrono::{Duration, Utc};
 use db_schema::source::{
@@ -62,16 +62,14 @@ pub async fn authenticate_with_oauth(
   let (access_token, refresh_token) = refresh_tokens(&context, &req, user.id).await?;
   let my_user = get_my_user(&context, user.id).await?;
 
-  let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(
-    HttpResponse::Created()
-      .cookie(cookie)
-      .json(AuthenticateWithOAuthResponse {
-        success: true,
-        access_token,
-        my_user,
-      }),
-  )
+  let jar = build_auth_cookie_jar(&access_token, &refresh_token);
+  let response = HttpResponse::Created().json(AuthenticateWithOAuthResponse {
+    success: true,
+    access_token,
+    my_user,
+  });
+
+  set_cookie(jar, response)
 }
 
 #[post("/verify")]
@@ -128,16 +126,14 @@ pub async fn verify_email_registration(
   let (access_token, refresh_token) = refresh_tokens(&context, &req, user.id).await?;
   let my_user = get_my_user(&context, user.id).await?;
 
-  let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
-  Ok(
-    HttpResponse::Created()
-      .cookie(cookie)
-      .json(VerifyEmailResponse {
-        success: true,
-        access_token,
-        my_user,
-      }),
-  )
+  let jar = build_auth_cookie_jar(&access_token, &refresh_token);
+  let response = HttpResponse::Created().json(VerifyEmailResponse {
+    success: true,
+    access_token,
+    my_user,
+  });
+
+  set_cookie(jar, response)
 }
 
 pub async fn insert_new_user(

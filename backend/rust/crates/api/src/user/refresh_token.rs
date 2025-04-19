@@ -2,7 +2,7 @@ use actix_web::{get, web::Data, HttpRequest, HttpResponse};
 use api_common::{
   context::KalamcheContext,
   user::RefreshTokenResponse,
-  utils::{build_cookie, refresh_tokens, RT_COOKIE_MAX_AGE, RT_COOKIE_NAME},
+  utils::{build_auth_cookie_jar, refresh_tokens, set_cookie, REFRESH_COOKIE_NAME},
 };
 use db_schema::source::{login_token::LoginToken, user::User};
 use utils::{
@@ -17,7 +17,7 @@ pub async fn refresh_token(
   req: HttpRequest,
 ) -> KalamcheResult<HttpResponse> {
   let refresh_token = req
-    .cookie(RT_COOKIE_NAME)
+    .cookie(REFRESH_COOKIE_NAME)
     .ok_or(KalamcheErrorType::NotLoggedIn)?;
 
   let token_claims = verify_refresh_token(SETTINGS.get_jwt(), refresh_token.value())?;
@@ -32,14 +32,11 @@ pub async fn refresh_token(
   }
 
   let (access_token, refresh_token) = refresh_tokens(&context, &req, user.id).await?;
-  let cookie = build_cookie(&refresh_token, RT_COOKIE_NAME, RT_COOKIE_MAX_AGE);
+  let jar = build_auth_cookie_jar(&access_token, &refresh_token);
+  let response = HttpResponse::Created().json(RefreshTokenResponse {
+    success: true,
+    access_token,
+  });
 
-  Ok(
-    HttpResponse::Created()
-      .cookie(cookie)
-      .json(RefreshTokenResponse {
-        success: true,
-        access_token,
-      }),
-  )
+  set_cookie(jar, response)
 }
