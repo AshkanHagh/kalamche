@@ -1,9 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{
-  middleware::{self, Logger},
-  web::Data,
-  App, HttpServer,
-};
+use actix_web::{middleware, web::Data, App, HttpServer};
 use api_common::context::KalamcheContext;
 use db_schema::{connection::build_pool, schema_setup::migration};
 use utils::{
@@ -17,7 +13,8 @@ use utils::{
 
 pub mod routes_v1;
 
-pub async fn strat_server() -> KalamcheResult<()> {
+#[actix_web::main]
+pub async fn main() -> KalamcheResult<()> {
   env_logger::init();
   migration()?;
 
@@ -47,9 +44,8 @@ pub async fn strat_server() -> KalamcheResult<()> {
   let bind = (SETTINGS.bind, SETTINGS.port);
   HttpServer::new(move || {
     App::new()
-      .wrap(Logger::default())
-      .wrap(config_cors())
       .wrap(middleware::Logger::default())
+      .wrap(config_cors())
       .wrap(middleware::Compress::default())
       .app_data(context.clone())
       .configure(|cfg| routes_v1::routes_v1(cfg, &rate_limiter))

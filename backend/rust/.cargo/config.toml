@@ -1,4 +1,4 @@
 [env]
 
-RUST_BACKTRACE = "full"
-RUST_LOG = "server=debug,api=debug,api_crud=debug,api_common=debug,routes=debug,database=debug,utils=debug,actix_server=debug,actix_web::middleware::logger=info"
+# RUST_BACKTRACE = "1"
+RUST_LOG = "server=debug,api=debug,api_crud=debug,api_common=debug,routes=debug,database=debug,utils=debug,actix_server=debug,actix_web::middleware::logger=debug"

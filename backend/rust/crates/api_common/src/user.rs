@@ -80,3 +80,11 @@ pub struct MyUserInfo {
   #[serde(flatten)]
   pub user_view: UserView,
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MyUserResponse {
+  #[serde(flatten)]
+  pub my_user: MyUserInfo,
+  pub success: bool,
+}

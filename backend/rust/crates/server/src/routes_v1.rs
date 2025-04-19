@@ -20,6 +20,11 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
           .service(api::user::resend_verification_email::resend_verification_code),
       )
       .service(
+        scope("/user")
+          .wrap(from_fn(authorization::authorization_middleware))
+          .service(api_crud::user::my_user::get_my_user),
+      )
+      .service(
         scope("/payment")
           .wrap(rate_limit.payment())
           .wrap(from_fn(authorization::authorization_middleware))

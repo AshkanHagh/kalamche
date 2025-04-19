@@ -1,10 +1,10 @@
 use oauth2::http::StatusCode;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use serde_json::json;
 use std::fmt::{self, Debug};
-use strum::{Display, EnumIter};
+use strum::Display;
 
-#[derive(Display, EnumIter, Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
+#[derive(Display, Debug, Serialize, Clone, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
 pub enum KalamcheErrorType {
   PendingToVerify,
