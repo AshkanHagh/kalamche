@@ -4,7 +4,7 @@ export type User = {
   email: string
   avatarUrl: string
   wallet: Wallet
-  permissions: string[]
+  roles: string[]
   createdAt: string
 }
 
@@ -16,4 +16,9 @@ export type Wallet = {
 export type LastTransaction = {
   createdAt: string
   frTokens: number
+}
+
+export type UserDataResponse = {
+  user: User
+  success: boolean
 }
