@@ -1,6 +1,6 @@
 import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
 import { Login, VerificationResponse, VerifyCodeBody } from "../_types"
-import useVerifyCode from "../_services/useVerifyCode"
+import useVerifyCode from "../_service-hooks/useVerifyCode"
 import { setCredentials } from "@/lib/redux/slices/authSlice"
 import { AxiosError } from "axios"
 import { ServerError } from "@/types"
@@ -8,7 +8,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 import { handleApiError } from "@/lib/utils"
 import { useCallback, useState } from "react"
-import useResendCode from "../_services/useResendCode"
+import useResendCode from "../_service-hooks/useResendCode"
 
 const useManageVerification = () => {
   const [isOpen, setIsOpen] = useState<boolean>(false)
