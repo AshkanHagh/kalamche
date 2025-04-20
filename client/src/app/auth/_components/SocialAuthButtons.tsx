@@ -2,7 +2,7 @@
 
 import { Discord, GitHub } from "@/components/svgs/icon"
 import { Button } from "@/components/ui/button"
-import useSocialAuth from "../_services/useSocialAuth"
+import useSocialAuth from "../_service-hooks/useSocialAuth"
 import { handleApiError, openBrowserPopup } from "@/lib/utils"
 import { toast } from "sonner"
 import {

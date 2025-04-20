@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import VerificationStatus from "../_components/verification/VerificationStatus"
-import useAuthCallback from "../../_services/useAuthCallback"
+import useAuthCallback from "../../_service-hooks/useAuthCallback"
 import { useParams, useSearchParams } from "next/navigation"
 import { AuthProviders } from "../../_types"
 
