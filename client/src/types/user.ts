@@ -10,7 +10,7 @@ export type User = {
 
 export type Wallet = {
   frTokens: number
-  lastTransaction: LastTransaction
+  lastTransaction: LastTransaction | null
 }
 
 export type LastTransaction = {
