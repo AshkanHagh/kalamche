@@ -1,8 +1,7 @@
 use serde::Deserialize;
 
-use crate::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
-
 use super::oauth_client::OAuthUser;
+use crate::error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult};
 
 #[derive(Deserialize)]
 struct DiscordUserRes {

@@ -84,7 +84,7 @@ pub struct MyUserInfo {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MyUserResponse {
-  #[serde(flatten)]
+  #[serde(rename = "user")]
   pub my_user: MyUserInfo,
   pub success: bool,
 }
