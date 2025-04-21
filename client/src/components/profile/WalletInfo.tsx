@@ -2,12 +2,15 @@ import { Wallet, TrendingUp } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
-import { user } from "@/data/mockData"
 import { timeAgo } from "@/lib/utils"
+import { LastTransaction } from "@/types"
 
-const WalletInfo = () => {
-  const { frTokens, lastTransaction } = user.wallet
+type WalletInfoProps = {
+  frTokens: number
+  lastTransaction: LastTransaction | null
+}
 
+const WalletInfo = ({ frTokens, lastTransaction }: WalletInfoProps) => {
   return (
     <div className="p-4 space-y-3">
       {/* Redesigned wallet section */}
@@ -28,6 +31,7 @@ const WalletInfo = () => {
         <div className="flex items-center justify-between">
           <p className="text-2xl font-bold text-foreground">
             {frTokens.toLocaleString()}
+            <span className="text-sm font-medium"> FR</span>
           </p>
           <Button size="sm" className="h-8">
             <TrendingUp className="mr-1 h-3 w-3" />
@@ -36,17 +40,19 @@ const WalletInfo = () => {
         </div>
       </div>
 
-      <div className="rounded-md bg-muted/50 p-2 text-xs">
-        <div className="flex items-center justify-between text-muted-foreground">
-          <span>Last transaction:</span>
-          <span className="font-medium text-foreground">
-            +{lastTransaction.frTokens} FR
-          </span>
+      {lastTransaction && (
+        <div className="rounded-md bg-muted/50 p-2 text-xs">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span>Last transaction:</span>
+            <span className="font-medium text-foreground">
+              +{lastTransaction.frTokens} FR
+            </span>
+          </div>
+          <div className="mt-1 text-muted-foreground">
+            {timeAgo(lastTransaction.createdAt)}
+          </div>
         </div>
-        <div className="mt-1 text-muted-foreground">
-          {timeAgo(lastTransaction.createdAt)}
-        </div>
-      </div>
+      )}
     </div>
   )
 }

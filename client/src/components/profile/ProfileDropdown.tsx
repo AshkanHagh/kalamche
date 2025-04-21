@@ -14,15 +14,19 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { user } from "@/data/mockData"
 import UserAvatar from "./UserAvatar"
 import EditProfile from "./EditProfile"
 import Link from "next/link"
 import WalletInfo from "./WalletInfo"
+import { useAppSelector } from "@/lib/redux/hooks/useRedux"
+import { User } from "@/types"
 
 export function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const { avatarUrl, email, name, wallet } = useAppSelector(
+    (state) => state.auth.user
+  ) as User
 
   const handleLogout = () => {
     setIsOpen(false)
@@ -40,26 +44,26 @@ export function ProfileDropdown() {
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative size-8 rounded-full">
-          <UserAvatar name={user.name} src={user.avatarUrl} />
+          <UserAvatar name={name} src={avatarUrl} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80" align="end" forceMount>
         {isEditing ? (
           <EditProfile
-            avatarUrl={user.avatarUrl}
-            email={user.email}
-            name={user.name}
+            avatarUrl={avatarUrl}
+            email={email}
+            name={name}
             onCancel={onCancel}
             onSave={onSave}
           />
         ) : (
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
-              <UserAvatar name={user.name} src={user.avatarUrl} />
+              <UserAvatar name={name} src={avatarUrl} />
 
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold">{user.name}</h4>
-                <p className="text-xs text-muted-foreground">{user.email}</p>
+                <h4 className="text-sm font-semibold">{name}</h4>
+                <p className="text-xs text-muted-foreground">{email}</p>
               </div>
             </div>
             <Button
@@ -75,7 +79,10 @@ export function ProfileDropdown() {
         )}
 
         <DropdownMenuSeparator />
-        <WalletInfo />
+        <WalletInfo
+          frTokens={wallet.frTokens}
+          lastTransaction={wallet.lastTransaction}
+        />
         <DropdownMenuSeparator />
 
         <DropdownMenuGroup>
