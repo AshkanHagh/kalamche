@@ -1,4 +1,5 @@
 import Footer from "@/components/layout/Footer"
+import InitUserLayout from "@/components/layout/InitUserLayout"
 import { Navbar, NavLink } from "@/components/layout/Navbar"
 import { navLinks } from "@/data/navLinks"
 
@@ -12,7 +13,9 @@ const HomeLayout = ({ children }: { children: React.ReactNode }) => {
           </NavLink>
         ))}
       </Navbar>
-      <div className="container">{children}</div>
+      <InitUserLayout>
+        <div className="container">{children}</div>
+      </InitUserLayout>
       <Footer />
     </>
   )

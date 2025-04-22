@@ -2,16 +2,19 @@ import { useEffect, useState } from "react"
 import useRefreshToken from "./useRefreshToken"
 import useAxiosPrivate from "./useAxiosPrivate"
 import { UserDataResponse } from "@/types"
-import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
-import { setCredentials } from "@/lib/redux/slices/authSlice"
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks/useRedux"
+import { logout, setCredentials } from "@/lib/redux/slices/authSlice"
 import { AxiosError } from "axios"
 import { toast } from "sonner"
 
 const useInitUser = () => {
-  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const { user } = useAppSelector((state) => state.auth)
+  const needsUserInit = user === undefined
+
   const dispatch = useAppDispatch()
   const refresh = useRefreshToken()
   const privateAxios = useAxiosPrivate()
+  const [isLoading, setIsLoading] = useState<boolean>(needsUserInit)
 
   const fetchData = async () => {
     setIsLoading(true)
@@ -21,6 +24,7 @@ const useInitUser = () => {
     })
     if (!newAccessToken) {
       setIsLoading(false)
+      dispatch(logout())
       return
     }
 
@@ -35,14 +39,16 @@ const useInitUser = () => {
       toast.error(
         `failed to load your data! - status ${error.response?.status}`
       )
+      dispatch(logout())
     } finally {
       setIsLoading(false)
     }
   }
 
   useEffect(() => {
+    if (!needsUserInit) return
     fetchData()
-  }, [])
+  }, [needsUserInit])
 
   return { isLoading }
 }

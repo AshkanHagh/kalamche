@@ -27,7 +27,8 @@ const useRefreshToken = () => {
     options: RefreshOptions = { redirectOnFail: true, silent: false }
   ): Promise<string | undefined> => {
     try {
-      const response = await axios.get<RefreshTokenResponse>("token/refresh")
+      const response =
+        await axios.get<RefreshTokenResponse>("auth/token/refresh")
       const newAccessToken = response.data.accessToken
 
       if (newAccessToken) {

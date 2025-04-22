@@ -23,6 +23,7 @@ type NavbarProps = {
 
 export const Navbar = ({ children }: NavbarProps) => {
   const { user } = useAppSelector((state) => state.auth)
+  const needsUserInit = user === undefined
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -40,7 +41,9 @@ export const Navbar = ({ children }: NavbarProps) => {
         </div>
 
         <div className="flex items-center gap-4">
-          {user ? (
+          {needsUserInit ? (
+            <div className="animate-pulse rounded-md bg-muted h-9 w-40" />
+          ) : user ? (
             <ProfileDropdown />
           ) : (
             <Button asChild variant="outline" size="sm">
