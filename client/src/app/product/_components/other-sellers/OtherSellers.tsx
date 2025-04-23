@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { OtherSeller } from "@/types"
+import { OtherSeller } from "../../_types/index"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 import OtherSellerCard from "./OtherSellerCard"

@@ -1,4 +1,4 @@
-import { Specification } from "@/types"
+import { Specification } from "../../_types/index"
 
 type ProductSpecifications = {
   specifications: Specification[]

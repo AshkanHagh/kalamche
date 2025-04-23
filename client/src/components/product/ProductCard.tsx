@@ -2,11 +2,11 @@ import Image from "next/image"
 import { Card, CardContent, CardFooter } from "../ui/card"
 import { Badge } from "../ui/badge"
 import { Button } from "../ui/button"
-import type { ProductCardType } from "@/types"
+import type { Product } from "@/types"
 import { cn } from "@/lib/utils"
 
 type ProductCardProps = {
-  product: ProductCardType
+  product: Product
   className?: string
 }
 
@@ -33,7 +33,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
       </div>
       <CardContent className="p-4 flex-grow">
         <div className="space-y-1 flex flex-col justify-between h-full">
-          <p className="text-sm text-muted-foreground">{product.seller}</p>
+          <p className="text-sm text-muted-foreground">{product.sellerName}</p>
           <h3 className="font-medium leading-tight line-clamp-2">
             {product.name}
           </h3>

@@ -1,4 +1,4 @@
-import { product } from "@/data/mockData"
+import { product } from "../_mock/data"
 import ProductOverview from "../_components/product-overview/ProductOverview"
 import PriceHistoryChart from "../_components/PriceHistoryChart"
 import { Separator } from "@/components/ui/separator"

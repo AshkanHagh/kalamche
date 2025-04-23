@@ -1,7 +1,7 @@
 "use client"
 
 import ProductCard from "@/components/product/ProductCard"
-import type { ProductCardType } from "@/types"
+import type { Product } from "@/types"
 import { Swiper, SwiperSlide, useSwiper } from "swiper/react"
 import { Navigation } from "swiper/modules"
 import "swiper/css"
@@ -12,7 +12,7 @@ import Link from "next/link"
 type ProductCarouselProps = {
   title: string
   description: string
-  products: ProductCardType[]
+  products: Product[]
 }
 
 const ProductCarousel = ({

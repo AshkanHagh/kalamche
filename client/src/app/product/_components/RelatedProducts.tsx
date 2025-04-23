@@ -1,8 +1,8 @@
 import ProductCard from "@/components/product/ProductCard"
-import type { ProductCardType } from "@/types"
+import type { Product } from "@/types/product"
 
 type RelatedProductsProps = {
-  relatedProducts: ProductCardType[]
+  relatedProducts: Product[]
 }
 
 const RelatedProducts = ({ relatedProducts }: RelatedProductsProps) => {

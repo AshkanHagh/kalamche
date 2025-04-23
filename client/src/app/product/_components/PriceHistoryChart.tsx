@@ -6,7 +6,7 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from "@/components/ui/chart"
-import { PriceHistory } from "@/types"
+import { PriceHistory } from "../_types/index"
 import { TrendingUp } from "lucide-react"
 import { XAxis, CartesianGrid, Area, AreaChart } from "recharts"
 

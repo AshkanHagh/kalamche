@@ -1,8 +1,4 @@
-import {
-  bestSellingProducts,
-  computersAndAccessories,
-  homeEssentials
-} from "@/data/mockData"
+import { products } from "@/data/mockData"
 import HeroSection from "./_components/HeroSection"
 import ProductCarousel from "./_components/ProductCarousel"
 import SearchBar from "./_components/SearchBar"
@@ -17,18 +13,18 @@ export default function HomePage() {
         <ProductCarousel
           title="Best Sellers"
           description="Our most popular products based on sales"
-          products={bestSellingProducts}
+          products={products}
         />
         <ProductCarousel
           title="Home Essentials"
           description="Everything you need for your home"
-          products={homeEssentials}
+          products={products}
         />
 
         <ProductCarousel
           title="Computers & Accessories"
           description="Latest tech at competitive prices"
-          products={computersAndAccessories}
+          products={products}
         />
 
         <ComparePricesSection />

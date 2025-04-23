@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { OtherSeller } from "@/types"
+import { OtherSeller } from "../../_types/index"
 import Image from "next/image"
 
 type OtherSellerCardProps = {

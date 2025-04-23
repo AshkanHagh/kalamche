@@ -1,13 +1,13 @@
-import { Product } from "@/types"
 import { Separator } from "@/components/ui/separator"
 import { Eye, Heart, ShoppingCart, ThumbsUp } from "lucide-react"
 import ProductImages from "./ProductImages"
 import ProductDetails from "./ProductDetails"
 import ProductSpecifications from "./ProductSpecifications"
 import { Button } from "@/components/ui/button"
+import { ProductDetailsType } from "../../_types"
 
 type ProductOverviewProps = {
-  product: Product
+  product: ProductDetailsType
 }
 
 const ProductOverview = ({ product }: ProductOverviewProps) => {
