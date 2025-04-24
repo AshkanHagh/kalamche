@@ -14,7 +14,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
   return (
     <Card
       className={cn(
-        "max-w-product-card overflow-hidden flex h-full flex-col",
+        "overflow-hidden flex h-full flex-col bg-background p-2 sm:p-3 lg:p-4",
         className
       )}
     >
@@ -31,8 +31,8 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           </Badge>
         )}
       </div>
-      <CardContent className="p-4 flex-grow">
-        <div className="space-y-1 flex flex-col justify-between h-full">
+      <CardContent className="flex-grow p-0">
+        <div className="space-y-1 gap-1 flex flex-col justify-between h-full">
           <p className="text-sm text-muted-foreground">{product.sellerName}</p>
           <h3 className="font-medium leading-tight line-clamp-2">
             {product.name}
@@ -49,7 +49,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="p-4 pt-0">
+      <CardFooter className="p-0">
         <Button variant="secondary" className="w-full">
           View Details
         </Button>

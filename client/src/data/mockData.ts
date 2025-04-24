@@ -8,7 +8,7 @@ export const products: Product[] = [
     originalPrice: 299.99,
     discount: 15,
     sellerName: "AudioTech",
-    image: "https://fakestoreapi.com/img/81fPKd-2AYL._AC_SL1500_.jpg"
+    image: "https://i.imgur.com/jb5Yu0h.jpeg"
   },
   {
     id: "2",
@@ -17,15 +17,14 @@ export const products: Product[] = [
     originalPrice: 119.99,
     discount: 25,
     sellerName: "FitGear",
-    image:
-      "https://fakestoreapi.com/img/71-3HjGNDUL._AC_SY879._SX._UX._SY._UY_.jpg"
+    image: "https://i.imgur.com/UlxxXyG.jpeg"
   },
   {
     id: "3",
     name: "Portable Bluetooth Speaker Waterproof",
     price: 59.99,
     sellerName: "SoundWave",
-    image: "https://fakestoreapi.com/img/71li-ujtlUL._AC_UX679_.jpg"
+    image: "https://i.imgur.com/R2PN9Wq.jpeg"
   },
   {
     id: "4",
@@ -34,14 +33,14 @@ export const products: Product[] = [
     originalPrice: 649.99,
     discount: 20,
     sellerName: "VisionPlus",
-    image: "https://fakestoreapi.com/img/71YXzeOuslL._AC_UY879_.jpg"
+    image: "https://i.imgur.com/IvxMPFr.jpeg"
   },
   {
     id: "5",
     name: "Robot Vacuum Cleaner with Mapping",
     price: 299.99,
     sellerName: "CleanTech",
-    image: "https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg"
+    image: "https://i.imgur.com/7eW9nXP.jpeg"
   },
   {
     id: "6",
@@ -50,7 +49,7 @@ export const products: Product[] = [
     originalPrice: 159.99,
     discount: 10,
     sellerName: "KitchenPro",
-    image: "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg"
+    image: "https://i.imgur.com/QkIa5tT.jpeg"
   },
   {
     id: "7",
@@ -59,14 +58,14 @@ export const products: Product[] = [
     originalPrice: 649.99,
     discount: 20,
     sellerName: "VisionPlus",
-    image: "https://fakestoreapi.com/img/71YXzeOuslL._AC_UY879_.jpg"
+    image: "https://i.imgur.com/UlxxXyG.jpeg"
   },
   {
     id: "8",
     name: "Robot Vacuum Cleaner with Mapping",
     price: 299.99,
     sellerName: "CleanTech",
-    image: "https://fakestoreapi.com/img/71pWzhdJNwL._AC_UL640_QL65_ML3_.jpg"
+    image: "https://i.imgur.com/jb5Yu0h.jpeg"
   },
   {
     id: "9",
@@ -75,7 +74,7 @@ export const products: Product[] = [
     originalPrice: 159.99,
     discount: 10,
     sellerName: "KitchenPro",
-    image: "https://fakestoreapi.com/img/61sbMiUnoGL._AC_UL640_QL65_ML3_.jpg"
+    image: "https://i.imgur.com/IvxMPFr.jpeg"
   }
 ]
 

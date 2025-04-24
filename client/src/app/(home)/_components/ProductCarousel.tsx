@@ -37,7 +37,7 @@ const ProductCarousel = ({
         slidesPerView="auto"
         spaceBetween={20}
         modules={[Navigation]}
-        className="relative cursor-grab h-product-carousel"
+        className="relative cursor-grab"
       >
         {products.map((product) => (
           <SwiperSlide
