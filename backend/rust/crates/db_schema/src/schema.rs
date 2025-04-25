@@ -2,6 +2,10 @@
 
 pub mod sql_types {
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "entity_type"))]
+    pub struct EntityType;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "payment_status"))]
     pub struct PaymentStatus;
 }
@@ -16,6 +20,21 @@ diesel::table! {
         fr_tokens -> Int4,
         price -> Int8,
         price_per_fr_token -> Int2,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::EntityType;
+
+    images (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        entity_id -> Uuid,
+        entity_type -> EntityType,
+        #[max_length = 50]
+        content_type -> Varchar,
         created_at -> Timestamptz,
     }
 }
@@ -133,6 +152,7 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(images -> users (user_id));
 diesel::joinable!(login_tokens -> users (user_id));
 diesel::joinable!(oauth_accounts -> users (user_id));
 diesel::joinable!(payment_history -> fr_token_plans (fr_token_id));
@@ -145,6 +165,7 @@ diesel::joinable!(wallets -> users (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     fr_token_plans,
+    images,
     login_tokens,
     oauth_accounts,
     payment_history,

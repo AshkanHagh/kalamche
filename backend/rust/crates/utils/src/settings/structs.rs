@@ -19,6 +19,9 @@ pub struct Settings {
   #[default(Default::default())]
   pub payment: PaymentConfig,
 
+  #[default(Default::default())]
+  pub image: ImageConfig,
+
   #[default("localhost")]
   pub hostname: String,
 
@@ -118,4 +121,22 @@ pub struct PaymentConfig {
 
   #[default("http://localhost:7319")]
   pub cancel_url: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, SmartDefault)]
+pub struct ImageConfig {
+  #[default("admin")]
+  pub access_key: String,
+
+  #[default("password123")]
+  pub secret_key: String,
+
+  #[default("kalamche")]
+  pub bucket_name: String,
+
+  #[default(true)]
+  pub allow_path_syle: bool,
+
+  #[default("http://localhost:9000")]
+  pub endpoint: String,
 }

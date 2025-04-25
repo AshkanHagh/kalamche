@@ -1,4 +1,5 @@
 pub mod fr_token_plan;
+pub mod image;
 pub mod login_token;
 pub mod oauth_account;
 pub mod payment_history;

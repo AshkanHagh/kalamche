@@ -1,6 +1,7 @@
 pub mod cache;
 pub mod email;
 pub mod error;
+pub mod image;
 pub mod oauth;
 pub mod payment;
 pub mod rate_limit;

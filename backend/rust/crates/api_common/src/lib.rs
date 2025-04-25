@@ -1,6 +1,7 @@
 use serde::Serialize;
 
 pub mod context;
+pub mod image;
 pub mod oauth_provider;
 pub mod user;
 pub mod utils;

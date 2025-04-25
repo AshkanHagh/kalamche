@@ -5,6 +5,7 @@ use db_schema::{connection::build_pool, schema_setup::migration};
 use utils::{
   cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},
+  image::S3ImageClient,
   oauth::OAuthManager,
   payment::PaymentClient,
   rate_limit::RateLimiter,
@@ -25,6 +26,7 @@ pub async fn main() -> KalamcheResult<()> {
   let pool = build_pool()?;
   let cache = Peak::new(10_000, 60 * 5, 60);
   let rate_limiter = RateLimiter::new(&cache);
+  // make oauth disable if not oauth was configured
   let oauth = OAuthManager::new(
     SETTINGS
       .get_oauth()
@@ -33,12 +35,14 @@ pub async fn main() -> KalamcheResult<()> {
     reqwest_client.clone(),
   )?;
   let payment_client = PaymentClient::new(&SETTINGS.get_payment(), &reqwest_client);
+  let image_client = S3ImageClient::new(&SETTINGS.get_image());
 
   let context = Data::new(KalamcheContext::new(
     pool,
     reqwest_client,
     oauth,
     payment_client,
+    image_client,
   ));
 
   let bind = (SETTINGS.bind, SETTINGS.port);
@@ -46,12 +50,10 @@ pub async fn main() -> KalamcheResult<()> {
     App::new()
       .wrap(middleware::Logger::default())
       .wrap(config_cors())
-      .wrap(middleware::Compress::default())
       .app_data(context.clone())
       .configure(|cfg| routes_v1::routes_v1(cfg, &rate_limiter))
   })
   .bind(bind)?
-  .workers(2)
   .run()
   .await?;
 

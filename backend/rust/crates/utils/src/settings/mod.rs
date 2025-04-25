@@ -3,7 +3,8 @@ use std::{
   sync::LazyLock,
 };
 use structs::{
-  DatabaseConfig, EmailConfig, JwtConfig, OAuthConfig, OAuthProviderConfig, PaymentConfig, Settings,
+  DatabaseConfig, EmailConfig, ImageConfig, JwtConfig, OAuthConfig, OAuthProviderConfig,
+  PaymentConfig, Settings,
 };
 
 pub mod structs;
@@ -71,6 +72,16 @@ impl Settings {
         cancel_url: Self::get_var("PAYMENT_CANCEL_REDIRECT_URL"),
       },
 
+      image: ImageConfig {
+        access_key: Self::get_var("S3_ACCESS_KEY"),
+        secret_key: Self::get_var("S3_SECRET_KEY"),
+        bucket_name: Self::get_var("S3_BUCKET_NAME"),
+        endpoint: Self::get_var("S3_ENDPOINT"),
+        allow_path_syle: Self::get_var("S3_ALLOW_PATH_STYLE")
+          .parse::<bool>()
+          .unwrap(),
+      },
+
       bind: IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)),
       hostname: Self::get_var("HOSTNAME"),
       port: 7319,
@@ -96,6 +107,10 @@ impl Settings {
 
   pub fn get_payment(&self) -> &PaymentConfig {
     &self.payment
+  }
+
+  pub fn get_image(&self) -> &ImageConfig {
+    &self.image
   }
 
   fn get_var(key: &str) -> String {
