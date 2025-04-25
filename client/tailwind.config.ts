@@ -82,7 +82,7 @@ module.exports = {
         "product-card": "250px"
       },
       height: {
-        "product-carousel": "450px"
+        "product-carousel": "410px"
       }
     }
   },

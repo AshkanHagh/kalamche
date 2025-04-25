@@ -32,7 +32,7 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
         )}
       </div>
       <CardContent className="flex-grow p-0">
-        <div className="space-y-1 gap-1 flex flex-col justify-between h-full">
+        <div className="gap-1 flex flex-col justify-around h-full">
           <p className="text-sm text-muted-foreground">{product.sellerName}</p>
           <h3 className="font-medium leading-tight line-clamp-2">
             {product.name}
@@ -49,8 +49,11 @@ const ProductCard = ({ product, className }: ProductCardProps) => {
           </div>
         </div>
       </CardContent>
-      <CardFooter className="p-0">
-        <Button variant="secondary" className="w-full">
+      <CardFooter className="p-0 pt-3">
+        <Button
+          variant="secondary"
+          className="w-full bg-primary text-background"
+        >
           View Details
         </Button>
       </CardFooter>
