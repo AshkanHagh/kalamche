@@ -30,6 +30,8 @@ diesel::table! {
 
     images (id) {
         id -> Uuid,
+        #[max_length = 256]
+        hash -> Varchar,
         user_id -> Uuid,
         entity_id -> Uuid,
         entity_type -> EntityType,

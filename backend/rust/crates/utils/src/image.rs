@@ -1,19 +1,23 @@
+use aws_sdk_s3::{
+  config::Credentials,
+  operation::{get_object::GetObjectOutput, upload_part::UploadPartOutput},
+  primitives::ByteStream,
+  types::CompletedMultipartUpload,
+  Client,
+};
 use tokio::sync::broadcast;
 use uuid::Uuid;
-
-pub struct UploadProgress {
-  pub total_bytes: u64,
-  pub sender: broadcast::Sender<u64>,
-}
 
 use crate::{
   error::{KalamcheErrorExt, KalamcheErrorType, KalamcheResult},
   settings::{structs::ImageConfig, SETTINGS},
 };
-use aws_sdk_s3::{
-  config::Credentials, operation::upload_part::UploadPartOutput, primitives::ByteStream,
-  types::CompletedMultipartUpload, Client,
-};
+
+// FIX: move this sturct to another file
+pub struct UploadProgress {
+  pub total_bytes: u64,
+  pub sender: broadcast::Sender<u64>,
+}
 
 pub struct S3ImageClient {
   pub(super) bucket: Client,
@@ -118,5 +122,18 @@ impl S3ImageClient {
       .with_kalamche_type(KalamcheErrorType::InvalidImageUpload)?;
 
     Ok(())
+  }
+
+  pub async fn get_object(&self, image_id: Uuid) -> KalamcheResult<GetObjectOutput> {
+    let object = self
+      .bucket
+      .get_object()
+      .key(image_id)
+      .bucket(&SETTINGS.get_image().bucket_name)
+      .send()
+      .await
+      .with_kalamche_type(KalamcheErrorType::InvalidImageUpload)?;
+
+    Ok(object)
   }
 }

@@ -1,3 +1,4 @@
+use moka::future::Cache;
 use std::{
   net::IpAddr,
   time::{SystemTime, UNIX_EPOCH},
@@ -5,10 +6,7 @@ use std::{
 use strum::Display;
 use uuid::Uuid;
 
-use crate::{
-  cache::Peak,
-  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
-};
+use crate::error::{KalamcheError, KalamcheErrorType, KalamcheResult};
 
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct InstantSecs {
@@ -74,9 +72,9 @@ pub enum ActionType {
 #[derive(Clone)]
 pub struct RateLimitChecker {
   pub action_type: ActionType,
-  pub bucket_config: BucketConfig,
-  pub cache: Peak<String, u32>,
   pub key: String,
+  pub cache: Cache<String, u32>,
+  pub bucket_config: BucketConfig,
 }
 
 impl RateLimitChecker {
@@ -103,8 +101,8 @@ impl RateLimitChecker {
     );
 
     let now = InstantSecs::now();
-    let tokens = self.cache.get(&bucket_key)?;
-    let last_checked = self.cache.get(&last_checked_key)?;
+    let tokens = self.cache.get(&bucket_key).await;
+    let last_checked = self.cache.get(&last_checked_key).await;
 
     let bucket = Bucket {
       tokens: tokens.unwrap_or(self.bucket_config.capacity),
@@ -119,8 +117,8 @@ impl RateLimitChecker {
     }
 
     let new_tokens = updated_bucket.tokens - 1;
-    self.cache.insert(bucket_key, new_tokens)?;
-    self.cache.insert(last_checked_key, now.secs)?;
+    self.cache.insert(bucket_key, new_tokens).await;
+    self.cache.insert(last_checked_key, now.secs).await;
 
     Ok(())
   }

@@ -1,7 +1,7 @@
 use db_schema::connection::{ActualDbPool, DbPool};
 use reqwest::Client;
 use std::{collections::HashMap, sync::Arc};
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 use utils::{
   image::{S3ImageClient, UploadProgress},
   oauth::OAuthManager,
@@ -13,7 +13,7 @@ pub struct KalamcheContext {
   pub request: Arc<Client>,
   pub oauth: Arc<OAuthManager>,
   pub payment_client: Arc<PaymentClient>,
-  pub upload_progress: Arc<Mutex<HashMap<String, UploadProgress>>>,
+  pub upload_progress: Arc<RwLock<HashMap<String, UploadProgress>>>,
   pub image_client: Arc<S3ImageClient>,
 }
 
@@ -30,7 +30,7 @@ impl KalamcheContext {
       request: Arc::new(client.clone()),
       oauth: Arc::new(oauth),
       payment_client: Arc::new(payment),
-      upload_progress: Arc::new(Mutex::new(HashMap::new())),
+      upload_progress: Arc::new(RwLock::new(HashMap::new())),
       image_client: Arc::new(image_client),
     }
   }

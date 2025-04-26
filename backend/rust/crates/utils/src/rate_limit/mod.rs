@@ -1,27 +1,26 @@
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use futures::future::{ok, Ready};
+use moka::future::Cache;
 use rate_limiter::{ActionType, BucketConfig, RateLimitChecker};
 use std::{collections::HashMap, future::Future, net::IpAddr, pin::Pin, rc::Rc};
 
-use crate::{
-  cache::Peak,
-  error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType},
-};
+use crate::error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType};
 
 pub mod rate_limiter;
 
 #[derive(Clone)]
 pub struct RateLimiter {
-  cache: Peak<String, u32>,
+  cache: Cache<String, u32>,
   bucket_configs: HashMap<ActionType, BucketConfig>,
 }
 
 // bucket configs are all set for development
 impl RateLimiter {
-  pub fn new(cache: &Peak<String, u32>) -> Self {
+  pub fn new() -> Self {
     let mut bucket_configs = HashMap::new();
     Self::with_test_config(&mut bucket_configs);
 
+    let cache = Cache::new(10_000);
     Self {
       cache: cache.clone(),
       bucket_configs,

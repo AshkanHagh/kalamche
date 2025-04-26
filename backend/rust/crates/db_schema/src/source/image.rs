@@ -14,6 +14,7 @@ use uuid::Uuid;
 #[serde(rename_all = "camelCase")]
 pub struct Image {
   pub id: Uuid,
+  pub hash: String,
   pub user_id: Uuid,
   pub entity_id: Uuid,
   pub entity_type: EntityType,
@@ -34,6 +35,7 @@ pub enum EntityType {
 #[diesel(check_for_backend(Pg))]
 pub struct ImageInsertForm {
   pub user_id: Uuid,
+  pub hash: String,
   pub entity_id: Uuid,
   pub entity_type: EntityType,
   pub content_type: String,

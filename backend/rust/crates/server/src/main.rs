@@ -3,7 +3,6 @@ use actix_web::{middleware, web::Data, App, HttpServer};
 use api_common::context::KalamcheContext;
 use db_schema::{connection::build_pool, schema_setup::migration};
 use utils::{
-  cache::Peak,
   error::{KalamcheErrorType, KalamcheResult},
   image::S3ImageClient,
   oauth::OAuthManager,
@@ -24,8 +23,7 @@ pub async fn main() -> KalamcheResult<()> {
     .build()
     .unwrap();
   let pool = build_pool()?;
-  let cache = Peak::new(10_000, 60 * 5, 60);
-  let rate_limiter = RateLimiter::new(&cache);
+  let rate_limiter = RateLimiter::new();
   // make oauth disable if not oauth was configured
   let oauth = OAuthManager::new(
     SETTINGS

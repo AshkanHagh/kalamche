@@ -34,7 +34,11 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
       )
       .service(
         scope("/images")
-          // .wrap(rate_limit.image())
+          .wrap(rate_limit.image())
+          .service(scope("").route(
+            "/{image_hash}",
+            get().to(routes::images::download::get_image),
+          ))
           .wrap(from_fn(authorization::authorization_middleware))
           .route(
             "/{entity_id}/{entity_type}",
@@ -42,7 +46,7 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
           )
           .route(
             "/progress/{image_name}",
-            get().to(routes::images::upload::get_upload_progress),
+            get().to(routes::images::download::get_upload_progress),
           ),
       ),
   );

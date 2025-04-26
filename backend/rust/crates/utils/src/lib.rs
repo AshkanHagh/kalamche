@@ -1,4 +1,3 @@
-pub mod cache;
 pub mod email;
 pub mod error;
 pub mod image;

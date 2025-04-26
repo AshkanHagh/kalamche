@@ -84,3 +84,6 @@ target/
 
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
+
+# in development. after completion remove
+db_seed/

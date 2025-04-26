@@ -24,3 +24,8 @@ pub struct UploadImage {
   pub entity_type: EntityType,
   pub entity_id: Uuid,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct GetImage {
+  pub image_hash: String,
+}
