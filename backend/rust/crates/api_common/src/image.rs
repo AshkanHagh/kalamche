@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Serialize)]
+#[serde(rename = "camelcase")]
 pub struct UploadImageResponse {
   pub success: bool,
   pub image_hashes: Vec<String>,
@@ -14,6 +15,7 @@ pub struct GetUploadProgress {
 }
 
 #[derive(Debug, Serialize)]
+#[serde(rename = "camelcase")]
 pub struct GetUploadProgressResponse {
   pub total_bytes: u64,
   pub uploaded_bytes: u64,
