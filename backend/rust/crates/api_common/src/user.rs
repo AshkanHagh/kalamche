@@ -1,5 +1,6 @@
 use db_view::structs::UserView;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
 // Register / sign up to kalamche
@@ -87,4 +88,18 @@ pub struct MyUserResponse {
   #[serde(rename = "user")]
   pub my_user: MyUserInfo,
   pub success: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateUser {
+  pub name: String,
+  pub image_id: Uuid,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateUserResponse {
+  pub name: String,
+  pub image_id: Uuid,
 }

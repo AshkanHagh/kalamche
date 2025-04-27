@@ -1,6 +1,6 @@
 use db_schema::{
   connection::{get_conn, DbPool},
-  source::{payment_history::PaymentHistory, role::Role, user::User, wallet::Wallet},
+  source::{image::Image, payment_history::PaymentHistory, role::Role, user::User, wallet::Wallet},
 };
 use diesel::{ExpressionMethods, JoinOnDsl, PgSortExpressionMethods, QueryDsl, SelectableHelper};
 use diesel_async::RunQueryDsl;
@@ -11,6 +11,7 @@ use crate::structs::{UserView, WalletView};
 
 impl UserView {
   pub async fn read(pool: &mut DbPool<'_>, user_id: Uuid) -> KalamcheResult<Self> {
+    use db_schema::schema::images;
     use db_schema::schema::payment_history;
     use db_schema::schema::roles;
     use db_schema::schema::user_roles;
@@ -18,7 +19,13 @@ impl UserView {
     use db_schema::schema::wallets;
     let conn = &mut get_conn(pool).await?;
 
-    let user_view: Vec<(User, Option<Role>, Option<Wallet>, Option<PaymentHistory>)> = users::table
+    let user_view: Vec<(
+      User,
+      Option<Role>,
+      Option<Wallet>,
+      Option<PaymentHistory>,
+      Option<Image>,
+    )> = users::table
       .filter(users::id.eq(user_id))
       .left_join(
         user_roles::table
@@ -27,14 +34,22 @@ impl UserView {
       )
       .left_join(wallets::table.on(wallets::user_id.eq(users::id)))
       .left_join(payment_history::table.on(payment_history::user_id.eq(users::id)))
+      .left_join(images::table.on(images::entity_id.eq(user_id)))
       .order(payment_history::created_at.desc().nulls_last())
       .select((
         User::as_select(),
         Option::<Role>::as_select(),
         Option::<Wallet>::as_select(),
         Option::<PaymentHistory>::as_select(),
+        Option::<Image>::as_select(),
       ))
-      .load::<(User, Option<Role>, Option<Wallet>, Option<PaymentHistory>)>(conn)
+      .load::<(
+        User,
+        Option<Role>,
+        Option<Wallet>,
+        Option<PaymentHistory>,
+        Option<Image>,
+      )>(conn)
       .await?;
 
     if user_view.is_empty() {
@@ -44,10 +59,14 @@ impl UserView {
     let user = user_view[0].0.clone();
     let wallet = user_view[0].2.clone().unwrap();
     let payment_history = user_view[0].3.clone();
+    let image_id = match user_view[0].4.clone() {
+      Some(image) => Some(image.id),
+      None => None,
+    };
 
     let roles = user_view
       .into_iter()
-      .filter_map(|(_, role, _, _)| role.map(|role| role.name))
+      .filter_map(|(_, role, _, _, _)| role.map(|role| role.name))
       .collect::<Vec<String>>();
 
     Ok(Self {
@@ -57,6 +76,7 @@ impl UserView {
         wallet,
         payment_history,
       },
+      image_id,
     })
   }
 }

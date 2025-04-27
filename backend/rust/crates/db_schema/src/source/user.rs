@@ -14,7 +14,6 @@ pub struct User {
   pub id: Uuid,
   pub name: String,
   pub email: String,
-  pub avatar_url: String,
   #[serde(skip_serializing)]
   pub password_hash: Option<String>,
   pub created_at: DateTime<Utc>,
@@ -28,6 +27,13 @@ pub struct User {
 pub struct UserInsertForm {
   pub name: String,
   pub email: String,
-  pub avatar_url: String,
+  pub password_hash: Option<String>,
+}
+
+#[derive(Debug, Insertable, AsChangeset)]
+#[diesel(table_name = crate::schema::users)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct UserUpdateForm {
+  pub name: Option<String>,
   pub password_hash: Option<String>,
 }

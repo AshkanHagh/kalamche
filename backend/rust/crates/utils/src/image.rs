@@ -136,4 +136,17 @@ impl S3ImageClient {
 
     Ok(object)
   }
+
+  pub async fn delete_object(&self, key: Uuid) -> KalamcheResult<()> {
+    self
+      .bucket
+      .delete_object()
+      .bucket(&SETTINGS.get_image().bucket_name)
+      .key(key)
+      .send()
+      .await
+      .with_kalamche_type(KalamcheErrorType::InvalidImageUpload)?;
+
+    Ok(())
+  }
 }

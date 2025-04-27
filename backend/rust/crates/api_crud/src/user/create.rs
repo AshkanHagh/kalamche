@@ -9,8 +9,10 @@ use api_common::{
   user::{VerifyEmail, VerifyEmailResponse},
   utils::{build_auth_cookie_jar, get_my_user, refresh_tokens, set_cookie},
 };
+use aws_sdk_s3::primitives::ByteStream;
 use chrono::{Duration, Utc};
 use db_schema::source::{
+  image::{EntityType, Image, ImageInsertForm},
   oauth_account::{OAuthAccount, OAuthAccountInsertForm},
   pending_user::PendingUser,
   user::{User, UserInsertForm},
@@ -18,11 +20,14 @@ use db_schema::source::{
   wallet::{Wallet, WalletInsertForm},
 };
 use utils::{
-  error::{KalamcheError, KalamcheErrorType, KalamcheResult},
+  error::{KalamcheError, KalamcheErrorExt, KalamcheErrorType, KalamcheResult},
   settings::SETTINGS,
   utils::token::verify_verification_token,
 };
+use uuid::Uuid;
 
+// NOTE: for oauth if user update thir account information on the provider side
+// for not we wont be abale to update user info to new provider side info
 #[get("/oauth/callback")]
 pub async fn authenticate_with_oauth(
   context: Data<KalamcheContext>,
@@ -44,10 +49,10 @@ pub async fn authenticate_with_oauth(
       let user_form = UserInsertForm {
         name: oauth_user.name,
         email: oauth_user.email,
-        avatar_url: oauth_user.avatar_url,
         password_hash: None,
       };
       let user = insert_new_user(&context, user_form).await?;
+      save_oauth_user_image(&context, &oauth_user.avatar_url, user.id).await?;
 
       let oauth_account_form = OAuthAccountInsertForm {
         user_id: user.id,
@@ -115,7 +120,6 @@ pub async fn verify_email_registration(
         name: user_name,
         email: pending_user.email,
         password_hash: Some(password_hash),
-        avatar_url: "#".to_string(), // default avatar_url
       };
       insert_new_user(&context, user_form).await?
     }
@@ -151,4 +155,43 @@ pub async fn insert_new_user(
   Wallet::insert_default_if_not_exists(&mut context.pool(), wallet_form).await?;
 
   Ok(user)
+}
+
+pub async fn save_oauth_user_image(
+  context: &Data<KalamcheContext>,
+  url: &str,
+  user_id: Uuid,
+) -> KalamcheResult<()> {
+  let response = context
+    .request()
+    .get(url)
+    .send()
+    .await
+    .with_kalamche_type(KalamcheErrorType::OAuthLoginFailed)?;
+
+  if !response.status().is_success() {}
+
+  let image_insert_form = ImageInsertForm {
+    content_type: "image/jpeg".to_owned(),
+    entity_id: user_id,
+    entity_type: EntityType::User,
+    hash: None,
+  };
+  let image = Image::insert(&mut context.pool(), image_insert_form).await?;
+
+  let bytes = response
+    .bytes()
+    .await
+    .with_kalamche_type(KalamcheErrorType::OAuthLoginFailed)?;
+
+  context
+    .image_client
+    .put_object(
+      image.id,
+      &image.content_type,
+      ByteStream::from(bytes.to_vec()),
+    )
+    .await?;
+
+  Ok(())
 }

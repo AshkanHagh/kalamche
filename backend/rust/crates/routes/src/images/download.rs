@@ -18,7 +18,7 @@ pub async fn get_image(
   context: Data<KalamcheContext>,
   path: Path<GetImage>,
 ) -> KalamcheResult<HttpResponse> {
-  let image = Image::find_by_hash(&mut context.pool(), &path.image_hash).await?;
+  let image = Image::find_by_id(&mut context.pool(), path.image_id).await?;
 
   let image_object = context.image_client.get_object(image.id).await?;
   // use another error type

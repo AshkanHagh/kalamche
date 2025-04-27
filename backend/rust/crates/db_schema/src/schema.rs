@@ -31,8 +31,7 @@ diesel::table! {
     images (id) {
         id -> Uuid,
         #[max_length = 256]
-        hash -> Varchar,
-        user_id -> Uuid,
+        hash -> Nullable<Varchar>,
         entity_id -> Uuid,
         entity_type -> EntityType,
         #[max_length = 50]
@@ -136,8 +135,6 @@ diesel::table! {
         #[max_length = 255]
         email -> Varchar,
         #[max_length = 300]
-        avatar_url -> Varchar,
-        #[max_length = 300]
         password_hash -> Nullable<Varchar>,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
@@ -154,7 +151,6 @@ diesel::table! {
     }
 }
 
-diesel::joinable!(images -> users (user_id));
 diesel::joinable!(login_tokens -> users (user_id));
 diesel::joinable!(oauth_accounts -> users (user_id));
 diesel::joinable!(payment_history -> fr_token_plans (fr_token_id));

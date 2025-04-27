@@ -1,10 +1,11 @@
 use actix_web::{
   middleware::from_fn,
-  web::{get, post, scope, ServiceConfig},
+  web::{get, patch, post, scope, ServiceConfig},
 };
 use routes::middleware::authorization;
 use utils::rate_limit::RateLimiter;
 
+// TODO: re strucher the routings and seperate dose routes are not need auth
 pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
   cfg.service(
     scope("/api/v1")
@@ -22,7 +23,8 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
       .service(
         scope("/users")
           .wrap(from_fn(authorization::authorization_middleware))
-          .service(api_crud::user::my_user::get_my_user),
+          .service(api_crud::user::my_user::get_my_user)
+          .route("/", patch().to(api_crud::user::update::update_user)),
       )
       .service(
         scope("/payments")
@@ -35,10 +37,7 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
       .service(
         scope("/images")
           .wrap(rate_limit.image())
-          .service(scope("").route(
-            "/{image_hash}",
-            get().to(routes::images::download::get_image),
-          ))
+          .route("/{image_id}", get().to(routes::images::download::get_image))
           .wrap(from_fn(authorization::authorization_middleware))
           .route(
             "/{entity_id}/{entity_type}",

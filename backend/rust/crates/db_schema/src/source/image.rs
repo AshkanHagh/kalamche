@@ -8,14 +8,13 @@ use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Queryable, Selectable)]
+#[derive(Debug, Serialize, Queryable, Selectable, Clone)]
 #[diesel(table_name = crate::schema::images)]
 #[diesel(check_for_backend(Pg))]
 #[serde(rename_all = "camelCase")]
 pub struct Image {
   pub id: Uuid,
-  pub hash: String,
-  pub user_id: Uuid,
+  pub hash: Option<String>,
   pub entity_id: Uuid,
   pub entity_type: EntityType,
   pub content_type: String,
@@ -34,8 +33,7 @@ pub enum EntityType {
 #[diesel(table_name = crate::schema::images)]
 #[diesel(check_for_backend(Pg))]
 pub struct ImageInsertForm {
-  pub user_id: Uuid,
-  pub hash: String,
+  pub hash: Option<String>,
   pub entity_id: Uuid,
   pub entity_type: EntityType,
   pub content_type: String,

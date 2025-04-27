@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
   connection::{get_conn, DbPool},
-  source::user::{User, UserInsertForm},
+  source::user::{User, UserInsertForm, UserUpdateForm},
 };
 
 impl User {
@@ -63,6 +63,23 @@ impl User {
     if exists.is_some() {
       return Err(KalamcheError::from(KalamcheErrorType::EmailAlreadyExists));
     }
+    Ok(())
+  }
+
+  pub async fn update(
+    pool: &mut DbPool<'_>,
+    user_id: Uuid,
+    form: UserUpdateForm,
+  ) -> KalamcheResult<()> {
+    use crate::schema::users;
+    let conn = &mut get_conn(pool).await?;
+
+    diesel::update(users::table)
+      .filter(users::id.eq(user_id))
+      .set(form)
+      .execute(conn)
+      .await?;
+
     Ok(())
   }
 }

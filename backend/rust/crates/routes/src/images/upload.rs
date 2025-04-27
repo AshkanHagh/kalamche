@@ -46,7 +46,7 @@ pub async fn upload_image(
   check_entity_id_exists(context.clone(), path.entity_id, &path.entity_type).await?;
   let user = get_user_from_req(&mut req)?;
   let mut image_count = 0;
-  let mut image_hashes: Vec<String> = Vec::with_capacity(5);
+  let mut image_ids: Vec<Uuid> = Vec::with_capacity(5);
 
   while let Ok(Some(mut field)) = payload.try_next().await {
     image_count += 1;
@@ -69,17 +69,16 @@ pub async fn upload_image(
       .ok_or(KalamcheErrorType::InvalidImageUpload)?;
 
     let image_hash = generate_sha256_hash_by_image_name(&format!("{}/{}", user.id, filename));
-    image_hashes.push(image_hash.to_owned());
 
     let image_insert_form = ImageInsertForm {
-      user_id: user.id,
-      hash: image_hash.to_owned(),
+      hash: Some(image_hash.to_owned()),
       content_type: image_content_type.to_owned(),
       entity_id: path.entity_id,
       entity_type: path.entity_type.clone(),
     };
     // using image id to create temp files and other to avoid duplication
     let created_image = Image::insert(&mut context.pool(), image_insert_form).await?;
+    image_ids.push(created_image.id);
 
     let (temp_file, total_bytes) = create_temp_file_with_size(&mut field, created_image.id).await?;
     if total_bytes > MAX_IMAGE_SIZE as u64 {
@@ -137,7 +136,7 @@ pub async fn upload_image(
 
   Ok(HttpResponse::Ok().json(UploadImageResponse {
     success: true,
-    image_hashes,
+    image_ids,
   }))
 }
 

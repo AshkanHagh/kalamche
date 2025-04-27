@@ -6,7 +6,7 @@ use uuid::Uuid;
 #[serde(rename = "camelcase")]
 pub struct UploadImageResponse {
   pub success: bool,
-  pub image_hashes: Vec<String>,
+  pub image_ids: Vec<Uuid>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -29,5 +29,5 @@ pub struct UploadImage {
 
 #[derive(Debug, Deserialize)]
 pub struct GetImage {
-  pub image_hash: String,
+  pub image_id: Uuid,
 }

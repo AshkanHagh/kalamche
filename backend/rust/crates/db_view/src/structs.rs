@@ -1,12 +1,14 @@
 use db_schema::source::{payment_history::PaymentHistory, user::User, wallet::Wallet};
 use diesel::prelude::Queryable;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize, Queryable)]
 #[serde(rename_all = "camelCase")]
 pub struct UserView {
   #[serde(flatten)]
   pub user: User,
+  pub image_id: Option<Uuid>,
   pub roles: Vec<String>,
   pub wallet: WalletView,
 }
