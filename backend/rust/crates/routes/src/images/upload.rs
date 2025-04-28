@@ -211,6 +211,7 @@ async fn check_entity_id_exists(
         .await?
         .ok_or(KalamcheErrorType::NotFound)?;
     }
+    EntityType::Shop => todo!(),
   }
 
   Ok(())

@@ -27,6 +27,7 @@ pub struct Image {
 pub enum EntityType {
   User,
   Product,
+  Shop,
 }
 
 #[derive(Debug, Serialize, Insertable)]

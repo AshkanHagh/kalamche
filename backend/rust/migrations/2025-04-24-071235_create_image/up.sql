@@ -1,5 +1,5 @@
 -- Your SQL goes here
-CREATE TYPE entity_type AS ENUM ('user', 'product');
+CREATE TYPE entity_type AS ENUM ('user', 'product', 'shop');
 
 CREATE TABLE images (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid (),
