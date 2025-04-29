@@ -1309,6 +1309,7 @@ dependencies = [
  "diesel",
  "diesel-async",
  "diesel-derive-enum",
+ "diesel_json",
  "diesel_migrations",
  "futures-util",
  "log",
@@ -1323,15 +1324,12 @@ name = "db_seed"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
  "csv",
  "db_schema",
- "diesel",
- "diesel-async",
+ "diesel_json",
  "serde",
+ "serde_json",
  "tokio",
- "utils",
- "uuid",
 ]
 
 [[package]]
@@ -1473,6 +1471,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "diesel_json"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0fc50de1d729b55dfbb03e2d2db846684e3ab585f4ee9cfc3c675d236f951888"
+dependencies = [
+ "diesel",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

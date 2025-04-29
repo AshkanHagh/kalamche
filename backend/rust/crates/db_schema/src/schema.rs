@@ -10,6 +10,10 @@ pub mod sql_types {
     pub struct PaymentStatus;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "product_status"))]
+    pub struct ProductStatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "shop_status"))]
     pub struct ShopStatus;
 }
@@ -108,6 +112,27 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::ProductStatus;
+
+    products (id) {
+        id -> Uuid,
+        shop_id -> Uuid,
+        name -> Text,
+        description -> Text,
+        price -> Float4,
+        status -> ProductStatus,
+        categories -> Array<Nullable<Text>>,
+        specifications -> Array<Nullable<Jsonb>>,
+        website -> Text,
+        likes -> Int8,
+        views -> Int8,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     role_permissions (role_id, permission_id) {
         role_id -> Uuid,
         permission_id -> Uuid,
@@ -201,6 +226,7 @@ diesel::joinable!(login_tokens -> users (user_id));
 diesel::joinable!(oauth_accounts -> users (user_id));
 diesel::joinable!(payment_history -> fr_token_plans (fr_token_id));
 diesel::joinable!(payment_history -> users (user_id));
+diesel::joinable!(products -> shops (shop_id));
 diesel::joinable!(role_permissions -> permissions (permission_id));
 diesel::joinable!(role_permissions -> roles (role_id));
 diesel::joinable!(shop_rates -> shops (shop_id));
@@ -218,6 +244,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     payment_history,
     pending_users,
     permissions,
+    products,
     role_permissions,
     roles,
     shop_rates,

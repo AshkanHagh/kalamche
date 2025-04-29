@@ -5,6 +5,7 @@ pub mod oauth_account;
 pub mod payment_history;
 pub mod pending_user;
 pub mod permission;
+pub mod product;
 pub mod role;
 pub mod role_permission;
 pub mod shop;

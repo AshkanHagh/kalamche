@@ -19,3 +19,62 @@ CREATE TABLE shops (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now (),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now ()
 );
+
+-- user id is hard coded on user table migration
+INSERT INTO shops (
+  name,
+  description,
+  user_id,
+  email,
+  phone,
+  website,
+  street_address,
+  city,
+  state,
+  zip_code,
+  tax_id,
+  status
+)
+VALUES
+  (
+    'Ashkan Shop 1',
+    'First shop owned by Ashkan',
+    '6fc84e13-6730-4121-b88c-cde616b46409',
+    'shop1@ashkan.com',
+    '123-456-7890',
+    'https://ashkanshop1.com',
+    '123 Main St',
+    'Springfield',
+    'IL',
+    62701,
+    'TAX123456',
+    'pending'::shop_status
+  ),
+  (
+    'Ashkan Shop 2',
+    'Second shop owned by Ashkan',
+    '6fc84e13-6730-4121-b88c-cde616b46409',
+    'shop2@ashkan.com',
+    '123-456-7891',
+    'https://ashkanshop2.com',
+    '456 Elm St',
+    'Springfield',
+    'IL',
+    62702,
+    'TAX789012',
+    'pending'::shop_status
+  ),
+  (
+    'Ashkan Shop 3',
+    'Third shop owned by Ashkan',
+    '6fc84e13-6730-4121-b88c-cde616b46409',
+    'shop3@ashkan.com',
+    '123-456-7892',
+    'https://ashkanshop3.com',
+    '789 Oak St',
+    'Springfield',
+    'IL',
+    62703,
+    'TAX345678',
+    'pending'::shop_status
+  );

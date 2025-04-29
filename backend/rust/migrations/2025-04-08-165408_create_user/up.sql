@@ -9,3 +9,12 @@ CREATE TABLE users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now (),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now ()
 );
+
+INSERT INTO
+  users (id, name, email)
+VALUES
+  (
+    '6fc84e13-6730-4121-b88c-cde616b46409',
+    'John Doe',
+    'john.doe@example.com'
+  );
