@@ -1,4 +1,5 @@
 import ProductRefineSearchInput from "../../_components/input/ProductRefineSearchInput"
+import SortSelect from "../../_components/select/SortSelect"
 
 type CategoryPageProps = {
   params: Promise<{ categoryName: string }>
@@ -19,6 +20,9 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <ProductRefineSearchInput searchScopeName={categoryName} />
+        </div>
+        <div>
+          <SortSelect />
         </div>
       </div>
     </>
