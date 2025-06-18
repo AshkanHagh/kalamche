@@ -4,3 +4,8 @@ export type relatedCategory = {
 }
 
 export type ProductSorts = "newest" | "cheapest" | "expensive" | "popular"
+
+export type PriceRange = {
+  min: number
+  max: number
+}

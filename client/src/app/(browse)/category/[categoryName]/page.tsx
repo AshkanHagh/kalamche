@@ -1,3 +1,7 @@
+import {
+  CategoryFilterContent,
+  ProductFiltersPanel
+} from "../../_components/filter/product-filters-panel"
 import ProductRefineSearchInput from "../../_components/input/ProductRefineSearchInput"
 import SortSelect from "../../_components/select/SortSelect"
 
@@ -17,14 +21,20 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
+      <section className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <ProductRefineSearchInput searchScopeName={categoryName} />
         </div>
         <div>
           <SortSelect />
         </div>
-      </div>
+      </section>
+
+      <main className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <ProductFiltersPanel>
+          <CategoryFilterContent />
+        </ProductFiltersPanel>
+      </main>
     </>
   )
 }

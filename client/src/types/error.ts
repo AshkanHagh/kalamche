@@ -9,4 +9,4 @@ export type HandleApiErrorReturn = {
   data?: ServerError
 }
 
-export type ServerStatusCode = 400 | 401 | 403 | 404 | 429 | 500
+export type ServerStatusCode = 400 | 401 | 403 | 429 | 404 | 500
