@@ -8,14 +8,19 @@ export interface IPendingUser {
   email: string;
   passwordHash: string;
   token: string;
-  expireAt: Date;
+  createdAt: Date;
 }
 
 export interface IPendingUserInsertForm {
   email: string;
   passwordHash: string;
   token: string;
-  expireAt: Date;
+}
+
+export interface IPendingUserUpdateForm {
+  email?: string;
+  passwordHash?: string;
+  token?: string;
 }
 
 export interface IUserLoginToken {

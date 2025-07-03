@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { DATABASE } from "./constants";
 import { ConfigService } from "@nestjs/config";
-import { DB_CONFIG } from "src/configs/constants";
-import { IDbConfig } from "src/configs/db.config";
+import { DB_CONFIG } from "src/config/constants";
+import { IDbConfig } from "src/config/db.config";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schemas";

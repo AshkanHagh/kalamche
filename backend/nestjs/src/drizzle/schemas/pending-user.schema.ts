@@ -6,6 +6,10 @@ export const PendingUserTable = pgTable("pending_users", (table) => {
     email: table.varchar({ length: 255 }).notNull(),
     passwordHash: table.text().notNull(),
     token: table.text().notNull(),
-    expireAt: table.timestamp().notNull(),
+    createdAt: table
+      .timestamp()
+      .notNull()
+      .defaultNow()
+      .$onUpdateFn(() => new Date()),
   };
 });
