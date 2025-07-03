@@ -1,4 +1,5 @@
-import { relatedCategory } from "../_types"
+import { products } from "@/data/mockData"
+import { CategoryResponse, relatedCategory } from "../_types"
 
 export const mockCategories: relatedCategory[] = [
   {
@@ -42,3 +43,14 @@ export const mockCategories: relatedCategory[] = [
     name: "Tablets"
   }
 ]
+
+export const mockCategoryProducts: CategoryResponse = {
+  hasNext: true,
+  products: products,
+  brands: ["Brand A", "Brand B", "Brand C"],
+  priceRange: {
+    min: 100,
+    max: 500
+  },
+  relatedCategories: mockCategories
+}
