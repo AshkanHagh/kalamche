@@ -47,7 +47,17 @@ export const mockCategories: relatedCategory[] = [
 export const mockCategoryProducts: CategoryResponse = {
   hasNext: true,
   products: products,
-  brands: ["Brand A", "Brand B", "Brand C"],
+  brands: [
+    { label: "Brand A", value: "brand-a" },
+    { label: "Brand B", value: "brand-b" },
+    { label: "Brand C", value: "brand-c" },
+    { label: "Brand D", value: "brand-d" },
+    { label: "Brand E", value: "brand-e" },
+    { label: "Brand F", value: "brand-f" },
+    { label: "Brand G", value: "brand-g" },
+    { label: "Brand H", value: "brand-h" },
+    { label: "Brand I", value: "brand-i" }
+  ],
   priceRange: {
     min: 100,
     max: 500

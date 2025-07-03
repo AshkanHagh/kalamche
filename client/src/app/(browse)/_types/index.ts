@@ -14,8 +14,13 @@ export type PriceRange = {
 
 export type CategoryResponse = {
   products: Product[]
-  brands: string[]
+  brands: Checkbox[]
   relatedCategories: relatedCategory[]
   priceRange: PriceRange
   hasNext: boolean
+}
+
+export type Checkbox = {
+  label: string
+  value: string
 }

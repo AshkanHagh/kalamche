@@ -5,7 +5,7 @@ import { SlidersHorizontal } from "lucide-react"
 import PriceRangeFilter from "./product-filters/PriceRangeFilter"
 import CheckboxListFilter from "./product-filters/CheckboxListFilter"
 import { Separator } from "@/components/ui/separator"
-import { PriceRange } from "../../_types"
+import { Checkbox, PriceRange } from "../../_types"
 
 type CategoryFilterPanelProps = {
   children: React.ReactNode
@@ -13,7 +13,7 @@ type CategoryFilterPanelProps = {
 
 type CategoryFilterContentProps = {
   priceRange: PriceRange
-  brands: string[]
+  brands: Checkbox[]
 }
 
 export const ProductFiltersPanel = ({ children }: CategoryFilterPanelProps) => {
@@ -45,7 +45,7 @@ export const CategoryFilterContent = ({
         priceRange={{ min: priceRange.min, max: priceRange.max }}
       />
       <Separator className="my-1" />
-      <CheckboxListFilter title="Brands" checkboxLabels={brands} />
+      <CheckboxListFilter title="Brands" checkboxes={brands} keyName="brand" />
     </>
   )
 }
