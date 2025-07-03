@@ -1,7 +1,11 @@
 import { Body, Controller, Post } from "@nestjs/common";
 import { IAuthController } from "./interfaces/controller";
-import { RegisterDto, RegisterDtoSchema } from "./dto";
-import { RegisterResponse } from "./types";
+import {
+  RegisterDto,
+  RegisterDtoSchema,
+  ResendVerificationCodeDto,
+  ResendVerificationCodeSchema,
+} from "./dto";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { AuthService } from "./auth.service";
 
@@ -12,8 +16,18 @@ export class AuthController implements IAuthController {
   @Post("/register")
   async register(
     @Body(new ZodValidationPipe(RegisterDtoSchema)) payload: RegisterDto,
-  ): Promise<RegisterResponse> {
+  ): Promise<{ token: string }> {
     const verificationToken = await this.authService.register(payload);
-    return { verificationToken };
+    return { token: verificationToken };
+  }
+
+  @Post("/verify/resend")
+  async resendVerificationCode(
+    @Body(new ZodValidationPipe(ResendVerificationCodeSchema))
+    payload: ResendVerificationCodeDto,
+  ): Promise<{ token: string }> {
+    const verificationToken =
+      await this.authService.resendVerificationCode(payload);
+    return { token: verificationToken };
   }
 }

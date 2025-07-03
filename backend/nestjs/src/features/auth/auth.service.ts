@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { IAuthService } from "./interfaces/service";
-import { RegisterDto } from "./dto";
+import { RegisterDto, ResendVerificationCodeDto } from "./dto";
 import { RepositoryService } from "src/repository/repository.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IPendingUser } from "src/drizzle/types";
@@ -25,7 +25,7 @@ export class AuthService implements IAuthService {
 
     if (pendingUser) {
       const minutesElapsed =
-        (new Date().getTime() - pendingUser.createdAt.getTime()) / (1000 * 60);
+        (Date.now() - pendingUser.createdAt.getTime()) / (1000 * 60);
 
       if (minutesElapsed < 1) {
         throw new KalamcheError(KalamcheErrorType.RegistrationCooldown);
@@ -44,6 +44,28 @@ export class AuthService implements IAuthService {
     return await this.authUtil.initiateAccountVerification(
       pendingUser.id,
       payload.email,
+    );
+  }
+
+  async resendVerificationCode(
+    payload: ResendVerificationCodeDto,
+  ): Promise<string> {
+    const pendingUser = await this.repo
+      .pendingUser()
+      .findByEmail(payload.email);
+    if (!pendingUser) {
+      throw new KalamcheError(KalamcheErrorType.NotRegistered);
+    }
+
+    const minutesElapsed =
+      (Date.now() - pendingUser.createdAt.getTime()) / (1000 * 60);
+    if (minutesElapsed < 1) {
+      throw new KalamcheError(KalamcheErrorType.RegistrationCooldown);
+    }
+
+    return await this.authUtil.initiateAccountVerification(
+      pendingUser.id,
+      pendingUser.email,
     );
   }
 }

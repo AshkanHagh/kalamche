@@ -6,6 +6,7 @@ export enum KalamcheErrorType {
   EmailAlreadyExists = "EMAIL_ALREADY_EXISTS",
   RegistrationCooldown = "REGISTRATION_COOLDOWN",
   FailedToSendMail = "FAILED_TO_SEND_MAIL",
+  NotRegistered = "NOT_REGISTERED",
 }
 
 export class KalamcheError extends HttpException {
@@ -25,7 +26,8 @@ export class KalamcheError extends HttpException {
       }
 
       case KalamcheErrorType.EmailAlreadyExists ||
-        KalamcheErrorType.RegistrationCooldown: {
+        KalamcheErrorType.RegistrationCooldown ||
+        KalamcheErrorType.NotRegistered: {
         return HttpStatus.BAD_REQUEST;
       }
 

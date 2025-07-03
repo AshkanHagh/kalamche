@@ -10,3 +10,11 @@ export const RegisterDtoSchema = z.object({
 });
 
 export type RegisterDto = z.infer<typeof RegisterDtoSchema>;
+
+export const ResendVerificationCodeSchema = z.object({
+  email: z.string().email(),
+});
+
+export type ResendVerificationCodeDto = z.infer<
+  typeof ResendVerificationCodeSchema
+>;

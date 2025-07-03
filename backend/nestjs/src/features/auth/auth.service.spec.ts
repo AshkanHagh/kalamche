@@ -104,6 +104,47 @@ describe("AuthService", () => {
       mockUtilService.initiateAccountVerification(anything(), anything()),
     ).never();
   });
+
+  it("should throw NotRegistered error when no pending user exists for the email", async () => {
+    setupUserRegistrationMocks(
+      mockUserRepo,
+      mockPendingUserRepo,
+      new Date(),
+      false,
+      false,
+    );
+    await expect(service.resendVerificationCode(anything())).rejects.toThrow(
+      new KalamcheError(KalamcheErrorType.NotRegistered),
+    );
+
+    verify(
+      mockUtilService.initiateAccountVerification(anything(), anything()),
+    ).never();
+  });
+
+  it("should throw RegistrationCooldown error if retrying resend within one minute", async () => {
+    setupUserRegistrationMocks(mockUserRepo, mockPendingUserRepo);
+
+    await expect(service.resendVerificationCode(anything())).rejects.toThrow(
+      new KalamcheError(KalamcheErrorType.RegistrationCooldown),
+    );
+    verify(
+      mockUtilService.initiateAccountVerification(anything(), anything()),
+    ).never();
+  });
+
+  it("should resend verification code for an existing pending user after cooldown", async () => {
+    const date = new Date();
+    date.setMinutes(date.getMinutes() - 1);
+    setupUserRegistrationMocks(mockUserRepo, mockPendingUserRepo, date);
+
+    const result = service.resendVerificationCode(anything());
+
+    await expect(result).resolves.toBeDefined();
+    verify(
+      mockUtilService.initiateAccountVerification(anything(), anything()),
+    ).called();
+  });
 });
 
 function setupUserRegistrationMocks(
