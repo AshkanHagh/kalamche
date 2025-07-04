@@ -1,6 +1,8 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, Req, Res } from "@nestjs/common";
 import { IAuthController } from "./interfaces/controller";
 import {
+  LoginDto,
+  LoginSchema,
   RegisterDto,
   RegisterDtoSchema,
   ResendVerificationCodeDto,
@@ -8,6 +10,7 @@ import {
 } from "./dto";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { AuthService } from "./auth.service";
+import { Request, Response } from "express";
 
 @Controller("auth")
 export class AuthController implements IAuthController {
@@ -29,5 +32,15 @@ export class AuthController implements IAuthController {
     const verificationToken =
       await this.authService.resendVerificationCode(payload);
     return { token: verificationToken };
+  }
+
+  @Post("/login")
+  async login(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Body(new ZodValidationPipe(LoginSchema)) payload: LoginDto,
+  ): Promise<Response> {
+    const result = await this.authService.login(req, payload);
+    return res.status(200).json(result);
   }
 }

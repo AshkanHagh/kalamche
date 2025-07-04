@@ -7,6 +7,9 @@ export enum KalamcheErrorType {
   RegistrationCooldown = "REGISTRATION_COOLDOWN",
   FailedToSendMail = "FAILED_TO_SEND_MAIL",
   NotRegistered = "NOT_REGISTERED",
+  NotFound = "NOT_FOUND",
+  InvalidEmailAddress = "INVALID_EMAIL_ADDRESS",
+  NoPasswordOAuthError = "NO_PASSWORD_OAUTH_ERROR",
 }
 
 export class KalamcheError extends HttpException {
@@ -21,13 +24,19 @@ export class KalamcheError extends HttpException {
 
   static getStatusCode(type: KalamcheErrorType) {
     switch (type) {
+      case KalamcheErrorType.NotFound: {
+        return HttpStatus.NOT_FOUND;
+      }
+
       case KalamcheErrorType.InvalidBodyField: {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       }
 
       case KalamcheErrorType.EmailAlreadyExists ||
         KalamcheErrorType.RegistrationCooldown ||
-        KalamcheErrorType.NotRegistered: {
+        KalamcheErrorType.NotRegistered ||
+        KalamcheErrorType.InvalidEmailAddress ||
+        KalamcheErrorType.NoPasswordOAuthError: {
         return HttpStatus.BAD_REQUEST;
       }
 

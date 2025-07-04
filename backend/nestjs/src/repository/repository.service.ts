@@ -4,6 +4,7 @@ import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import { UserRepository } from "./repositories/user";
 import { PendingUserRepository } from "./repositories/pending-user";
+import { UserLoginTokenRepository } from "./repositories/user-login-token";
 
 @Injectable()
 export class RepositoryService implements IRepositoryService {
@@ -11,6 +12,7 @@ export class RepositoryService implements IRepositoryService {
     @Inject(DATABASE) private conn: Database,
     private UserRepo: UserRepository,
     private PendingUserRepo: PendingUserRepository,
+    private UserLoginTokenRepo: UserLoginTokenRepository,
   ) {}
 
   db(): Database {
@@ -23,5 +25,9 @@ export class RepositoryService implements IRepositoryService {
 
   user(): UserRepository {
     return this.UserRepo;
+  }
+
+  userLoginToken(): UserLoginTokenRepository {
+    return this.UserLoginTokenRepo;
   }
 }

@@ -26,17 +26,16 @@ export interface IPendingUserUpdateForm {
 export interface IUserLoginToken {
   userId: string;
   token: string;
-  userAgent: string;
+  userAgent: string | null;
   ip: string | null;
-  expireAt: Date;
+  createdAt: Date;
 }
 
 export interface IUserLoginTokenInsertForm {
   userId: string;
   token: string;
-  userAgent: string;
-  ip: string | null;
-  expireAt: Date;
+  userAgent?: string;
+  ip?: string;
 }
 
 export interface IUserOAuthAccount {
@@ -62,4 +61,12 @@ export interface IUserInsertForm {
   name: string;
   email: string;
   passwordHash: string | null;
+}
+
+export interface IUserView {
+  user: Omit<IUser, "passwordHash" | "updatedAt">;
+  // not implemented yet
+  wallet?: unknown;
+  // not implemented yet
+  roles: string[];
 }

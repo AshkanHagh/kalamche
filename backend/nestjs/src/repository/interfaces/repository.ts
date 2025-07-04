@@ -2,10 +2,16 @@ import {
   IPendingUser,
   IPendingUserInsertForm,
   IPendingUserUpdateForm,
+  IUser,
+  IUserLoginToken,
+  IUserLoginTokenInsertForm,
+  IUserView,
 } from "src/drizzle/types";
 
 export interface IUserRepository {
   emailExists(email: string): Promise<boolean>;
+  findByEmail(email: string): Promise<IUser>;
+  findUserView(id: string): Promise<IUserView>;
 }
 
 export interface IPendingUserRepository {
@@ -17,4 +23,9 @@ export interface IPendingUserRepository {
   ): Promise<IPendingUser>;
 
   insert(form: IPendingUserInsertForm): Promise<IPendingUser>;
+}
+
+export interface IUserLoginTokenRepository {
+  findByUserId(userId: string): Promise<IUserLoginToken>;
+  insertOrUpdate(form: IUserLoginTokenInsertForm): Promise<IUserLoginToken>;
 }

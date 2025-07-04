@@ -2,7 +2,6 @@ import { index, pgTable } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { UserOAuthAccountTable } from "./user-oauth-account.schema";
 import { UserLoginTokenTable } from "./user-login-token.schema";
-import { UserRoleTable } from "./user-role.schema";
 
 export const UserTable = pgTable(
   "users",
@@ -24,8 +23,7 @@ export const UserTable = pgTable(
   (table) => [index("idx_user_email").on(table.email)],
 );
 
-export const UserRelations = relations(UserTable, ({ many, one }) => ({
-  roles: many(UserRoleTable),
+export const UserRelations = relations(UserTable, ({ one }) => ({
   oauthAccount: one(UserOAuthAccountTable),
   loginToken: one(UserLoginTokenTable),
 }));

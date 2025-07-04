@@ -9,10 +9,11 @@ async function bootstrap() {
   app.enableCors(<CorsOptions>{
     credentials: true,
     origin: "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   });
   app.useGlobalFilters(new KalamcheExceptionFilter());
   app.setGlobalPrefix("/api/v1");
+  // enable on production(if you are using proxy)
+  // app.use("trust proxy", true);
 
   await app.listen(process.env.PORT ?? 8399);
 }

@@ -9,9 +9,13 @@ export const UserLoginTokenTable = pgTable("user_login_tokens", (table) => {
       .primaryKey()
       .references(() => UserTable.id),
     token: table.text().notNull(),
-    userAgent: table.text().notNull(),
+    userAgent: table.text(),
     ip: table.varchar({ length: 60 }),
-    expireAt: table.timestamp().notNull(),
+    createdAt: table
+      .timestamp()
+      .defaultNow()
+      .notNull()
+      .$onUpdateFn(() => new Date()),
   };
 });
 
