@@ -62,7 +62,7 @@ export interface IUser {
 export interface IUserInsertForm {
   name: string;
   email: string;
-  passwordHash: string | null;
+  passwordHash?: string;
 }
 
 export interface IUserView {

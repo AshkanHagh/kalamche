@@ -1,3 +1,5 @@
+import { IUserView } from "src/drizzle/types";
+
 export type LoginPendingResponse = {
   token: string;
   verificationEmailSent: boolean;
@@ -7,6 +9,6 @@ export type LoginResponse = {
   // only return in providers for controllers never return refresh token
   refreshToken?: string;
   accessToken: string;
-  user: any;
+  user: IUserView;
   verificationEmailSent: boolean;
 };

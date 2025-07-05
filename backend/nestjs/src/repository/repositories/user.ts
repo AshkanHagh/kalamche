@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IUserRepository } from "../interfaces/repository";
-import { Database, IUser, IUserView } from "src/drizzle/types";
+import { Database, IUser, IUserInsertForm, IUserView } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { UserTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
@@ -45,5 +45,10 @@ export class UserRepository implements IUserRepository {
       roles: [],
       user: userView,
     };
+  }
+
+  async insert(form: IUserInsertForm): Promise<IUser> {
+    const [user] = await this.db.insert(UserTable).values(form).returning();
+    return user;
   }
 }

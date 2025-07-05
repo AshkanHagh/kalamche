@@ -3,7 +3,7 @@ import { IAuthService } from "./interfaces/service";
 import { LoginDto, RegisterDto, ResendVerificationCodeDto } from "./dto";
 import { RepositoryService } from "src/repository/repository.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { IPendingUser, IUser } from "src/drizzle/types";
+import { IPendingUser } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { AuthUtilService } from "./util.service";
 import { LoginPendingResponse, LoginResponse } from "./types";
@@ -77,12 +77,7 @@ export class AuthService implements IAuthService {
     req: Request,
     payload: LoginDto,
   ): Promise<LoginPendingResponse | LoginResponse> {
-    let user: IUser;
-    try {
-      user = await this.repo.user().findByEmail(payload.email);
-    } catch (error: unknown) {
-      throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress, error);
-    }
+    const user = await this.repo.user().findByEmail(payload.email);
 
     if (!user.passwordHash) {
       throw new KalamcheError(KalamcheErrorType.NoPasswordOAuthError);
@@ -105,6 +100,7 @@ export class AuthService implements IAuthService {
         .pendingUser()
         .findByEmail(payload.email);
 
+      // TODO: delete pending user if exists
       if (pendingUser) {
         const minutesElapsed = getElapsedTime(pendingUser.createdAt, "minutes");
         if (minutesElapsed < RESEND_CODE_COOLDOWN) {

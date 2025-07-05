@@ -3,6 +3,7 @@ import {
   IPendingUserInsertForm,
   IPendingUserUpdateForm,
   IUser,
+  IUserInsertForm,
   IUserLoginToken,
   IUserLoginTokenInsertForm,
   IUserView,
@@ -12,6 +13,7 @@ export interface IUserRepository {
   emailExists(email: string): Promise<boolean>;
   findByEmail(email: string): Promise<IUser>;
   findUserView(id: string): Promise<IUserView>;
+  insert(form: IUserInsertForm): Promise<IUser>;
 }
 
 export interface IPendingUserRepository {
