@@ -21,6 +21,7 @@ export interface IPendingUserUpdateForm {
   email?: string;
   passwordHash?: string;
   token?: string;
+  createdAt?: Date;
 }
 
 export interface IUserLoginToken {

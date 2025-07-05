@@ -22,7 +22,7 @@ import * as schema from "./schemas";
           ssl: config?.postgres.ssl,
         });
 
-        return drizzle(pool, { schema, casing: "snake_case", logger: true });
+        return drizzle(pool, { schema, casing: "snake_case", logger: false });
       },
     },
   ],
