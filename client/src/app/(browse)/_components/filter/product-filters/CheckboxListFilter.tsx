@@ -4,8 +4,8 @@ import { Checkbox as CheckboxType } from "@/app/(browse)/_types"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ChevronDown, ChevronRight } from "lucide-react"
-import { useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useState } from "react"
+import { useQueryState } from "next-usequerystate"
 
 type CheckboxListFilterProps = {
   title: string
@@ -18,34 +18,27 @@ const CheckboxListFilter = ({
   checkboxes,
   keyName
 }: CheckboxListFilterProps) => {
-  const searchParams = useSearchParams()
-  const router = useRouter()
   const [showMore, setShowMore] = useState<boolean>(false)
-  const [selectedValue, setSelectedValue] = useState<string | null>(null)
+  const [queryValue, setQueryValue] = useQueryState(keyName)
   const checkboxesLength = checkboxes.length
 
+  console.count("render: ")
   useEffect(() => {
-    const rawBrand = searchParams.get(keyName)
     const correctBrand = checkboxes.find(
-      (checkbox) => checkbox.value === rawBrand
+      (checkbox) => checkbox.value === queryValue
     )
-    if (correctBrand) {
-      setSelectedValue(correctBrand.value)
+
+    if (!correctBrand) {
+      setQueryValue(null)
     }
   }, [])
 
   const handleCheckboxChange = (checked: boolean, newValue: string) => {
-    const params = new URLSearchParams(searchParams.toString())
-
-    console.log(newValue)
     if (checked) {
-      setSelectedValue(newValue)
-      params.set(keyName, newValue)
+      setQueryValue(newValue)
     } else {
-      setSelectedValue(null)
-      params.delete(keyName, newValue)
+      setQueryValue(null)
     }
-    router.push(`?${params.toString()}`)
   }
 
   return (
@@ -75,7 +68,7 @@ const CheckboxListFilter = ({
             <div key={checkbox.value} className="flex items-center space-x-2">
               <Checkbox
                 id={`brand-${checkbox.value}`}
-                checked={selectedValue === checkbox.value}
+                checked={queryValue === checkbox.value}
                 onCheckedChange={(checked: boolean) =>
                   handleCheckboxChange(checked, checkbox.value)
                 }
