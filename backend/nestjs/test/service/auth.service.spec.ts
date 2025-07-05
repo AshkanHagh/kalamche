@@ -8,6 +8,7 @@ describe("AuthService", () => {
   let nestModule: TestingModule;
   let service: AuthService;
   let repo: RepositoryService;
+  let resendCodeSpy;
 
   beforeEach(async () => {
     await clearDb();
@@ -17,6 +18,8 @@ describe("AuthService", () => {
     nestModule = await createNestAppInstance();
     service = nestModule.get(AuthService);
     repo = nestModule.get(RepositoryService);
+
+    resendCodeSpy = jest.spyOn(service, "resendVerificationCode");
   });
 
   describe(".register", () => {
@@ -72,6 +75,41 @@ describe("AuthService", () => {
       );
       expect(updatedPendingUser?.token).not.toBe(pendingUser?.token);
       expect(updatedPendingUser?.id).toBe(pendingUser?.id);
+    });
+  });
+
+  describe(".resendVerificationCode", () => {
+    beforeEach(async () => {
+      await repo.pendingUser().insert({
+        email: "john@example.com",
+        passwordHash: "pwdjohn",
+        token: "",
+        createdAt: new Date(Date.now() - 1000 * 60 * 1),
+      });
+
+      await service.resendVerificationCode({
+        email: "john@example.com",
+      });
+    });
+
+    it("should not resend verification code", async () => {
+      await expect(
+        service.resendVerificationCode({
+          email: "john@example.com",
+        }),
+      ).rejects.toThrow(
+        new KalamcheError(KalamcheErrorType.RegistrationCooldown),
+      );
+
+      await expect(
+        service.resendVerificationCode({
+          email: "test@example.com",
+        }),
+      ).rejects.toThrow(new KalamcheError(KalamcheErrorType.NotRegistered));
+    });
+
+    it("should resend verification code", () => {
+      expect(resendCodeSpy).toBeCalled();
     });
   });
 

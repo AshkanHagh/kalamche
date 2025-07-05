@@ -15,6 +15,7 @@ export interface IPendingUserInsertForm {
   email: string;
   passwordHash: string;
   token: string;
+  createdAt?: Date;
 }
 
 export interface IPendingUserUpdateForm {
