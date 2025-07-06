@@ -2,7 +2,7 @@ import {
   CategoryFilterContent,
   ProductFiltersPanel
 } from "../../_components/filter/product-filters-panel"
-import ProductRefineSearchInput from "../../_components/input/ProductRefineSearchInput"
+import ProductRefineSearch from "../../_components/input/ProductRefineSearch"
 import SortSelect from "../../_components/select/SortSelect"
 import { ShoppingBag } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -37,7 +37,7 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
 
       <section className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <ProductRefineSearchInput searchScopeName={categoryName} />
+          <ProductRefineSearch searchScopeName={categoryName} />
         </div>
         <div>
           <SortSelect />
