@@ -3,31 +3,52 @@
 import { PriceRange } from "@/app/(browse)/_types"
 import { Slider } from "@/components/ui/slider"
 import { formatPrice } from "@/lib/utils"
-import { useSearchParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
+import { useQueryState } from "next-usequerystate"
 
 type PriceRangeFilterProps = {
   priceRange: PriceRange
 }
 
 const PriceRangeFilter = ({ priceRange }: PriceRangeFilterProps) => {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  const [prMin, setPrMin] = useQueryState("prMin", {
+    history: "replace"
+  })
+  const [prMax, setPrMax] = useQueryState("prMax", {
+    history: "replace"
+  })
+  const [priceRangeValue, setPriceRangeValue] = useState<number[]>([
+    priceRange.min,
+    priceRange.max
+  ])
+
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const rawMin = Number(searchParams.get("prMin"))
-  const rawMax = Number(searchParams.get("prMax"))
+  const parseOrFallback = (val: string | null, fallback: number) => {
+    const parsed = Number(val)
+    return !isNaN(parsed) &&
+      parsed >= priceRange.min &&
+      parsed <= priceRange.max
+      ? parsed
+      : fallback
+  }
+  useEffect(() => {
+    const parsedMin = parseOrFallback(prMin, priceRange.min)
+    const parsedMax = parseOrFallback(prMax, priceRange.max)
 
-  const isValid = (val: number) =>
-    !isNaN(val) && val >= priceRange.min && val <= priceRange.max
+    const correctedMin = Math.min(parsedMin, parsedMax)
+    const correctedMax = Math.max(parsedMin, parsedMax)
 
-  const minValue = isValid(rawMin) ? rawMin : priceRange.min
-  const maxValue = isValid(rawMax) ? rawMax : priceRange.max
+    const shouldUpdateQuery =
+      String(correctedMin) !== prMin || String(correctedMax) !== prMax
 
-  const [priceRangeValue, setPriceRangeValue] = useState<number[]>([
-    Math.min(minValue, maxValue),
-    Math.max(minValue, maxValue)
-  ])
+    if (shouldUpdateQuery) {
+      setPrMin(String(correctedMin))
+      setPrMax(String(correctedMax))
+    }
+
+    setPriceRangeValue([correctedMin, correctedMax])
+  }, [])
 
   const handleValueChange = ([min, max]: number[]) => {
     setPriceRangeValue([min, max])
@@ -37,28 +58,10 @@ const PriceRangeFilter = ({ priceRange }: PriceRangeFilterProps) => {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set("prMin", String(min))
-      params.set("prMax", String(max))
-
-      router.push(`?${params.toString()}`)
-    }, 1350)
+      setPrMin(String(min))
+      setPrMax(String(max))
+    }, 1000)
   }
-
-  useEffect(() => {
-    // Sync query with corrected values (e.g. if user typed ?prMin=900&prMax=100)
-    const correctedMin = Math.min(minValue, maxValue)
-    const correctedMax = Math.max(minValue, maxValue)
-
-    const needCorrection = correctedMin !== rawMin || correctedMax !== rawMax
-
-    if (needCorrection) {
-      const params = new URLSearchParams(searchParams.toString())
-      params.set("prMin", String(correctedMin))
-      params.set("prMax", String(correctedMax))
-      router.replace(`?${params.toString()}`)
-    }
-  }, [])
 
   return (
     <div>
