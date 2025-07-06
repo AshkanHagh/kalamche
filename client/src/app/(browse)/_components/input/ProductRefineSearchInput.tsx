@@ -1,8 +1,8 @@
 "use client"
 
 import SearchBar from "@/components/search/SearchBar"
-import { useRouter, useSearchParams } from "next/navigation"
-import { ChangeEvent, useEffect, useState } from "react"
+import { useQueryState } from "next-usequerystate"
+import { ChangeEvent, useEffect, useRef, useState } from "react"
 
 type ProductRefineSearchInputProps = {
   searchScopeName: string
@@ -11,35 +11,32 @@ type ProductRefineSearchInputProps = {
 const ProductRefineSearchInput = ({
   searchScopeName
 }: ProductRefineSearchInputProps) => {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  const [searchQuery, setSearchQuery] = useQueryState("relatedSearch", {
+    defaultValue: "",
+    history: "replace"
+  })
+  const [inputValue, setInputValue] = useState<string>(searchQuery || "")
+  const hasMounted = useRef(false)
 
-  const [inputValue, setInputValue] = useState("")
+  console.count("render: ")
+  useEffect(() => {
+    if (!hasMounted.current) {
+      hasMounted.current = true
+      return
+    }
+
+    const timeout = setTimeout(() => {
+      if (inputValue !== searchQuery) {
+        setSearchQuery(inputValue || null)
+      }
+    }, 600)
+
+    return () => clearTimeout(timeout)
+  }, [inputValue])
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
   }
-
-  useEffect(() => {
-    const currentSearchValue = searchParams.get("relatedSearch")
-    if (currentSearchValue) {
-      setInputValue(currentSearchValue)
-    }
-  }, [])
-
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString())
-      if (inputValue) {
-        params.set("relatedSearch", inputValue)
-      } else {
-        params.delete("relatedSearch")
-      }
-      router.push(`?${params.toString()}`)
-    }, 1000)
-
-    return () => clearTimeout(timeout)
-  }, [inputValue])
 
   return (
     <SearchBar
