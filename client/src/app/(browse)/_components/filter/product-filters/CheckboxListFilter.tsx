@@ -22,7 +22,6 @@ const CheckboxListFilter = ({
   const [queryValue, setQueryValue] = useQueryState(keyName)
   const checkboxesLength = checkboxes.length
 
-  console.count("render: ")
   useEffect(() => {
     const correctBrand = checkboxes.find(
       (checkbox) => checkbox.value === queryValue

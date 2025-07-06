@@ -33,6 +33,7 @@ const getCategoryProducts = async (
   //   console.error("Error fetching category products:", errorMessage)
   //   return { errorMessage, isSuccess: false }
   // }
+  console.log("Server fetch category data -------------")
   await new Promise((resolve) => setTimeout(resolve, 3000)) // Simulate network delay
   return { data: mockCategoryProducts, isSuccess: true }
 }

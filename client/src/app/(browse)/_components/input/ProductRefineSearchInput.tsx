@@ -18,7 +18,6 @@ const ProductRefineSearchInput = ({
   const [inputValue, setInputValue] = useState<string>(searchQuery || "")
   const hasMounted = useRef(false)
 
-  console.count("render: ")
   useEffect(() => {
     if (!hasMounted.current) {
       hasMounted.current = true

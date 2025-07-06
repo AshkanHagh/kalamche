@@ -8,9 +8,9 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { useState } from "react"
 import { ProductSorts } from "../../_types"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useQueryState } from "next-usequerystate"
+import { useEffect } from "react"
 
 type SortSelectProps = {
   className?: string
@@ -24,26 +24,20 @@ const VALID_SORTS: ProductSorts[] = [
 ]
 
 const SortSelect = ({ className }: SortSelectProps) => {
-  const searchParams = useSearchParams()
-  const router = useRouter()
+  const [sortQueryValue, setSortQueryValue] = useQueryState("sort", {
+    history: "replace",
+    defaultValue: "cheapest"
+  })
 
-  const rawSort = searchParams.get("sort")
-  const initialSort = VALID_SORTS.includes(rawSort as ProductSorts)
-    ? (rawSort as ProductSorts)
-    : "cheapest"
-  const [value, setValue] = useState<ProductSorts>(initialSort)
-
-  const handleChange = (newValue: ProductSorts) => {
-    setValue(newValue)
-
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("sort", newValue)
-
-    router.push(`?${params.toString()}`)
-  }
+  useEffect(() => {
+    const isValidSort = VALID_SORTS.includes(sortQueryValue as ProductSorts)
+    if (!isValidSort) {
+      setSortQueryValue("cheapest")
+    }
+  }, [])
 
   return (
-    <Select onValueChange={handleChange} value={value}>
+    <Select onValueChange={setSortQueryValue} value={sortQueryValue}>
       <SelectTrigger className={cn("w-full md:w-44", className)}>
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
