@@ -44,4 +44,17 @@ export class PendingUserRepository implements IPendingUserRepository {
 
     return user;
   }
+
+  async findById(id: string): Promise<IPendingUser | undefined> {
+    const [user] = await this.db
+      .select()
+      .from(PendingUserTable)
+      .where(eq(PendingUserTable.id, id));
+
+    return user;
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.db.delete(PendingUserTable).where(eq(PendingUserTable.id, id));
+  }
 }

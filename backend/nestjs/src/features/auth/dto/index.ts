@@ -29,3 +29,12 @@ export const LoginSchema = z.object({
 });
 
 export type LoginDto = z.infer<typeof LoginSchema>;
+
+export const VerifyEmailRegistrationSchema = z.object({
+  code: z.number().min(100000).max(999999),
+  token: z.string().max(500),
+});
+
+export type VerifyEmailRegistrationDto = z.infer<
+  typeof VerifyEmailRegistrationSchema
+>;

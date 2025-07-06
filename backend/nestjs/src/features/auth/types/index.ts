@@ -12,3 +12,8 @@ export type LoginResponse = {
   user: IUserView;
   verificationEmailSent: boolean;
 };
+
+export type VerifyEmailRegistrationRes = {
+  accessToken: string;
+  user: IUserView;
+};

@@ -1,6 +1,15 @@
-import { Request } from "express";
-import { LoginDto, RegisterDto, ResendVerificationCodeDto } from "../dto";
-import { LoginPendingResponse, LoginResponse } from "../types";
+import { Request, Response } from "express";
+import {
+  LoginDto,
+  RegisterDto,
+  ResendVerificationCodeDto,
+  VerifyEmailRegistrationDto,
+} from "../dto";
+import {
+  LoginPendingResponse,
+  LoginResponse,
+  VerifyEmailRegistrationRes,
+} from "../types";
 
 export interface IAuthService {
   register(payload: RegisterDto): Promise<string>;
@@ -9,4 +18,10 @@ export interface IAuthService {
     req: Request,
     payload: LoginDto,
   ): Promise<LoginPendingResponse | LoginResponse>;
+
+  verifyEmailRegistration(
+    res: Response,
+    req: Request,
+    payload: VerifyEmailRegistrationDto,
+  ): Promise<VerifyEmailRegistrationRes>;
 }

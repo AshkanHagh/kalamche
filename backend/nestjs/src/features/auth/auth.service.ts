@@ -1,15 +1,24 @@
 import { Injectable } from "@nestjs/common";
 import { IAuthService } from "./interfaces/service";
-import { LoginDto, RegisterDto, ResendVerificationCodeDto } from "./dto";
+import {
+  LoginDto,
+  RegisterDto,
+  ResendVerificationCodeDto,
+  VerifyEmailRegistrationDto,
+} from "./dto";
 import { RepositoryService } from "src/repository/repository.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IPendingUser } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { AuthUtilService } from "./util.service";
-import { LoginPendingResponse, LoginResponse } from "./types";
+import {
+  LoginPendingResponse,
+  LoginResponse,
+  VerifyEmailRegistrationRes,
+} from "./types";
 import { RESEND_CODE_COOLDOWN } from "./constants";
 import { getElapsedTime } from "src/utils/elapsed-time";
-import { Request } from "express";
+import { Request, Response } from "express";
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -78,6 +87,9 @@ export class AuthService implements IAuthService {
     payload: LoginDto,
   ): Promise<LoginPendingResponse | LoginResponse> {
     const user = await this.repo.user().findByEmail(payload.email);
+    if (!user) {
+      throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
+    }
 
     if (!user.passwordHash) {
       throw new KalamcheError(KalamcheErrorType.NoPasswordOAuthError);
@@ -135,6 +147,45 @@ export class AuthService implements IAuthService {
       refreshToken: tokens.refreshToken,
       user: myUser,
       verificationEmailSent: false,
+    };
+  }
+
+  async verifyEmailRegistration(
+    res: Response,
+    req: Request,
+    payload: VerifyEmailRegistrationDto,
+  ): Promise<VerifyEmailRegistrationRes> {
+    const token = this.authUtil.verifyVerificationToken(payload.token);
+    if (token.code !== payload.code) {
+      throw new KalamcheError(KalamcheErrorType.InvalidVerifyCode);
+    }
+
+    const pendingUser = await this.repo.pendingUser().findById(token.userId);
+    if (!pendingUser || !pendingUser.passwordHash) {
+      throw new KalamcheError(KalamcheErrorType.NotRegistered);
+    }
+    const elapsedTime = getElapsedTime(pendingUser?.createdAt, "minutes");
+    if (elapsedTime > 1) {
+      throw new KalamcheError(KalamcheErrorType.VerifyTokenExpired);
+    }
+
+    const username = pendingUser.email.split("@")[0];
+    const user = await this.authUtil.findOrCreateUser({
+      email: pendingUser.email,
+      name: username,
+      passwordHash: pendingUser.passwordHash,
+    });
+
+    await this.repo.pendingUser().deleteById(pendingUser.id);
+
+    const response = await this.authUtil.generateVerificationRegisterRes(
+      res,
+      req,
+      user,
+    );
+    return {
+      accessToken: response.tokens.accessToken,
+      user: response.userView,
     };
   }
 }

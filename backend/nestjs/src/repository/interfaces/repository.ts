@@ -11,20 +11,20 @@ import {
 
 export interface IUserRepository {
   emailExists(email: string): Promise<boolean>;
-  findByEmail(email: string): Promise<IUser>;
+  findByEmail(email: string): Promise<IUser | undefined>;
   findUserView(id: string): Promise<IUserView>;
   insert(form: IUserInsertForm): Promise<IUser>;
 }
 
 export interface IPendingUserRepository {
   findByEmail(email: string): Promise<IPendingUser | undefined>;
-
   update(
     id: string,
     form: IPendingUserUpdateForm | undefined,
   ): Promise<IPendingUser>;
-
   insert(form: IPendingUserInsertForm): Promise<IPendingUser>;
+  findById(id: string): Promise<IPendingUser | undefined>;
+  deleteById(id: string): Promise<void>;
 }
 
 export interface IUserLoginTokenRepository {

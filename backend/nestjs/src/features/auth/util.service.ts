@@ -3,7 +3,9 @@ import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import * as jwt from "jsonwebtoken";
 import { RepositoryService } from "src/repository/repository.service";
 import { EmailService } from "../email/email.service";
-import { Request } from "express";
+import { CookieOptions, Request, Response } from "express";
+import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
+import { IUser, IUserInsertForm } from "src/drizzle/types";
 
 export class AuthUtilService {
   constructor(
@@ -18,7 +20,7 @@ export class AuthUtilService {
     userId: string,
     email: string,
   ): Promise<string> {
-    const verificationCode = randomInt(999_999);
+    const verificationCode = randomInt(100_000, 999_999);
 
     const tokenExp = Math.floor(
       (Date.now() / 1000) * this.authConfig.verificationToken.exp,
@@ -42,9 +44,11 @@ export class AuthUtilService {
   }
 
   async refreshToken(req: Request, userId: string) {
+    const now = Math.floor(Date.now() / 1000);
+
     const accessToken = jwt.sign(
       {
-        exp: (Date.now() / 1000) * this.authConfig.accessToken.exp,
+        exp: now * this.authConfig.accessToken.exp,
         userId,
         type: "access",
       },
@@ -52,7 +56,7 @@ export class AuthUtilService {
     );
     const refreshToken = jwt.sign(
       {
-        exp: (Date.now() / 1000) * this.authConfig.refreshToken.exp,
+        exp: now * this.authConfig.refreshToken.exp,
         userId,
         type: "refresh",
       },
@@ -76,5 +80,54 @@ export class AuthUtilService {
       accessToken,
       refreshToken,
     };
+  }
+
+  verifyVerificationToken(token: string) {
+    try {
+      const result = jwt.verify(
+        token,
+        this.authConfig.verificationToken.secret!,
+      );
+      return result as { code: number; userId: string };
+    } catch (error: unknown) {
+      throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
+    }
+  }
+
+  async findOrCreateUser(userForm: IUserInsertForm) {
+    let user = await this.repo.user().findByEmail(userForm.email);
+    if (!user) {
+      user = await this.repo.user().insert(userForm);
+    }
+
+    return user;
+  }
+
+  async generateVerificationRegisterRes(
+    res: Response,
+    req: Request,
+    user: IUser,
+  ) {
+    const userView = await this.repo.user().findUserView(user.id);
+    const tokens = await this.refreshToken(req, user.id);
+
+    const cookieOptions: CookieOptions = {
+      path: "/",
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      sameSite: "lax",
+    };
+
+    res
+      .cookie("access_token", tokens.accessToken, {
+        ...cookieOptions,
+        maxAge: 1000 * this.authConfig.accessToken.exp,
+      })
+      .cookie("refresh_token", tokens.refreshToken, {
+        ...cookieOptions,
+        maxAge: 1000 * this.authConfig.refreshToken.exp,
+      });
+
+    return { tokens, userView };
   }
 }

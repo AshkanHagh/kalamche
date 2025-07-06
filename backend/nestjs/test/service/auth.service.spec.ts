@@ -143,7 +143,9 @@ describe("AuthService", () => {
           email: "wrongEmail@example.com",
           password: "wrongPassword",
         }),
-      ).rejects.toThrow(new KalamcheError(KalamcheErrorType.NotFound));
+      ).rejects.toThrow(
+        new KalamcheError(KalamcheErrorType.InvalidEmailAddress),
+      );
 
       // invalid password
       await expect(
@@ -186,7 +188,7 @@ describe("AuthService", () => {
       await db
         .update(UserLoginTokenTable)
         .set({ createdAt: afterTwelveHours })
-        .where(eq(UserLoginTokenTable.userId, user.id));
+        .where(eq(UserLoginTokenTable.userId, user!.id));
 
       const result = await service.login(req, {
         email: "john@example.com",

@@ -19,15 +19,11 @@ export class UserRepository implements IUserRepository {
     return user !== undefined;
   }
 
-  async findByEmail(email: string): Promise<IUser> {
+  async findByEmail(email: string): Promise<IUser | undefined> {
     const [user] = await this.db
       .select()
       .from(UserTable)
       .where(eq(UserTable.email, email));
-
-    if (!user) {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
 
     return user;
   }

@@ -10,6 +10,9 @@ export enum KalamcheErrorType {
   NotFound = "NOT_FOUND",
   InvalidEmailAddress = "INVALID_EMAIL_ADDRESS",
   NoPasswordOAuthError = "NO_PASSWORD_OAUTH_ERROR",
+  InvalidJwtToken = "INVALID_JWT_TOKEN",
+  InvalidVerifyCode = "INVALID_VERIFY_CODE",
+  VerifyTokenExpired = "VERIFY_TOKEN_EXPIRED",
 }
 
 export class KalamcheError extends HttpException {
@@ -27,16 +30,20 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.NotFound: {
         return HttpStatus.NOT_FOUND;
       }
-
       case KalamcheErrorType.InvalidBodyField: {
         return HttpStatus.UNPROCESSABLE_ENTITY;
+      }
+      case KalamcheErrorType.InvalidJwtToken: {
+        return HttpStatus.UNAUTHORIZED;
       }
 
       case KalamcheErrorType.EmailAlreadyExists ||
         KalamcheErrorType.RegistrationCooldown ||
         KalamcheErrorType.NotRegistered ||
         KalamcheErrorType.InvalidEmailAddress ||
-        KalamcheErrorType.NoPasswordOAuthError: {
+        KalamcheErrorType.NoPasswordOAuthError ||
+        KalamcheErrorType.InvalidVerifyCode ||
+        KalamcheErrorType.VerifyTokenExpired: {
         return HttpStatus.BAD_REQUEST;
       }
 

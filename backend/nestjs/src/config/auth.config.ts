@@ -6,17 +6,17 @@ export const authConfig = registerAs(AUTH_CONFIG, () => {
   return {
     verificationToken: {
       secret: process.env.VERIFICATION_TOKEN_SECRET,
-      // 10m
+      // 10m in seconds
       exp: 60 * 10,
     },
     accessToken: {
       secret: process.env.ACCESS_TOKEN_SECRET,
-      // 30m
+      // 30m in seconds
       exp: 60 * 30,
     },
     refreshToken: {
       secret: process.env.REFRESH_TOKEN_SECRET,
-      // 7d
+      // 7d in seconds
       exp: 60 * 60 * 24 * 7,
     },
   };
