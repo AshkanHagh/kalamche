@@ -1,69 +1,36 @@
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "./schemas";
+import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export type Database = NodePgDatabase<typeof schema>;
 
-export interface IPendingUser {
-  id: string;
-  email: string;
-  passwordHash: string;
-  token: string;
-  createdAt: Date;
-}
+export type IPendingUser = InferSelectModel<typeof schema.PendingUserTable>;
 
-export interface IPendingUserInsertForm {
-  email: string;
-  passwordHash: string;
-  token: string;
-  createdAt?: Date;
-}
+export type IPendingUserInsertForm = InferInsertModel<
+  typeof schema.PendingUserTable
+>;
 
-export interface IPendingUserUpdateForm {
-  email?: string;
-  passwordHash?: string;
-  token?: string;
-  createdAt?: Date;
-}
+export type IPendingUserUpdateForm = Partial<IPendingUserInsertForm>;
 
-export interface IUserLoginToken {
-  userId: string;
-  token: string;
-  userAgent: string | null;
-  ip: string | null;
-  createdAt: Date;
-}
+export type IUserLoginToken = InferSelectModel<
+  typeof schema.UserLoginTokenTable
+>;
 
-export interface IUserLoginTokenInsertForm {
-  userId: string;
-  token: string;
-  userAgent?: string;
-  ip?: string;
-}
+export type IUserLoginTokenInsertForm = InferInsertModel<
+  typeof schema.UserLoginTokenTable
+>;
 
-export interface IUserOAuthAccount {
-  oauthId: string;
-  userId: string;
-}
+export type IUserOAuthAccount = InferSelectModel<
+  typeof schema.UserOAuthAccountTable
+>;
 
-export interface IUserOAuthAccountInsertForm {
-  oauthId: string;
-  userId: string;
-}
+export type IUserOAuthAccountInsertForm = InferInsertModel<
+  typeof schema.UserLoginTokenTable
+>;
 
-export interface IUser {
-  id: string;
-  name: string;
-  email: string;
-  passwordHash: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export type IUser = InferSelectModel<typeof schema.UserTable>;
 
-export interface IUserInsertForm {
-  name: string;
-  email: string;
-  passwordHash?: string;
-}
+export type IUserInsertForm = InferInsertModel<typeof schema.UserTable>;
 
 export interface IUserView {
   user: Omit<IUser, "passwordHash" | "updatedAt">;

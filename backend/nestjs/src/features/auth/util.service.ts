@@ -94,6 +94,7 @@ export class AuthUtilService {
     }
   }
 
+  // NOT COMPLETED YET
   async findOrCreateUser(userForm: IUserInsertForm) {
     let user = await this.repo.user().findByEmail(userForm.email);
     if (!user) {
