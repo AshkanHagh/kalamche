@@ -83,6 +83,7 @@ export class AuthService implements IAuthService {
   // 1. If the user's last interaction with the app was more than 12 hours ago, they must log in using 2FA.
   // 2. If it was within 12 hours, a normal login is allowed.
   async login(
+    res: Response,
     req: Request,
     payload: LoginDto,
   ): Promise<LoginPendingResponse | LoginResponse> {
@@ -139,13 +140,10 @@ export class AuthService implements IAuthService {
     }
 
     // scenario 2.
-    const tokens = await this.authUtil.refreshToken(req, user.id);
-    const myUser = await this.repo.user().findUserView(user.id);
-
+    const response = await this.authUtil.generateLoginRes(res, req, user);
     return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user: myUser,
+      user: response.userView,
+      accessToken: response.tokens.accessToken,
       verificationEmailSent: false,
     };
   }
@@ -178,11 +176,7 @@ export class AuthService implements IAuthService {
 
     await this.repo.pendingUser().deleteById(pendingUser.id);
 
-    const response = await this.authUtil.generateVerificationRegisterRes(
-      res,
-      req,
-      user,
-    );
+    const response = await this.authUtil.generateLoginRes(res, req, user);
     return {
       accessToken: response.tokens.accessToken,
       user: response.userView,

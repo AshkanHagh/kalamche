@@ -15,6 +15,7 @@ export interface IAuthService {
   register(payload: RegisterDto): Promise<string>;
   resendVerificationCode(payload: ResendVerificationCodeDto): Promise<string>;
   login(
+    res: Response,
     req: Request,
     payload: LoginDto,
   ): Promise<LoginPendingResponse | LoginResponse>;

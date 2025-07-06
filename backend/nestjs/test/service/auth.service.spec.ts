@@ -3,7 +3,7 @@ import { AuthService } from "src/features/auth/auth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { RepositoryService } from "src/repository/repository.service";
 import { clearDb, createNestAppInstance, createUser } from "test/test.helper";
-import { Request } from "express";
+import { Request, Response } from "express";
 import { mock } from "ts-mockito";
 import { LoginResponse } from "src/features/auth/types";
 import { Database } from "src/drizzle/types";
@@ -18,6 +18,7 @@ describe("AuthService", () => {
   let db: Database;
   let resendCodeSpy;
   let req: Request;
+  let res: Response;
 
   beforeEach(async () => {
     await clearDb();
@@ -25,6 +26,9 @@ describe("AuthService", () => {
 
   beforeAll(async () => {
     req = mock<Request>();
+    res = mock<Response>();
+
+    res.cookie = jest.fn().mockReturnValue(res);
 
     nestModule = await createNestAppInstance();
     service = nestModule.get(AuthService);
@@ -130,7 +134,7 @@ describe("AuthService", () => {
     beforeEach(async () => {
       await createUser(nestModule);
 
-      await service.login(req, {
+      await service.login(res, req, {
         email: "john@example.com",
         password: "pwd",
       });
@@ -139,7 +143,7 @@ describe("AuthService", () => {
     it("should not login", async () => {
       // invalid email user not found
       await expect(
-        service.login(req, {
+        service.login(res, req, {
           email: "wrongEmail@example.com",
           password: "wrongPassword",
         }),
@@ -149,7 +153,7 @@ describe("AuthService", () => {
 
       // invalid password
       await expect(
-        service.login(req, {
+        service.login(res, req, {
           email: "john@example.com",
           password: "wrongPassword",
         }),
@@ -162,7 +166,7 @@ describe("AuthService", () => {
         email: "jane@example.com",
       });
       await expect(
-        service.login(req, {
+        service.login(res, req, {
           email: "jane@example.com",
           password: "shhh",
         }),
@@ -172,8 +176,9 @@ describe("AuthService", () => {
     });
 
     it("should bypass account verification and return tokens if login token is within 12 hours", async () => {
-      // because we use create user in before each we have a new login token each time so we always get login response type
-      const result = (await service.login(req, {
+      // because we use create user in before each we have a new login token each time
+      // so we always get login response type
+      const result = (await service.login(res, req, {
         email: "john@example.com",
         password: "pwd",
       })) as LoginResponse;
@@ -190,7 +195,7 @@ describe("AuthService", () => {
         .set({ createdAt: afterTwelveHours })
         .where(eq(UserLoginTokenTable.userId, user!.id));
 
-      const result = await service.login(req, {
+      const result = await service.login(res, req, {
         email: "john@example.com",
         password: "pwd",
       });

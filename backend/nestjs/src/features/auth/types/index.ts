@@ -6,8 +6,6 @@ export type LoginPendingResponse = {
 };
 
 export type LoginResponse = {
-  // only return in providers for controllers never return refresh token
-  refreshToken?: string;
   accessToken: string;
   user: IUserView;
   verificationEmailSent: boolean;

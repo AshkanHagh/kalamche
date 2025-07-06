@@ -103,11 +103,7 @@ export class AuthUtilService {
     return user;
   }
 
-  async generateVerificationRegisterRes(
-    res: Response,
-    req: Request,
-    user: IUser,
-  ) {
+  async generateLoginRes(res: Response, req: Request, user: IUser) {
     const userView = await this.repo.user().findUserView(user.id);
     const tokens = await this.refreshToken(req, user.id);
 

@@ -36,14 +36,13 @@ export class AuthController implements IAuthController {
     return { token: verificationToken };
   }
 
-  // TODO: on LoginResponse set cookies
   @Post("/login")
   async login(
     @Req() req: Request,
     @Res() res: Response,
     @Body(new ZodValidationPipe(LoginSchema)) payload: LoginDto,
   ): Promise<Response> {
-    const result = await this.authService.login(req, payload);
+    const result = await this.authService.login(res, req, payload);
     return res.status(200).json(result);
   }
 
