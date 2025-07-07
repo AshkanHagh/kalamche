@@ -13,6 +13,7 @@ export enum KalamcheErrorType {
   InvalidJwtToken = "INVALID_JWT_TOKEN",
   InvalidVerifyCode = "INVALID_VERIFY_CODE",
   VerifyTokenExpired = "VERIFY_TOKEN_EXPIRED",
+  PermissionDenied = "PERMISSION_DENIED",
 }
 
 export class KalamcheError extends HttpException {
@@ -35,6 +36,9 @@ export class KalamcheError extends HttpException {
       }
       case KalamcheErrorType.InvalidJwtToken: {
         return HttpStatus.UNAUTHORIZED;
+      }
+      case KalamcheErrorType.PermissionDenied: {
+        return HttpStatus.FORBIDDEN;
       }
 
       case KalamcheErrorType.EmailAlreadyExists ||

@@ -19,6 +19,7 @@ import {
 import { RESEND_CODE_COOLDOWN } from "./constants";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { Request, Response } from "express";
+import { USER_ROLE } from "src/constants/global.constant";
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -172,6 +173,7 @@ export class AuthService implements IAuthService {
       email: pendingUser.email,
       name: username,
       passwordHash: pendingUser.passwordHash,
+      roles: [USER_ROLE.USER],
     });
 
     await this.repo.pendingUser().deleteById(pendingUser.id);

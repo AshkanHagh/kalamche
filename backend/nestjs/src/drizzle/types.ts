@@ -36,6 +36,4 @@ export interface IUserView {
   user: Omit<IUser, "passwordHash" | "updatedAt">;
   // not implemented yet
   wallet?: unknown;
-  // not implemented yet
-  roles: string[];
 }

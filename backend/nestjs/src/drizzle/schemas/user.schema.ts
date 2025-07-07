@@ -1,7 +1,10 @@
-import { index, pgTable } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { UserOAuthAccountTable } from "./user-oauth-account.schema";
 import { UserLoginTokenTable } from "./user-login-token.schema";
+import { USER_ROLE } from "src/constants/global.constant";
+
+export const UserRoleEnum = pgEnum("user_roles_enum", USER_ROLE);
 
 export const UserTable = pgTable(
   "users",
@@ -11,6 +14,7 @@ export const UserTable = pgTable(
       name: table.varchar({ length: 255 }).notNull(),
       // not unique because user can have 2 account with one email(regular auth, oauth)
       email: table.varchar({ length: 255 }).notNull(),
+      roles: UserRoleEnum().array().notNull(),
       passwordHash: table.text(),
       createdAt: table.timestamp().notNull().defaultNow(),
       updatedAt: table

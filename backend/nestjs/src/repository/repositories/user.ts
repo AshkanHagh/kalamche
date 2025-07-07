@@ -38,7 +38,6 @@ export class UserRepository implements IUserRepository {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
     return {
-      roles: [],
       user: userView,
     };
   }
