@@ -94,6 +94,15 @@ export class AuthUtilService {
     }
   }
 
+  verifyAccessToken(token: string) {
+    try {
+      const result = jwt.verify(token, this.authConfig.accessToken.secret!);
+      return result as { userId: string; type: string };
+    } catch (error: unknown) {
+      throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
+    }
+  }
+
   // NOT COMPLETED YET
   async findOrCreateUser(userForm: IUserInsertForm) {
     let user = await this.repo.user().findByEmail(userForm.email);

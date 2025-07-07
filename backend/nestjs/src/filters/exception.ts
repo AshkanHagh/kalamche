@@ -14,6 +14,7 @@ export enum KalamcheErrorType {
   InvalidVerifyCode = "INVALID_VERIFY_CODE",
   VerifyTokenExpired = "VERIFY_TOKEN_EXPIRED",
   PermissionDenied = "PERMISSION_DENIED",
+  UnAuthorized = "UNAUTHORIZED",
 }
 
 export class KalamcheError extends HttpException {
@@ -34,7 +35,8 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.InvalidBodyField: {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       }
-      case KalamcheErrorType.InvalidJwtToken: {
+      case KalamcheErrorType.InvalidJwtToken ||
+        KalamcheErrorType.UnAuthorized: {
         return HttpStatus.UNAUTHORIZED;
       }
       case KalamcheErrorType.PermissionDenied: {

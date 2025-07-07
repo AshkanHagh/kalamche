@@ -46,4 +46,13 @@ export class UserRepository implements IUserRepository {
     const [user] = await this.db.insert(UserTable).values(form).returning();
     return user;
   }
+
+  async findById(id: string): Promise<IUser | undefined> {
+    const [user] = await this.db
+      .select()
+      .from(UserTable)
+      .where(eq(UserTable.id, id));
+
+    return user;
+  }
 }

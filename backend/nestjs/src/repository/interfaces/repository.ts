@@ -14,6 +14,7 @@ export interface IUserRepository {
   findByEmail(email: string): Promise<IUser | undefined>;
   findUserView(id: string): Promise<IUserView>;
   insert(form: IUserInsertForm): Promise<IUser>;
+  findById(id: string): Promise<IUser | undefined>;
 }
 
 export interface IPendingUserRepository {
