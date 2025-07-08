@@ -40,7 +40,7 @@ const PriceRangeFilter = ({ priceRange }: PriceRangeFilterProps) => {
     const correctedMax = Math.max(parsedMin, parsedMax)
 
     const shouldUpdateQuery =
-      String(correctedMin) !== prMin || String(correctedMax) !== prMax
+      correctedMin !== priceRange.min || correctedMax !== priceRange.max
 
     if (shouldUpdateQuery) {
       setPrMin(String(correctedMin))
