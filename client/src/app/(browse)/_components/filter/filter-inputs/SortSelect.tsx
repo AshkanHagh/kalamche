@@ -8,7 +8,7 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
-import { ProductSorts } from "../../_types"
+import { ProductSorts } from "../../../_types"
 import { useQueryState } from "next-usequerystate"
 import { useEffect } from "react"
 
@@ -38,7 +38,7 @@ const SortSelect = ({ className }: SortSelectProps) => {
 
   return (
     <Select onValueChange={setSortQueryValue} value={sortQueryValue}>
-      <SelectTrigger className={cn("w-full md:w-44", className)}>
+      <SelectTrigger className={cn("w-full lg:w-44", className)}>
         <SelectValue placeholder="Sort by" />
       </SelectTrigger>
       <SelectContent>

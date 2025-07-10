@@ -2,8 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal } from "lucide-react"
-import PriceRangeFilter from "./product-filters/PriceRangeFilter"
-import CheckboxListFilter from "./product-filters/CheckboxListFilter"
+import PriceRangeFilter from "./filter-panel-components/PriceRangeFilter"
+import CheckboxListFilter from "./filter-panel-components/CheckboxListFilter"
 import { Separator } from "@/components/ui/separator"
 import { Checkbox, PriceRange } from "../../_types"
 
@@ -11,7 +11,7 @@ type CategoryFilterPanelProps = {
   children: React.ReactNode
 }
 
-type CategoryFilterContentProps = {
+export type CategoryFilterContentProps = {
   priceRange: PriceRange
   brands: Checkbox[]
 }

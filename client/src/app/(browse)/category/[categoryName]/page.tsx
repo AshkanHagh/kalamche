@@ -2,12 +2,11 @@ import {
   CategoryFilterContent,
   ProductFiltersPanel
 } from "../../_components/filter/product-filters-panel"
-import ProductRefineSearch from "../../_components/input/ProductRefineSearch"
-import SortSelect from "../../_components/select/SortSelect"
-import { ShoppingBag } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import ProductRefineSearch from "../../_components/filter/filter-inputs/ProductRefineSearch"
+import SortSelect from "../../_components/filter/filter-inputs/SortSelect"
 import InfiniteScrollProducts from "../../_components/infinite-scroll/InfiniteScrollProducts"
 import getCategoryProducts from "../../_services/getCategoryProducts"
+import FilterSlider from "../../_components/filter/FilterSlider"
 
 type CategoryPageProps = {
   params: Promise<{ categoryName: string }>
@@ -39,7 +38,11 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
         <div className="relative flex-1">
           <ProductRefineSearch searchScopeName={categoryName} />
         </div>
-        <div>
+        <div className="flex gap-4">
+          <FilterSlider
+            filterProps={{ brands, priceRange }}
+            type="category-page"
+          />
           <SortSelect />
         </div>
       </section>
@@ -50,19 +53,7 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
         </ProductFiltersPanel>
 
         <div className="col-span-1 lg:col-span-3">
-          {true ? (
-            <InfiniteScrollProducts hasNext={true} initialProducts={products} />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ShoppingBag className="size-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium">No products found</h3>
-              <p className="text-muted-foreground mt-2 mb-6 max-w-md">
-                We couldn&apos;t find any products matching your criteria. Try
-                adjusting your filters or search query.
-              </p>
-              <Button onClick={() => {}}>Reset Filters</Button>
-            </div>
-          )}
+          <InfiniteScrollProducts hasNext={true} initialProducts={products} />
         </div>
       </main>
     </>

@@ -71,7 +71,7 @@ const ProductListWrapper = ({
       ))}
 
       {infinityScrollError && (
-        <li className="col-span-4 flex justify-center">
+        <li className="col-span-2 sm:col-span-3 lg:col-span-4 flex justify-center">
           <Button className="bg-red-500 hover:bg-red-400" onClick={loadMore}>
             Try Again
           </Button>
