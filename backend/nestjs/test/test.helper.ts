@@ -7,6 +7,7 @@ import { RepositoryService } from "src/repository/repository.service";
 import { IUser, IUserInsertForm } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { Pool } from "pg";
+import { USER_ROLE } from "src/constants/global.constant";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   const module = await Test.createTestingModule({
@@ -52,6 +53,7 @@ export async function createUser(
       user = await repo.user().insert({
         email: form?.email || "jane@example.com",
         name: form?.name || "john",
+        roles: [USER_ROLE.USER],
       });
     } else {
       const hashedPass = await argon2.hash(form?.passwordHash || "pwd");
@@ -59,6 +61,7 @@ export async function createUser(
         email: form?.email || "john@example.com",
         name: form?.name || "john",
         passwordHash: hashedPass,
+        roles: [USER_ROLE.USER],
       });
     }
   } else {
