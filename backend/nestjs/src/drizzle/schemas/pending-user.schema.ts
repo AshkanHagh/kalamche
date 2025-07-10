@@ -1,8 +1,9 @@
 import { pgTable } from "drizzle-orm/pg-core";
+import { id } from "./schema.helper";
 
 export const PendingUserTable = pgTable("pending_users", (table) => {
   return {
-    id: table.uuid().primaryKey().defaultRandom(),
+    id,
     email: table.varchar({ length: 255 }).notNull(),
     passwordHash: table.text().notNull(),
     token: table.text().notNull(),

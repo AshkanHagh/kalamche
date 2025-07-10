@@ -37,3 +37,11 @@ export interface IUserView {
   // not implemented yet
   wallet?: unknown;
 }
+
+export type IProduct = InferSelectModel<typeof schema.ProductTable>;
+
+export type IProductInsertForm = InferInsertModel<typeof schema.ProductTable>;
+
+export type IShop = InferSelectModel<typeof schema.ShopTable>;
+
+export type IShopInsertForm = InferInsertModel<typeof schema.ShopTable>;
