@@ -45,3 +45,11 @@ export type IProductInsertForm = InferInsertModel<typeof schema.ProductTable>;
 export type IShop = InferSelectModel<typeof schema.ShopTable>;
 
 export type IShopInsertForm = InferInsertModel<typeof schema.ShopTable>;
+
+export type IProductPriceHistory = InferSelectModel<
+  typeof schema.ProductPriceHistoryTable
+>;
+
+export type IProductPriceHistoryInsertForm = InferInsertModel<
+  typeof schema.ProductPriceHistoryTable
+>;

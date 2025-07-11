@@ -4,3 +4,6 @@ export * from "./user-login-token.schema";
 export * from "./user-oauth-account.schema";
 export * from "./product.schema";
 export * from "./shop.schema";
+export * from "./product-image.schema";
+export * from "./product-like-schema";
+export * from "./product-price-history.schema";

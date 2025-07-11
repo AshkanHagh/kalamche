@@ -31,6 +31,7 @@ export const ProductTable = pgTable("products", (table) => {
       .notNull(),
     website: table.text().notNull(),
     views: table.integer().notNull().default(0),
+    vector: table.text().notNull(),
     createdAt,
     updatedAt,
   };

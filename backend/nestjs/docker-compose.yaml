@@ -6,7 +6,7 @@ services:
       - "8025:8025" # Web UI
 
   postgres:
-    image: registry.docker.ir/postgres:17.5
+    image: registry.docker.ir/pgvector/pgvector:0.8.0-pg17
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=password
