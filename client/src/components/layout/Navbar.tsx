@@ -22,7 +22,7 @@ type NavbarProps = {
 }
 
 export const Navbar = ({ children }: NavbarProps) => {
-  const { user } = useAppSelector((state) => state.auth)
+  const user = useAppSelector((state) => state.auth.user)
   const needsUserInit = user === undefined
 
   return (

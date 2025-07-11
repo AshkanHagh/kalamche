@@ -5,7 +5,7 @@ import useRefreshToken from "./useRefreshToken"
 import { useEffect } from "react"
 
 const useAxiosPrivate = () => {
-  const { accessToken } = useAppSelector((state) => state.auth)
+  const accessToken = useAppSelector((state) => state.auth.accessToken)
   const refresh = useRefreshToken()
 
   useEffect(() => {

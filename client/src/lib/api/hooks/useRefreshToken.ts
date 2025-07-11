@@ -19,7 +19,7 @@ type RefreshOptions = {
 }
 
 const useRefreshToken = () => {
-  const { auth } = useAppSelector((state) => state)
+  const auth = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const { push } = useRouter()
 

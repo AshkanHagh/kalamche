@@ -8,7 +8,7 @@ import { AxiosError } from "axios"
 import { toast } from "sonner"
 
 const useInitUser = () => {
-  const { user } = useAppSelector((state) => state.auth)
+  const user = useAppSelector((state) => state.auth.user)
   const needsUserInit = user === undefined
 
   const dispatch = useAppDispatch()
