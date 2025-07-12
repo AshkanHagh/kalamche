@@ -15,6 +15,10 @@ export type CategoryFilterContentProps = {
   priceRange: PriceRange
   brands: Checkbox[]
 }
+export type SearchFilterContentProps = {
+  priceRange: PriceRange
+  brands: Checkbox[]
+}
 
 export const ProductFiltersPanel = ({ children }: CategoryFilterPanelProps) => {
   return (
@@ -39,6 +43,20 @@ export const CategoryFilterContent = ({
   priceRange,
   brands
 }: CategoryFilterContentProps) => {
+  return (
+    <>
+      <PriceRangeFilter
+        priceRange={{ min: priceRange.min, max: priceRange.max }}
+      />
+      <Separator className="my-1" />
+      <CheckboxListFilter title="Brands" checkboxes={brands} keyName="brand" />
+    </>
+  )
+}
+export const SearchFilterContent = ({
+  priceRange,
+  brands
+}: SearchFilterContentProps) => {
   return (
     <>
       <PriceRangeFilter

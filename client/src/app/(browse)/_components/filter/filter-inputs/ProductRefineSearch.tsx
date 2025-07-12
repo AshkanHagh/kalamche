@@ -1,6 +1,6 @@
 "use client"
 
-import SearchBar from "@/components/search/SearchBar"
+import SearchInput from "@/components/ui/SearchInput"
 import { useQueryState } from "next-usequerystate"
 import { ChangeEvent, useEffect, useRef, useState } from "react"
 
@@ -38,7 +38,7 @@ const ProductRefineSearchInput = ({
   }
 
   return (
-    <SearchBar
+    <SearchInput
       placeholder={`Search in ${searchScopeName}...`}
       onChange={handleChange}
       value={inputValue}

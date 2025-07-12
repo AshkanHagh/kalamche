@@ -13,13 +13,15 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   CategoryFilterContent,
-  CategoryFilterContentProps
+  CategoryFilterContentProps,
+  SearchFilterContent,
+  SearchFilterContentProps
 } from "./product-filters-panel"
 import { useSearchParams } from "next/navigation"
 
 type FilterSliderProps = {
   type: "category-page" | "search-page"
-  filterProps: CategoryFilterContentProps
+  filterProps: CategoryFilterContentProps | SearchFilterContentProps
 }
 
 const FilterSlider = ({ type, filterProps }: FilterSliderProps) => {
@@ -50,7 +52,7 @@ const FilterSlider = ({ type, filterProps }: FilterSliderProps) => {
             {type === "category-page" ? (
               <CategoryFilterContent {...filterProps} />
             ) : (
-              <div>unknown</div>
+              <SearchFilterContent {...filterProps} />
             )}
           </ScrollArea>
         </SheetContent>
