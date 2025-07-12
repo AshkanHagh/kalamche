@@ -1,5 +1,5 @@
 import { products } from "@/data/mockData"
-import { CategoryResponse, relatedCategory } from "../_types"
+import { CategoryResponse, relatedCategory, SearchResponse } from "../_types"
 
 export const mockCategories: relatedCategory[] = [
   {
@@ -61,6 +61,26 @@ export const mockCategoryProducts: CategoryResponse = {
   priceRange: {
     min: 100,
     max: 500
+  },
+  relatedCategories: mockCategories
+}
+export const mockSearchProducts: SearchResponse = {
+  hasNext: true,
+  products: products,
+  brands: [
+    { label: "Brand A", value: "brand-a" },
+    { label: "Brand B", value: "brand-b" },
+    { label: "Brand C", value: "brand-c" },
+    { label: "Brand D", value: "brand-d" },
+    { label: "Brand E", value: "brand-e" },
+    { label: "Brand F", value: "brand-f" },
+    { label: "Brand G", value: "brand-g" },
+    { label: "Brand H", value: "brand-h" },
+    { label: "Brand I", value: "brand-i" }
+  ],
+  priceRange: {
+    min: 6000,
+    max: 50000
   },
   relatedCategories: mockCategories
 }

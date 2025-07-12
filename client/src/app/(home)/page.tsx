@@ -1,18 +1,14 @@
 import { products } from "@/data/mockData"
 import HeroSection from "./_components/HeroSection"
 import ProductCarousel from "./_components/ProductCarousel"
-import SearchBar from "../../components/search/SearchBar"
 import ComparePricesSection from "./_components/ComparePricesSection"
+import SearchBar from "./_components/SearchBar"
 
 export default function HomePage() {
   return (
     <div className="flex flex-col">
       <main>
-        <SearchBar
-          className="mx-auto max-w-md md:max-w-2xl mb-5 mt-10"
-          inputClassName="py-5"
-          placeholder="Search for products, brands, or categories..."
-        />
+        <SearchBar />
         <HeroSection />
         <ProductCarousel
           title="Best Sellers"

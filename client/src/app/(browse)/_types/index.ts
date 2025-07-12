@@ -19,6 +19,13 @@ export type CategoryResponse = {
   priceRange: PriceRange
   hasNext: boolean
 }
+export type SearchResponse = {
+  products: Product[]
+  brands: Checkbox[]
+  relatedCategories: relatedCategory[]
+  priceRange: PriceRange
+  hasNext: boolean
+}
 
 export type Checkbox = {
   label: string
