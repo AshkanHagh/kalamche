@@ -3,6 +3,7 @@ import { createdAt, id, updatedAt } from "./schema.helper";
 import { UserTable } from "./user.schema";
 import { relations } from "drizzle-orm";
 import { ProductTable } from "./product.schema";
+import { ProductOfferTable } from "./product-offer.schema";
 
 export const ShopStatusEnum = pgEnum("shop_status_enum", [
   "active",
@@ -41,4 +42,5 @@ export const ShopRelations = relations(ShopTable, ({ one, many }) => ({
     references: [UserTable.id],
   }),
   products: many(ProductTable),
+  vendors: many(ProductOfferTable),
 }));

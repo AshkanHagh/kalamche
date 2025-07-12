@@ -53,3 +53,7 @@ export type IProductPriceHistory = InferSelectModel<
 export type IProductPriceHistoryInsertForm = InferInsertModel<
   typeof schema.ProductPriceHistoryTable
 >;
+
+export type IProductOfferInsertForm = InferInsertModel<
+  typeof schema.ProductOfferTable
+>;

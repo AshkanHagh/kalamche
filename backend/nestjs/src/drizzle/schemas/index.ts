@@ -7,3 +7,4 @@ export * from "./shop.schema";
 export * from "./product-image.schema";
 export * from "./product-like-schema";
 export * from "./product-price-history.schema";
+export * from "./product-offer.schema";

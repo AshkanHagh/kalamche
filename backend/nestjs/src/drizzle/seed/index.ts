@@ -4,10 +4,11 @@ import * as schema from "../schemas";
 import csv from "csv-parser";
 import fs from "node:fs";
 import path from "node:path";
-import { LazadaProduct, ProductSpecification } from "./types";
+import { AmazonProduct } from "./types";
 import {
   Database,
   IProductInsertForm,
+  IProductOfferInsertForm,
   IShop,
   IShopInsertForm,
   IUser,
@@ -79,44 +80,42 @@ async function seedProducts(db: Database, shops: IShop[]) {
   console.log("Seeding products");
 
   const productsInsertForm: IProductInsertForm[] = [];
+  const productOffersForm: IProductOfferInsertForm[] = [];
 
   const datasetPath = path.join(
     __dirname,
     "..",
     "..",
-    "assets/datasets/lazada-products.csv",
+    "assets/datasets/amazon-products.csv",
   );
 
   await new Promise<void>((resolve, reject) => {
     fs.createReadStream(datasetPath)
       .pipe(csv({ separator: "," }))
-      .on("data", (record: LazadaProduct) => {
-        const parsedSpec = JSON.parse(
-          record.product_specifications,
-        ) as ProductSpecification[];
-        const productSpecification = parsedSpec.map((specification) => ({
-          key: specification.name,
-          value: specification.value,
+      .on("data", (record: AmazonProduct) => {
+        const productSpecification = Array.from({ length: 5 }).map(() => ({
+          key: faker.word.sample(),
+          value: faker.word.sample(),
         }));
 
-        for (const shop of shops) {
-          const productPrice = parseInt(record.final_price);
-          const finalPrice =
-            faker.number.int({ min: 1, max: 5 }) * productPrice;
-
-          const insertForm: IProductInsertForm = {
-            shopId: shop.id,
-            categories: JSON.parse(record.breadcrumb) as string[],
-            description: record.product_description,
-            name: record.title,
-            status: "public",
-            price: finalPrice,
-            specifications: productSpecification,
-            website: record.domain,
-            brand: record.brand,
-          };
-          productsInsertForm.push(insertForm);
-        }
+        const randomShop =
+          shops[faker.number.int({ min: 0, max: shops.length - 1 })];
+        const insertForm: IProductInsertForm = {
+          id: crypto.randomUUID(),
+          shopId: randomShop.id,
+          categories: JSON.parse(record.categories) as string[],
+          description: record.description,
+          name: record.title,
+          specifications: productSpecification,
+          websiteUrl: record.url,
+          brand: record.brand,
+          asin: record.asin,
+          modelNumber: record.model_number,
+          upc: faker.string.numeric({ length: 12 }),
+          views: faker.number.int({ min: 1, max: 10_000 }),
+          status: "public",
+        };
+        productsInsertForm.push(insertForm);
       })
       .on("end", () => {
         console.log("Parsed CSV");
@@ -132,6 +131,32 @@ async function seedProducts(db: Database, shops: IShop[]) {
   for (let i = 0; i < productsInsertForm.length; i += batchSize) {
     const records = productsInsertForm.slice(i, i + batchSize);
     await db.insert(schema.ProductTable).values(records).execute();
+  }
+
+  productsInsertForm.forEach((product) => {
+    // Each product has 1 offer from the owning shop
+    productOffersForm.push({
+      productId: product.id!,
+      shopId: product.shopId,
+      price: faker.number.float({ min: 10, max: 1000 }),
+    });
+
+    // Randomly select 1-5 additional shops to offer prices
+    const otherShops = shops.filter((shop) => shop.id !== product.shopId);
+    const numOffers = faker.number.int({ min: 1, max: 5 });
+    const selectedShops = faker.helpers.shuffle(otherShops).slice(0, numOffers);
+    selectedShops.forEach((shop) => {
+      productOffersForm.push({
+        productId: product.id!,
+        shopId: shop.id,
+        price: faker.number.float({ min: 10, max: 1000 }),
+      });
+    });
+  });
+
+  for (let i = 0; i < productOffersForm.length; i += batchSize) {
+    const records = productOffersForm.slice(i, i + batchSize);
+    await db.insert(schema.ProductOfferTable).values(records).execute();
   }
 }
 
