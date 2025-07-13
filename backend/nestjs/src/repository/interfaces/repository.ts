@@ -32,3 +32,15 @@ export interface IUserLoginTokenRepository {
   findByUserId(userId: string): Promise<IUserLoginToken>;
   insertOrUpdate(form: IUserLoginTokenInsertForm): Promise<IUserLoginToken>;
 }
+
+export interface IProductRepository {
+  findProductsByFilter(
+    sort: "cheapest" | "view" | "newest" | "expensive" | "popular",
+    brand: string,
+    search: string,
+    prMax: number,
+    prMin: number,
+    limit: number,
+    offset: number,
+  ): Promise<unknown>;
+}

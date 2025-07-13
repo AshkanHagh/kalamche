@@ -50,5 +50,5 @@ export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   images: many(ProductImageTable),
   priceHistory: many(ProductPriceHistoryTable),
   likes: many(ProductLikeTable),
-  vendors: many(ProductOfferTable),
+  offers: many(ProductOfferTable),
 }));

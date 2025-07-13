@@ -4,11 +4,13 @@ import { UserRepository } from "./repositories/user";
 import { PendingUserRepository } from "./repositories/pending-user";
 import { RepositoryService } from "./repository.service";
 import { UserLoginTokenRepository } from "./repositories/user-login-token";
+import { ProductRepository } from "./repositories/product";
 
 const repositories = [
   UserRepository,
   PendingUserRepository,
   UserLoginTokenRepository,
+  ProductRepository,
 ];
 
 @Module({
