@@ -3,6 +3,7 @@ import { ServerError } from "@/types"
 import { AxiosError } from "axios"
 import { useState } from "react"
 import { AuthProviders, SocialAuthResponse } from "../_types"
+import { API_ENDPOINTS } from "@/lib/api/ENDPOINTS"
 
 type OnSuccess = (data: SocialAuthResponse) => void
 type OnError = (error: AxiosError<ServerError>) => void
@@ -18,7 +19,7 @@ const useSocialAuth = () => {
     setIsLoading(true)
     try {
       const { data } = await axios.get<SocialAuthResponse>(
-        `/auth/oauth?provider=${provider}`
+        `${API_ENDPOINTS.auth.oauth}?provider=${provider}`
       )
       if (onSuccess) onSuccess(data)
     } catch (e) {

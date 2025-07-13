@@ -3,6 +3,7 @@ import { ServerError } from "@/types"
 import { AxiosError } from "axios"
 import { useState } from "react"
 import { AuthProviders, Login } from "../_types"
+import { API_ENDPOINTS } from "@/lib/api/ENDPOINTS"
 
 type OnSuccess = (data: Login) => void
 type OnError = (error: AxiosError<ServerError>) => void
@@ -26,7 +27,7 @@ const useAuthCallback = () => {
     setIsLoading(true)
     try {
       const { data } = await axios.get<Login>(
-        `/auth/oauth/callback?code=${code}&state=${state}&provider=${provider}`
+        `${API_ENDPOINTS.auth.oauth.callback}?code=${code}&state=${state}&provider=${provider}`
       )
       setData(data)
       if (onSuccess) onSuccess(data)

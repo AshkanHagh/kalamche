@@ -2,6 +2,7 @@ import axios from "@/lib/api/axios"
 import { ServerError } from "@/types"
 import { AxiosError } from "axios"
 import { VerificationResponse } from "../_types"
+import { API_ENDPOINTS } from "@/lib/api/ENDPOINTS"
 
 type OnSuccess = (data: VerificationResponse) => void
 type OnError = (error: AxiosError<ServerError>) => void
@@ -14,7 +15,7 @@ const useResendCode = () => {
   ) => {
     try {
       const { data } = await axios.post<VerificationResponse>(
-        "/auth/verify/resend",
+        API_ENDPOINTS.auth.verify.resend,
         { email }
       )
       if (onSuccess) onSuccess(data)
