@@ -4,6 +4,7 @@ import {
   IPendingUserUpdateForm,
   IShop,
   IShopInsertForm,
+  IShopUpdateForm,
   IUser,
   IUserInsertForm,
   IUserLoginToken,
@@ -50,4 +51,7 @@ export interface IProductRepository {
 export interface IShopRepository {
   findByUserId(userId: string): Promise<IShop | undefined>;
   insert(form: IShopInsertForm): Promise<IShop>;
+  findById(id: string): Promise<IShop>;
+  isUserOwnShop(userId: string, shopId: string): Promise<boolean>;
+  update(id: string, form: IShopUpdateForm): Promise<IShop>;
 }
