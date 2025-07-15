@@ -1,9 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { IShopService } from "./interfaces/service";
-import { IShop } from "src/drizzle/types";
+import { IShop, IUser } from "src/drizzle/types";
 import { RepositoryService } from "src/repository/repository.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";
+import { UpdateShopDto } from "./dto";
+import { USER_ROLE } from "src/constants/global.constant";
 
 @Injectable()
 export class ShopService implements IShopService {
@@ -12,13 +14,17 @@ export class ShopService implements IShopService {
     private s3Service: S3Service,
   ) {}
 
-  async createShop(userId: string): Promise<IShop> {
-    const hasShop = await this.repo.shop().findByUserId(userId);
+  async createShop(user: IUser): Promise<IShop> {
+    const hasShop = await this.repo.shop().findByUserId(user.id);
     if (hasShop) {
       throw new KalamcheError(KalamcheErrorType.ShopAlreadyExists);
     }
 
-    const shop = await this.repo.shop().insert({ userId });
+    await this.repo
+      .user()
+      .update(user.id, { roles: [...user.roles, USER_ROLE.SELLER] });
+
+    const shop = await this.repo.shop().insert({ userId: user.id });
     return shop;
   }
 
@@ -45,5 +51,21 @@ export class ShopService implements IShopService {
     );
 
     await this.repo.shop().update(shopId, { imageUrl: url });
+  }
+
+  async updateShop(
+    userId: string,
+    shopId: string,
+    payload: UpdateShopDto,
+  ): Promise<IShop> {
+    const isUserOwnsShop = await this.repo
+      .shop()
+      .isUserOwnsShop(userId, shopId);
+    if (!isUserOwnsShop) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+
+    const shop = await this.repo.shop().update(shopId, payload);
+    return shop;
   }
 }

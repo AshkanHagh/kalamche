@@ -17,6 +17,7 @@ export enum KalamcheErrorType {
   UnAuthorized = "UNAUTHORIZED",
   S3ReqFailed = "S3_REQUEST_FAILED",
   ShopAlreadyExists = "SHOP_ALREADY_EXISTS",
+  DbQueryFailed = "DB_QUERY_FAILED",
 }
 
 export class KalamcheError extends HttpException {

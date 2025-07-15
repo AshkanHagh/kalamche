@@ -29,8 +29,8 @@ export type IUserOAuthAccountInsertForm = InferInsertModel<
 >;
 
 export type IUser = InferSelectModel<typeof schema.UserTable>;
-
 export type IUserInsertForm = InferInsertModel<typeof schema.UserTable>;
+export type IUserUpdateForm = Partial<IUser>;
 
 export interface IUserView {
   user: Omit<IUser, "passwordHash" | "updatedAt">;

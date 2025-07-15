@@ -26,7 +26,7 @@ export const ShopTable = pgTable("shops", (table) => {
     state: table.text(),
     streetAddress: table.text(),
     zipCode: table.integer(),
-    taxId: table.text(),
+    taxId: table.text().unique(),
     createdAt,
     updatedAt,
   };

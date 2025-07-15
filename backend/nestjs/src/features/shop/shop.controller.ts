@@ -1,10 +1,12 @@
 import {
+  Body,
   Controller,
   HttpCode,
   HttpStatus,
   Param,
   ParseFilePipeBuilder,
   ParseUUIDPipe,
+  Patch,
   Post,
   UploadedFile,
   UseGuards,
@@ -12,25 +14,35 @@ import {
 } from "@nestjs/common";
 import { IShopController } from "./interfaces/controller";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
-import { IShop } from "src/drizzle/types";
+import { IShop, IUser } from "src/drizzle/types";
 import { ShopService } from "./shop.service";
 import { User } from "../auth/decorators/user.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { UpdateShopDto, UpdateShopSchema } from "./dto";
+import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
+import { Permission } from "../auth/decorators/permission.decorators";
+import {
+  ResourceType,
+  SHOP_RESOURCE_ACTION,
+} from "src/constants/global.constant";
+import { PermissionGuard } from "../auth/guards/permission.guard";
 
 @Controller("shops")
-@UseGuards(AuthorizationGuard)
+@UseGuards(AuthorizationGuard, PermissionGuard)
 export class ShopController implements IShopController {
   constructor(private shopService: ShopService) {}
 
   @Post("/")
-  async createShop(@User("id") userId: string): Promise<IShop> {
-    const result = this.shopService.createShop(userId);
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.CREATE)
+  async createShop(@User() user: IUser): Promise<IShop> {
+    const result = this.shopService.createShop(user);
     return result;
   }
 
   @Post("/image/upload/:shop_id")
   @UseInterceptors(FileInterceptor("image"))
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
   async uploadImage(
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
@@ -45,5 +57,16 @@ export class ShopController implements IShopController {
   ): Promise<void> {
     await this.shopService.uploadImage(userId, shopId, image);
     return;
+  }
+
+  @Patch("/:shop_id")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
+  async updateShop(
+    @User("id") userId: string,
+    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+    @Body(new ZodValidationPipe(UpdateShopSchema)) payload: UpdateShopDto,
+  ): Promise<IShop> {
+    const shop = await this.shopService.updateShop(userId, shopId, payload);
+    return shop;
   }
 }

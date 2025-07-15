@@ -27,7 +27,7 @@ export class ShopRepository implements IShopRepository {
     return shop;
   }
 
-  async isUserOwnShop(userId: string, shopId: string): Promise<boolean> {
+  async isUserOwnsShop(userId: string, shopId: string): Promise<boolean> {
     const [shop] = await this.db
       .select()
       .from(ShopTable)

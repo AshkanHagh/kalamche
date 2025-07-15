@@ -9,6 +9,7 @@ import {
   IUserInsertForm,
   IUserLoginToken,
   IUserLoginTokenInsertForm,
+  IUserUpdateForm,
   IUserView,
 } from "src/drizzle/types";
 
@@ -18,6 +19,7 @@ export interface IUserRepository {
   findUserView(id: string): Promise<IUserView>;
   insert(form: IUserInsertForm): Promise<IUser>;
   findById(id: string): Promise<IUser | undefined>;
+  update(id: string, form: IUserUpdateForm): Promise<IUser>;
 }
 
 export interface IPendingUserRepository {
@@ -52,6 +54,6 @@ export interface IShopRepository {
   findByUserId(userId: string): Promise<IShop | undefined>;
   insert(form: IShopInsertForm): Promise<IShop>;
   findById(id: string): Promise<IShop>;
-  isUserOwnShop(userId: string, shopId: string): Promise<boolean>;
+  isUserOwnsShop(userId: string, shopId: string): Promise<boolean>;
   update(id: string, form: IShopUpdateForm): Promise<IShop>;
 }
