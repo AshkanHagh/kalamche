@@ -56,7 +56,7 @@ export class ProductService implements IProductService {
     return {
       brands: relatedBrands,
       priceRange,
-      products,
+      products: [],
       hasNext,
     };
   }

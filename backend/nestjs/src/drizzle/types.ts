@@ -29,8 +29,8 @@ export type IUserOAuthAccountInsertForm = InferInsertModel<
 >;
 
 export type IUser = InferSelectModel<typeof schema.UserTable>;
-
 export type IUserInsertForm = InferInsertModel<typeof schema.UserTable>;
+export type IUserUpdateForm = Partial<IUser>;
 
 export interface IUserView {
   user: Omit<IUser, "passwordHash" | "updatedAt">;
@@ -43,8 +43,8 @@ export type IProduct = InferSelectModel<typeof schema.ProductTable>;
 export type IProductInsertForm = InferInsertModel<typeof schema.ProductTable>;
 
 export type IShop = InferSelectModel<typeof schema.ShopTable>;
-
 export type IShopInsertForm = InferInsertModel<typeof schema.ShopTable>;
+export type IShopUpdateForm = Partial<IShop>;
 
 export type IProductPriceHistory = InferSelectModel<
   typeof schema.ProductPriceHistoryTable

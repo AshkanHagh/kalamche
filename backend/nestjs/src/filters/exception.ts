@@ -15,6 +15,9 @@ export enum KalamcheErrorType {
   VerifyTokenExpired = "VERIFY_TOKEN_EXPIRED",
   PermissionDenied = "PERMISSION_DENIED",
   UnAuthorized = "UNAUTHORIZED",
+  S3ReqFailed = "S3_REQUEST_FAILED",
+  ShopAlreadyExists = "SHOP_ALREADY_EXISTS",
+  DbQueryFailed = "DB_QUERY_FAILED",
 }
 
 export class KalamcheError extends HttpException {
@@ -41,6 +44,9 @@ export class KalamcheError extends HttpException {
       }
       case KalamcheErrorType.PermissionDenied: {
         return HttpStatus.FORBIDDEN;
+      }
+      case KalamcheErrorType.ShopAlreadyExists: {
+        return HttpStatus.CONFLICT;
       }
 
       case KalamcheErrorType.EmailAlreadyExists ||

@@ -6,6 +6,7 @@ import { UserRepository } from "./repositories/user";
 import { PendingUserRepository } from "./repositories/pending-user";
 import { UserLoginTokenRepository } from "./repositories/user-login-token";
 import { ProductRepository } from "./repositories/product";
+import { ShopRepository } from "./repositories/shop.repo";
 
 @Injectable()
 export class RepositoryService implements IRepositoryService {
@@ -15,6 +16,7 @@ export class RepositoryService implements IRepositoryService {
     private PendingUserRepo: PendingUserRepository,
     private UserLoginTokenRepo: UserLoginTokenRepository,
     private ProductRepo: ProductRepository,
+    private ShopRepo: ShopRepository,
   ) {}
 
   db(): Database {
@@ -35,5 +37,9 @@ export class RepositoryService implements IRepositoryService {
 
   product(): ProductRepository {
     return this.ProductRepo;
+  }
+
+  shop(): ShopRepository {
+    return this.ShopRepo;
   }
 }

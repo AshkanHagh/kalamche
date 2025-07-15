@@ -19,7 +19,7 @@ export class AuthorizationGuard implements CanActivate {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }
 
-    const accessToken = token.split("Bearer")[1];
+    const accessToken = token.split("Bearer ")[1];
     const payload = this.authUtilService.verifyAccessToken(accessToken);
     const user = await this.repo.user().findById(payload.userId);
     if (!user) {
