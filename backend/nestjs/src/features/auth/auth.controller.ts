@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res } from "@nestjs/common";
+import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
 import { IAuthController } from "./interfaces/controller";
 import {
   LoginDto,
@@ -60,5 +60,14 @@ export class AuthController implements IAuthController {
     );
 
     return res.status(201).json(result);
+  }
+
+  @Get("/refresh")
+  async refreshToken(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<Response> {
+    const result = await this.authService.refreshToken(req, res);
+    return res.status(200).json(result);
   }
 }

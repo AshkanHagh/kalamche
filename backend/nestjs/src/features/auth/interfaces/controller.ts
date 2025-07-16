@@ -19,4 +19,5 @@ export interface IAuthController {
     req: Request,
     payload: VerifyEmailRegistrationDto,
   ): Promise<Response>;
+  refreshToken(req: Request, res: Response): Promise<Response>;
 }

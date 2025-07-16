@@ -82,22 +82,10 @@ export class AuthUtilService {
     };
   }
 
-  verifyVerificationToken(token: string) {
+  verifyToken<T>(token: string, secret: string) {
     try {
-      const result = jwt.verify(
-        token,
-        this.authConfig.verificationToken.secret!,
-      );
-      return result as { code: number; userId: string };
-    } catch (error: unknown) {
-      throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
-    }
-  }
-
-  verifyAccessToken(token: string) {
-    try {
-      const result = jwt.verify(token, this.authConfig.accessToken.secret!);
-      return result as { userId: string; type: string };
+      const result = jwt.verify(token, secret);
+      return result as { userId: string; type: string } & T;
     } catch (error: unknown) {
       throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
     }
@@ -113,10 +101,7 @@ export class AuthUtilService {
     return user;
   }
 
-  async generateLoginRes(res: Response, req: Request, user: IUser) {
-    const userView = await this.repo.user().findUserView(user.id);
-    const tokens = await this.refreshToken(req, user.id);
-
+  setCookies(res: Response, accessToken: string, refreshToken: string) {
     const cookieOptions: CookieOptions = {
       path: "/",
       secure: process.env.NODE_ENV === "production",
@@ -125,14 +110,21 @@ export class AuthUtilService {
     };
 
     res
-      .cookie("access_token", tokens.accessToken, {
+      .cookie("access_token", accessToken, {
         ...cookieOptions,
         maxAge: 1000 * this.authConfig.accessToken.exp,
       })
-      .cookie("refresh_token", tokens.refreshToken, {
+      .cookie("refresh_token", refreshToken, {
         ...cookieOptions,
         maxAge: 1000 * this.authConfig.refreshToken.exp,
       });
+  }
+
+  async generateLoginRes(res: Response, req: Request, user: IUser) {
+    const userView = await this.repo.user().findUserView(user.id);
+    const tokens = await this.refreshToken(req, user.id);
+
+    this.setCookies(res, tokens.accessToken, tokens.refreshToken);
 
     return { tokens, userView };
   }

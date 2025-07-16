@@ -3,12 +3,14 @@ import { Request } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { RepositoryService } from "src/repository/repository.service";
 import { AuthUtilService } from "../util.service";
+import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
     private repo: RepositoryService,
     private authUtilService: AuthUtilService,
+    @AuthConfig() private config: IAuthConfig,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -20,7 +22,10 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     const accessToken = token.split("Bearer ")[1];
-    const payload = this.authUtilService.verifyAccessToken(accessToken);
+    const payload = this.authUtilService.verifyToken(
+      accessToken,
+      this.config.accessToken.secret!,
+    );
     const user = await this.repo.user().findById(payload.userId);
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);

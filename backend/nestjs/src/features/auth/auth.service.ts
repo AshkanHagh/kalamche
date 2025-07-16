@@ -20,12 +20,14 @@ import { RESEND_CODE_COOLDOWN } from "./constants";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { Request, Response } from "express";
 import { USER_ROLE } from "src/constants/global.constant";
+import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
     private repo: RepositoryService,
     private authUtil: AuthUtilService,
+    @AuthConfig() private config: IAuthConfig,
   ) {}
 
   async register(payload: RegisterDto): Promise<string> {
@@ -154,7 +156,10 @@ export class AuthService implements IAuthService {
     req: Request,
     payload: VerifyEmailRegistrationDto,
   ): Promise<VerifyEmailRegistrationRes> {
-    const token = this.authUtil.verifyVerificationToken(payload.token);
+    const token = this.authUtil.verifyToken<{ code: number }>(
+      payload.token,
+      this.config.verificationToken.secret!,
+    );
     if (token.code !== payload.code) {
       throw new KalamcheError(KalamcheErrorType.InvalidVerifyCode);
     }
@@ -183,5 +188,34 @@ export class AuthService implements IAuthService {
       accessToken: response.tokens.accessToken,
       user: response.userView,
     };
+  }
+
+  async refreshToken(
+    req: Request,
+    res: Response,
+  ): Promise<{ accessToken: string }> {
+    // eslint-disable-next-line
+    const refreshToken = req.cookies["refresh_token"] as string | undefined;
+    if (!refreshToken) {
+      throw new KalamcheError(KalamcheErrorType.UnAuthorized);
+    }
+
+    const result = this.authUtil.verifyToken(
+      refreshToken,
+      this.config.refreshToken.secret!,
+    );
+    const user = await this.repo.user().findById(result.userId);
+    if (!user) {
+      throw new KalamcheError(KalamcheErrorType.UnAuthorized);
+    }
+
+    const loginToken = await this.repo.userLoginToken().findByUserId(user.id);
+    if (loginToken.token !== refreshToken) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+
+    const tokens = await this.authUtil.refreshToken(req, user.id);
+    this.authUtil.setCookies(res, tokens.accessToken, tokens.refreshToken);
+    return { accessToken: tokens.accessToken };
   }
 }

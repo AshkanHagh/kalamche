@@ -25,4 +25,5 @@ export interface IAuthService {
     req: Request,
     payload: VerifyEmailRegistrationDto,
   ): Promise<VerifyEmailRegistrationRes>;
+  refreshToken(req: Request, res: Response): Promise<{ accessToken: string }>;
 }
