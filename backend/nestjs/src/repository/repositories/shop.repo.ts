@@ -8,7 +8,7 @@ import { IShopRepository } from "../interfaces/repository";
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
 import { ShopTable } from "src/drizzle/schemas";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 
 export class ShopRepository implements IShopRepository {
@@ -25,15 +25,6 @@ export class ShopRepository implements IShopRepository {
       .from(ShopTable)
       .where(eq(ShopTable.userId, userId));
     return shop;
-  }
-
-  async isUserOwnsShop(userId: string, shopId: string): Promise<boolean> {
-    const [shop] = await this.db
-      .select()
-      .from(ShopTable)
-      .where(and(eq(ShopTable.userId, userId), eq(ShopTable.id, shopId)));
-
-    return !!shop;
   }
 
   async findById(id: string): Promise<IShop> {

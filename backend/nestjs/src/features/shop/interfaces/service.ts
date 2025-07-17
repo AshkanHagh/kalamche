@@ -1,16 +1,16 @@
 import { IShop, IUser } from "src/drizzle/types";
-import { UpdateShopDto } from "../dto";
+import { UpdateShopCreationDto } from "../dto";
 
 export interface IShopService {
-  createShop(user: IUser): Promise<IShop>;
+  createShop(userId: string): Promise<IShop>;
   uploadImage(
     userId: string,
     shopId: string,
     image: Express.Multer.File,
   ): Promise<void>;
-  updateShop(
-    userId: string,
+  updateShopCreation(
+    user: IUser,
     shopId: string,
-    payload: UpdateShopDto,
+    payload: UpdateShopCreationDto,
   ): Promise<IShop>;
 }

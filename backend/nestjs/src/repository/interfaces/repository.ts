@@ -54,6 +54,5 @@ export interface IShopRepository {
   findByUserId(userId: string): Promise<IShop | undefined>;
   insert(form: IShopInsertForm): Promise<IShop>;
   findById(id: string): Promise<IShop>;
-  isUserOwnsShop(userId: string, shopId: string): Promise<boolean>;
   update(id: string, form: IShopUpdateForm): Promise<IShop>;
 }

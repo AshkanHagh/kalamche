@@ -18,7 +18,6 @@ import { IShop, IUser } from "src/drizzle/types";
 import { ShopService } from "./shop.service";
 import { User } from "../auth/decorators/user.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { UpdateShopDto, UpdateShopSchema } from "./dto";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { Permission } from "../auth/decorators/permission.decorators";
 import {
@@ -26,6 +25,7 @@ import {
   SHOP_RESOURCE_ACTION,
 } from "src/constants/global.constant";
 import { PermissionGuard } from "../auth/guards/permission.guard";
+import { UpdateShopCreationDto, UpdateShopCreationSchema } from "./dto";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -34,8 +34,8 @@ export class ShopController implements IShopController {
 
   @Post("/")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.CREATE)
-  async createShop(@User() user: IUser): Promise<IShop> {
-    const result = this.shopService.createShop(user);
+  async createShop(@User("id") userId: string): Promise<IShop> {
+    const result = this.shopService.createShop(userId);
     return result;
   }
 
@@ -61,12 +61,12 @@ export class ShopController implements IShopController {
 
   @Patch("/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
-  async updateShop(
-    @User("id") userId: string,
+  async updateShopCreation(
+    @User() user: IUser,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
-    @Body(new ZodValidationPipe(UpdateShopSchema)) payload: UpdateShopDto,
+    @Body(new ZodValidationPipe(UpdateShopCreationSchema))
+    payload: UpdateShopCreationDto,
   ): Promise<IShop> {
-    const shop = await this.shopService.updateShop(userId, shopId, payload);
-    return shop;
+    return await this.shopService.updateShopCreation(user, shopId, payload);
   }
 }

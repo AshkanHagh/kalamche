@@ -67,8 +67,7 @@ async function seedShops(db: Database, users: IUser[]) {
       country: faker.location.country(),
       city: faker.location.city(),
       state: faker.location.state(),
-      zipCode: parseInt(faker.location.zipCode()),
-      taxId: faker.finance.iban(),
+      zipCode: faker.location.zipCode(),
       status: faker.helpers.arrayElement(["pending", "active", "closed"]),
     }));
   });
