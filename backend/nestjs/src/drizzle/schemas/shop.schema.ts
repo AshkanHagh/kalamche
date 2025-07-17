@@ -7,6 +7,7 @@ import { ProductOfferTable } from "./product-offer.schema";
 
 // NOTE: removed status field(no admin panel will impl yet)
 // NOTE: added default value for emailVerifiedAt(no verification for email for now)
+// TODO: add a price field here
 export const ShopTable = pgTable("shops", (table) => {
   return {
     id,

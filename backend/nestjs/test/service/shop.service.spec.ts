@@ -49,11 +49,11 @@ describe("ShopService", () => {
 
     beforeEach(async () => {
       user = await createUser(nestModule);
-      result = await service.createShop(user.id);
+      result = await service.createShop(user);
     });
 
     it("should not create a shop for a user that already has one", async () => {
-      const shop = service.createShop(user.id);
+      const shop = service.createShop(user);
       await expect(shop).rejects.toThrow(
         new KalamcheError(KalamcheErrorType.ShopAlreadyExists),
       );
@@ -64,6 +64,9 @@ describe("ShopService", () => {
 
       const shop = repo.shop().findById(result.id);
       await expect(shop).resolves.toEqual(result);
+
+      const user2 = await repo.user().findById(user.id);
+      expect(user2?.roles).toEqual([USER_ROLE.USER, USER_ROLE.SELLER]);
     });
   });
 
@@ -86,8 +89,8 @@ describe("ShopService", () => {
     beforeEach(async () => {
       user = await createUser(nestModule);
 
-      const shop = await service.createShop(user.id);
-      result = await service.updateShopCreation(user, shop.id, payload);
+      const shop = await service.createShop(user);
+      result = await service.updateShopCreation(user.id, shop.id, payload);
     });
 
     it("should update and complete the shop creation", async () => {
@@ -95,24 +98,42 @@ describe("ShopService", () => {
 
       const shop = repo.shop().findById(result.id);
       await expect(shop).resolves.toEqual(result);
-
-      const user2 = await repo.user().findById(user.id);
-      expect(user2?.roles).toEqual([USER_ROLE.USER, USER_ROLE.SELLER]);
     });
 
     it("should not update the shop creation", async () => {
-      const result2 = service.updateShopCreation(user, result.id, payload);
+      const result2 = service.updateShopCreation(user.id, result.id, payload);
       await expect(result2).rejects.toThrow(
         new KalamcheError(KalamcheErrorType.ShopAlreadyExists),
       );
 
       const newUser = await createUser(nestModule);
-      const result4 = service.updateShopCreation(newUser, result.id, payload);
+      const result4 = service.updateShopCreation(
+        newUser.id,
+        result.id,
+        payload,
+      );
       await expect(result4).rejects.toThrow(
         new KalamcheError(KalamcheErrorType.PermissionDenied),
       );
     });
   });
+
+  // describe(".deleteShop", () => {
+  //   let user: IUser;
+  //   let shop: IShop;
+
+  //   beforeEach(async () => {
+  //     user = await createUser(nestModule);
+
+  //     shop = await service.createShop(user);
+  //     await service.deleteShop(user.id, shop.id);
+  //   });
+
+  //   // TODO: this requires a product offer to be created first
+  //   // TODO: check for image is deleting or not
+  //   // TODO: check for permission error
+  //   it("should delete existing shop and product offer without deleting shop product", async () => {});
+  // });
 
   afterAll(async () => {
     await nestModule.close();

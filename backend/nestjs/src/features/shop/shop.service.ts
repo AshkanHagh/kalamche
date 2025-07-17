@@ -14,12 +14,15 @@ export class ShopService implements IShopService {
     private s3Service: S3Service,
   ) {}
 
-  async createShop(userId: string): Promise<IShop> {
-    const hasShop = await this.repo.shop().findByUserId(userId);
+  async createShop(user: IUser): Promise<IShop> {
+    const hasShop = await this.repo.shop().findByUserId(user.id);
     if (hasShop) {
       throw new KalamcheError(KalamcheErrorType.ShopAlreadyExists);
     }
-    const shop = await this.repo.shop().insert({ userId });
+    await this.repo
+      .user()
+      .update(user.id, { roles: [...user.roles, USER_ROLE.SELLER] });
+    const shop = await this.repo.shop().insert({ userId: user.id });
     return shop;
   }
 
@@ -34,7 +37,8 @@ export class ShopService implements IShopService {
     }
 
     if (shop.imageUrl) {
-      const imageId = shop.imageUrl.split("/")[-1];
+      const imageId = shop.imageUrl.split("/").at(-1)!;
+      console.log(imageId);
       await this.s3Service.delete(imageId);
     }
 
@@ -49,24 +53,33 @@ export class ShopService implements IShopService {
   }
 
   async updateShopCreation(
-    user: IUser,
+    userId: string,
     shopId: string,
     payload: UpdateShopCreationDto,
   ): Promise<IShop> {
     const shop = await this.repo.shop().findById(shopId);
-    if (shop.userId !== user.id) {
+    if (shop.userId !== userId) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
     if (!shop.isTemp) {
       throw new KalamcheError(KalamcheErrorType.ShopAlreadyExists);
     }
 
-    const [updatedShop] = await Promise.all([
-      this.repo.shop().update(shopId, { isTemp: false, ...payload }),
-      this.repo
-        .user()
-        .update(user.id, { roles: [...user.roles, USER_ROLE.SELLER] }),
-    ]);
+    const updatedShop = this.repo
+      .shop()
+      .update(shopId, { isTemp: false, ...payload });
     return updatedShop;
+  }
+
+  async deleteShop(userId: string, shopId: string): Promise<void> {
+    const shop = await this.repo.shop().findById(shopId);
+    if (shop.userId !== userId) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+    if (shop.imageUrl) {
+      const imageId = shop.imageUrl.split("/").at(-1)!;
+      await this.s3Service.delete(imageId);
+    }
+    await this.repo.shop().delete(shopId);
   }
 }

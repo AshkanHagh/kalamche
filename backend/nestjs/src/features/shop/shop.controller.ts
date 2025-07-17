@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   HttpCode,
   HttpStatus,
   Param,
@@ -34,8 +35,8 @@ export class ShopController implements IShopController {
 
   @Post("/")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.CREATE)
-  async createShop(@User("id") userId: string): Promise<IShop> {
-    const result = this.shopService.createShop(userId);
+  async createShop(@User() user: IUser): Promise<IShop> {
+    const result = this.shopService.createShop(user);
     return result;
   }
 
@@ -62,11 +63,21 @@ export class ShopController implements IShopController {
   @Patch("/complete/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
   async updateShopCreation(
-    @User() user: IUser,
+    @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
     @Body(new ZodValidationPipe(UpdateShopCreationSchema))
     payload: UpdateShopCreationDto,
   ): Promise<IShop> {
-    return await this.shopService.updateShopCreation(user, shopId, payload);
+    return await this.shopService.updateShopCreation(userId, shopId, payload);
+  }
+
+  @Delete("/:shop_id")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.DELETE)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteShop(
+    @User("id") userId: string,
+    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+  ): Promise<void> {
+    await this.shopService.deleteShop(userId, shopId);
   }
 }

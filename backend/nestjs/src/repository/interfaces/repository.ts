@@ -55,4 +55,5 @@ export interface IShopRepository {
   insert(form: IShopInsertForm): Promise<IShop>;
   findById(id: string): Promise<IShop>;
   update(id: string, form: IShopUpdateForm): Promise<IShop>;
+  delete(id: string): Promise<void>;
 }

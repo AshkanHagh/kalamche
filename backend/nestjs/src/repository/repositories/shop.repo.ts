@@ -47,4 +47,8 @@ export class ShopRepository implements IShopRepository {
       .returning();
     return shop;
   }
+
+  async delete(id: string): Promise<void> {
+    await this.db.delete(ShopTable).where(eq(ShopTable.id, id));
+  }
 }

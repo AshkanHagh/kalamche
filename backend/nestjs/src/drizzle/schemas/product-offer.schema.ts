@@ -4,19 +4,19 @@ import { ShopTable } from "./shop.schema";
 import { ProductTable } from "./product.schema";
 import { relations } from "drizzle-orm";
 
+// TODO: remove price and add final_price
 export const ProductOfferTable = pgTable("product_offers", (table) => {
   return {
     id,
     shopId: table
       .uuid()
       .notNull()
-      .references(() => ShopTable.id),
+      .references(() => ShopTable.id, { onDelete: "cascade" }),
     productId: table
       .uuid()
       .notNull()
       .references(() => ProductTable.id),
     price: table.real().notNull(),
-    buyboxWinner: table.boolean().notNull().default(false),
     createdAt,
     updatedAt,
   };
