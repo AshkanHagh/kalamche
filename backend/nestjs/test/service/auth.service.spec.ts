@@ -2,7 +2,13 @@ import { TestingModule } from "@nestjs/testing";
 import { AuthService } from "src/features/auth/auth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { RepositoryService } from "src/repository/repository.service";
-import { clearDb, createNestAppInstance, createUser } from "test/test.helper";
+import {
+  clearDb,
+  createNestAppInstance,
+  createTestPostgresDb,
+  createUser,
+  stopDb,
+} from "test/test.helper";
 import { Request, Response } from "express";
 import { mock } from "ts-mockito";
 import { LoginResponse } from "src/features/auth/types";
@@ -10,9 +16,12 @@ import { Database } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { UserLoginTokenTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
+import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
+import { migration } from "src/drizzle/migration";
 
 describe("AuthService", () => {
   let nestModule: TestingModule;
+  let pgContainer: StartedPostgreSqlContainer;
   let service: AuthService;
   let repo: RepositoryService;
   let db: Database;
@@ -25,10 +34,12 @@ describe("AuthService", () => {
   });
 
   beforeAll(async () => {
+    pgContainer = await createTestPostgresDb();
     req = mock<Request>();
     res = mock<Response>();
 
     res.cookie = jest.fn().mockReturnValue(res);
+    await migration();
 
     nestModule = await createNestAppInstance();
     service = nestModule.get(AuthService);
@@ -206,5 +217,7 @@ describe("AuthService", () => {
 
   afterAll(async () => {
     await nestModule.close();
+    await stopDb(db);
+    await pgContainer.stop();
   });
 });

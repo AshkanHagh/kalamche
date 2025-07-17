@@ -17,9 +17,9 @@ import * as schema from "./schemas";
 
         const pool = new Pool({
           connectionString: config?.postgres.url,
-          max: 100,
-          min: 1,
+          max: 10,
           ssl: config?.postgres.ssl,
+          allowExitOnIdle: false,
         });
 
         return drizzle(pool, { schema, casing: "snake_case", logger: false });

@@ -1,8 +1,11 @@
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "./schemas";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { Pool } from "pg";
 
-export type Database = NodePgDatabase<typeof schema>;
+export type Database = NodePgDatabase<typeof schema> & {
+  $client?: Pool;
+};
 
 export type IPendingUser = InferSelectModel<typeof schema.PendingUserTable>;
 

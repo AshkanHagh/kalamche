@@ -13,6 +13,8 @@ describe("EmailService", () => {
   let mailConfig: IMailConfig;
 
   beforeEach(async () => {
+    // mock internal transport that used to send emails
+    // after initialization of nodemailer
     mockTransport = mock<Transporter>();
 
     const module: TestingModule = await Test.createTestingModule({
@@ -24,6 +26,7 @@ describe("EmailService", () => {
     service = module.get<EmailService>(EmailService);
     mailConfig = configService.get<IMailConfig>(MAIL_CONFIG)!;
 
+    // return mock transport from nodemailer method
     jest
       .spyOn(service, "mailTransport")
       .mockReturnValue(instance(mockTransport));

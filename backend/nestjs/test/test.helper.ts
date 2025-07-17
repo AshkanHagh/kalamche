@@ -4,10 +4,12 @@ import { AppModule } from "src/app.module";
 import * as schema from "../src/drizzle/schemas";
 import { sql } from "drizzle-orm";
 import { RepositoryService } from "src/repository/repository.service";
-import { IUser, IUserInsertForm } from "src/drizzle/types";
+import { Database, IUser, IUserInsertForm } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { Pool } from "pg";
 import { USER_ROLE } from "src/constants/global.constant";
+import { PostgreSqlContainer } from "@testcontainers/postgresql";
+import { MinioContainer } from "@testcontainers/minio";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   const module = await Test.createTestingModule({
@@ -15,6 +17,31 @@ export async function createNestAppInstance(): Promise<TestingModule> {
   }).compile();
 
   return module;
+}
+
+export async function createTestPostgresDb() {
+  const container = await new PostgreSqlContainer(
+    "registry.docker.ir/pgvector/pgvector:0.8.0-pg17",
+  ).start();
+  process.env.DATABASE_URL = container.getConnectionUri();
+
+  return container;
+}
+
+export async function createTestMinio() {
+  const container = await new MinioContainer(
+    "registry.docker.ir/minio/minio:latest",
+  ).start();
+  console.log(`http://${container.getHost()}:${container.getPort()}`);
+
+  process.env.AWS_S3_ACCESS_KEY = "minioadmin";
+  process.env.AWS_S3_SECRET_KEY = "minioadmin";
+  process.env.AWS_S3_BUCKET_NAME = "kalamche";
+  process.env.AWS_S3_ENDPOINT = `http://${container.getHost()}:${container.getPort()}`;
+  process.env.AWS_S3_REGION = " ";
+  process.env.AWS_S3_USE_PATH_STYLE = "true";
+
+  return container;
 }
 
 export async function clearDb() {
@@ -72,4 +99,12 @@ export async function createUser(
     token: "",
     userId: user.id,
   });
+
+  return user;
+}
+
+export async function stopDb(db: Database) {
+  await db.$client?.end();
+  // TODO: find a way to remove timeout for drizzle to close conns
+  await new Promise((resolve) => setTimeout(resolve, 10_000));
 }

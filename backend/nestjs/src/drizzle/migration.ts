@@ -3,7 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { resolve } from "node:path";
 
-async function migration() {
+export async function migration() {
   const db = drizzle(process.env.DATABASE_URL!);
 
   const path = resolve(__dirname, "migrations");
@@ -50,8 +50,11 @@ async function migration() {
   `;
 
   await db.execute(query);
-
-  process.exit(0);
 }
 
-migration();
+if (require.main === module) {
+  (async () => {
+    await migration();
+    process.exit(0);
+  })();
+}

@@ -50,9 +50,6 @@ export class S3Service implements IS3Service {
       } catch (error: unknown) {
         throw new KalamcheError(KalamcheErrorType.S3ReqFailed, error);
       }
-
-      // unnecessary
-      throw new KalamcheError(KalamcheErrorType.S3ReqFailed, error);
     }
   }
 
