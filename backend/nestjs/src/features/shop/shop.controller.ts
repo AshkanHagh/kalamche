@@ -39,7 +39,7 @@ export class ShopController implements IShopController {
     return result;
   }
 
-  @Post("/image/upload/:shop_id")
+  @Post("/image/:shop_id")
   @UseInterceptors(FileInterceptor("image"))
   @HttpCode(HttpStatus.NO_CONTENT)
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
@@ -59,7 +59,7 @@ export class ShopController implements IShopController {
     return;
   }
 
-  @Patch("/:shop_id")
+  @Patch("/complete/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
   async updateShopCreation(
     @User() user: IUser,
