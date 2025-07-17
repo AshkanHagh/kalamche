@@ -219,5 +219,5 @@ describe("AuthService", () => {
     await nestModule.close();
     await stopDb(db);
     await pgContainer.stop();
-  });
+  }, 1000 * 20);
 });

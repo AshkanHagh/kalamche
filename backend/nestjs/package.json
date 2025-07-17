@@ -82,7 +82,6 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
-    "testTimeout": 20000,
     "moduleFileExtensions": [
       "js",
       "json",

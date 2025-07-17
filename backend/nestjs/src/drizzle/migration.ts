@@ -2,13 +2,9 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { resolve } from "node:path";
-import { Client } from "pg";
 
 export async function migration() {
-  const client = new Client({
-    connectionString: process.env.DATABASE_URL!,
-  });
-  const db = drizzle(client);
+  const db = drizzle(process.env.DATABASE_URL!);
 
   const path = resolve(__dirname, "migrations");
   await migrate(db, { migrationsFolder: path });
@@ -54,7 +50,6 @@ export async function migration() {
   `;
 
   await db.execute(query);
-  await client.end();
 }
 
 if (require.main === module) {

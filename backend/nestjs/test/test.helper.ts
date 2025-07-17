@@ -32,7 +32,6 @@ export async function createTestMinio() {
   const container = await new MinioContainer(
     "registry.docker.ir/minio/minio:latest",
   ).start();
-  console.log(`http://${container.getHost()}:${container.getPort()}`);
 
   process.env.AWS_S3_ACCESS_KEY = "minioadmin";
   process.env.AWS_S3_SECRET_KEY = "minioadmin";
@@ -106,5 +105,5 @@ export async function createUser(
 export async function stopDb(db: Database) {
   await db.$client?.end();
   // TODO: find a way to remove timeout for drizzle to close conns
-  await new Promise((resolve) => setTimeout(resolve, 10_000));
+  await new Promise((resolve) => setTimeout(resolve, 1000 * 10));
 }
