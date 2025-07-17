@@ -15,6 +15,11 @@ export const formSchema = z.object({
     .min(10, "Phone number must be at least 10 digits")
     .regex(/^[+]?[0-9\s\-()]+$/, "Please enter a valid phone number"),
   website: z.string().url("Please enter a valid website URL"),
+  logo: z
+    .custom<File>()
+    .refine((file) => file instanceof File && file.size > 0, {
+      message: "Please upload a valid logo"
+    }),
   country: z.string().min(1, "Please select a country"),
   state: z.string().min(1, "Please select a state/province"),
   city: z.string().min(1, "Please select a city"),
