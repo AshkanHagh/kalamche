@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import ShopDetails from "../steps/ShopDetails"
 import Branding from "../steps/Branding"
+import ContactInfo from "../steps/ContactInfo"
 
 const CreateShopForm = () => {
   const {
@@ -31,7 +32,8 @@ const CreateShopForm = () => {
     currentStepDetails
   } = useMultiStep([
     <ShopDetails key="shop-details" />,
-    <Branding key="branding" />
+    <Branding key="branding" />,
+    <ContactInfo key="contact-info" />
   ])
   const formMethods = useForm<FormSchemaValues>({
     defaultValues: {
