@@ -4,7 +4,7 @@ import { IShop, IUser } from "src/drizzle/types";
 import { RepositoryService } from "src/repository/repository.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";
-import { UpdateShopCreationDto } from "./dto";
+import { UpdateShopCreationDto, UpdateShopDto } from "./dto";
 import { USER_ROLE } from "src/constants/global.constant";
 
 @Injectable()
@@ -89,5 +89,22 @@ export class ShopService implements IShopService {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
     return shop;
+  }
+
+  async updateShop(
+    userId: string,
+    shopId: string,
+    payload: UpdateShopDto,
+  ): Promise<IShop> {
+    const shop = await this.repo.shop().findById(shopId);
+    if (shop.userId !== userId) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+    if (shop.isTemp) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    const updatedShop = this.repo.shop().update(shopId, payload);
+    return updatedShop;
   }
 }

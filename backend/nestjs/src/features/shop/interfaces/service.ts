@@ -1,5 +1,5 @@
 import { IShop, IUser } from "src/drizzle/types";
-import { UpdateShopCreationDto } from "../dto";
+import { UpdateShopCreationDto, UpdateShopDto } from "../dto";
 
 export interface IShopService {
   createShop(user: IUser): Promise<IShop>;
@@ -15,4 +15,9 @@ export interface IShopService {
   ): Promise<IShop>;
   deleteShop(userId: string, shopId: string): Promise<void>;
   getShop(shopId: string): Promise<IShop>;
+  updateShop(
+    userId: string,
+    shopId: string,
+    payload: UpdateShopDto,
+  ): Promise<IShop>;
 }

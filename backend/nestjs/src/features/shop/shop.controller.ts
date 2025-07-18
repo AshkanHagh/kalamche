@@ -27,7 +27,12 @@ import {
   SHOP_RESOURCE_ACTION,
 } from "src/constants/global.constant";
 import { PermissionGuard } from "../auth/guards/permission.guard";
-import { UpdateShopCreationDto, UpdateShopCreationSchema } from "./dto";
+import {
+  UpdateShopCreationDto,
+  UpdateShopCreationSchema,
+  UpdateShopDto,
+  UpdateShopSchema,
+} from "./dto";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -88,5 +93,15 @@ export class ShopController implements IShopController {
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
   ): Promise<IShop> {
     return await this.shopService.getShop(shopId);
+  }
+
+  @Patch("/:shop_id")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
+  async updateShop(
+    @User("id") userId: string,
+    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+    @Body(new ZodValidationPipe(UpdateShopSchema)) payload: UpdateShopDto,
+  ): Promise<IShop> {
+    return await this.shopService.updateShop(userId, shopId, payload);
   }
 }
