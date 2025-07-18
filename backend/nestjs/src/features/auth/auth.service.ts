@@ -6,7 +6,6 @@ import {
   ResendVerificationCodeDto,
   VerifyEmailRegistrationDto,
 } from "./dto";
-import { RepositoryService } from "src/repository/repository.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IPendingUser } from "src/drizzle/types";
 import * as argon2 from "argon2";
@@ -21,23 +20,28 @@ import { getElapsedTime } from "src/utils/elapsed-time";
 import { Request, Response } from "express";
 import { USER_ROLE } from "src/constants/global.constant";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
+import { UserRepository } from "src/repository/repositories/user.repository";
+import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
+import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 
 @Injectable()
 export class AuthService implements IAuthService {
   constructor(
-    private repo: RepositoryService,
+    private userRepository: UserRepository,
+    private pendingUserRepository: PendingUserRepository,
+    private userLoginTokenRepository: UserLoginTokenRepository,
     private authUtil: AuthUtilService,
     @AuthConfig() private config: IAuthConfig,
   ) {}
 
   async register(payload: RegisterDto): Promise<string> {
-    const emailExists = await this.repo.user().emailExists(payload.email);
+    const emailExists = await this.userRepository.emailExists(payload.email);
     if (emailExists) {
       throw new KalamcheError(KalamcheErrorType.EmailAlreadyExists);
     }
 
     let pendingUser: IPendingUser | undefined;
-    pendingUser = await this.repo.pendingUser().findByEmail(payload.email);
+    pendingUser = await this.pendingUserRepository.findByEmail(payload.email);
 
     if (pendingUser) {
       const minutesElapsed = getElapsedTime(pendingUser.createdAt, "minutes");
@@ -45,10 +49,10 @@ export class AuthService implements IAuthService {
         throw new KalamcheError(KalamcheErrorType.RegistrationCooldown);
       }
 
-      await this.repo.pendingUser().update(pendingUser.id);
+      await this.pendingUserRepository.update(pendingUser.id);
     } else {
       const hashedPassword = await argon2.hash(payload.password);
-      pendingUser = await this.repo.pendingUser().insert({
+      pendingUser = await this.pendingUserRepository.insert({
         email: payload.email,
         passwordHash: hashedPassword,
         token: "",
@@ -64,9 +68,9 @@ export class AuthService implements IAuthService {
   async resendVerificationCode(
     payload: ResendVerificationCodeDto,
   ): Promise<string> {
-    const pendingUser = await this.repo
-      .pendingUser()
-      .findByEmail(payload.email);
+    const pendingUser = await this.pendingUserRepository.findByEmail(
+      payload.email,
+    );
     if (!pendingUser) {
       throw new KalamcheError(KalamcheErrorType.NotRegistered);
     }
@@ -90,7 +94,7 @@ export class AuthService implements IAuthService {
     req: Request,
     payload: LoginDto,
   ): Promise<LoginPendingResponse | LoginResponse> {
-    const user = await this.repo.user().findByEmail(payload.email);
+    const user = await this.userRepository.findByEmail(payload.email);
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
     }
@@ -107,14 +111,16 @@ export class AuthService implements IAuthService {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
     }
 
-    const loginToken = await this.repo.userLoginToken().findByUserId(user.id);
+    const loginToken = await this.userLoginTokenRepository.findByUserId(
+      user.id,
+    );
 
     const hoursElapsed = getElapsedTime(loginToken.createdAt, "hours");
     if (hoursElapsed >= 12) {
       // scenario 1.
-      const pendingUser = await this.repo
-        .pendingUser()
-        .findByEmail(payload.email);
+      const pendingUser = await this.pendingUserRepository.findByEmail(
+        payload.email,
+      );
 
       // TODO: delete pending user if exists
       if (pendingUser) {
@@ -125,7 +131,7 @@ export class AuthService implements IAuthService {
       }
 
       const hashedPass = await argon2.hash(payload.password);
-      const newPendingUser = await this.repo.pendingUser().insert({
+      const newPendingUser = await this.pendingUserRepository.insert({
         email: payload.email,
         passwordHash: hashedPass,
         token: "",
@@ -164,7 +170,7 @@ export class AuthService implements IAuthService {
       throw new KalamcheError(KalamcheErrorType.InvalidVerifyCode);
     }
 
-    const pendingUser = await this.repo.pendingUser().findById(token.userId);
+    const pendingUser = await this.pendingUserRepository.findById(token.userId);
     if (!pendingUser || !pendingUser.passwordHash) {
       throw new KalamcheError(KalamcheErrorType.NotRegistered);
     }
@@ -181,7 +187,7 @@ export class AuthService implements IAuthService {
       roles: [USER_ROLE.USER],
     });
 
-    await this.repo.pendingUser().deleteById(pendingUser.id);
+    await this.pendingUserRepository.deleteById(pendingUser.id);
 
     const response = await this.authUtil.generateLoginRes(res, req, user);
     return {
@@ -194,7 +200,6 @@ export class AuthService implements IAuthService {
     req: Request,
     res: Response,
   ): Promise<{ accessToken: string }> {
-    // eslint-disable-next-line
     const refreshToken = req.cookies["refresh_token"] as string | undefined;
     if (!refreshToken) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
@@ -204,12 +209,14 @@ export class AuthService implements IAuthService {
       refreshToken,
       this.config.refreshToken.secret!,
     );
-    const user = await this.repo.user().findById(result.userId);
+    const user = await this.userRepository.findById(result.userId);
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }
 
-    const loginToken = await this.repo.userLoginToken().findByUserId(user.id);
+    const loginToken = await this.userLoginTokenRepository.findByUserId(
+      user.id,
+    );
     if (loginToken.token !== refreshToken) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }

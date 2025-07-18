@@ -1,7 +1,6 @@
 import { TestingModule } from "@nestjs/testing";
 import { AuthService } from "src/features/auth/auth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { RepositoryService } from "src/repository/repository.service";
 import {
   clearDb,
   createNestAppInstance,
@@ -18,13 +17,16 @@ import { UserLoginTokenTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
 import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { migration } from "src/drizzle/migration";
+import { UserRepository } from "src/repository/repositories/user.repository";
+import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 
 describe("AuthService", () => {
   let nestModule: TestingModule;
   let pgContainer: StartedPostgreSqlContainer;
   let service: AuthService;
-  let repo: RepositoryService;
   let db: Database;
+  let userRepository: UserRepository;
+  let pendingUserRepository: PendingUserRepository;
   let resendCodeSpy;
   let req: Request;
   let res: Response;
@@ -43,7 +45,8 @@ describe("AuthService", () => {
 
     nestModule = await createNestAppInstance();
     service = nestModule.get(AuthService);
-    repo = nestModule.get(RepositoryService);
+    userRepository = nestModule.get(UserRepository);
+    pendingUserRepository = nestModule.get(PendingUserRepository);
     db = nestModule.get(DATABASE);
 
     resendCodeSpy = jest.spyOn(service, "resendVerificationCode");
@@ -58,9 +61,8 @@ describe("AuthService", () => {
     });
 
     it("should register a new user", async () => {
-      const newPendingUser = await repo
-        .pendingUser()
-        .findByEmail("john@example.com");
+      const newPendingUser =
+        await pendingUserRepository.findByEmail("john@example.com");
 
       expect(newPendingUser).toBeDefined();
       expect(newPendingUser?.token).toBeDefined();
@@ -79,12 +81,11 @@ describe("AuthService", () => {
     });
 
     it("should updates pending user on retry after cooldown", async () => {
-      const pendingUser = await repo
-        .pendingUser()
-        .findByEmail("john@example.com");
+      const pendingUser =
+        await pendingUserRepository.findByEmail("john@example.com");
 
       const oneMinPass = new Date(Date.now() - 1000 * 60 * 1);
-      await repo.pendingUser().update(pendingUser!.id, {
+      await pendingUserRepository.update(pendingUser!.id, {
         createdAt: oneMinPass,
       });
 
@@ -93,9 +94,8 @@ describe("AuthService", () => {
         password: "pwdjohn",
       });
 
-      const updatedPendingUser = await repo
-        .pendingUser()
-        .findByEmail("john@example.com");
+      const updatedPendingUser =
+        await pendingUserRepository.findByEmail("john@example.com");
 
       expect(updatedPendingUser?.createdAt.getTime()).toBeGreaterThan(
         oneMinPass.getTime(),
@@ -107,7 +107,7 @@ describe("AuthService", () => {
 
   describe(".resendVerificationCode", () => {
     beforeEach(async () => {
-      await repo.pendingUser().insert({
+      await pendingUserRepository.insert({
         email: "john@example.com",
         passwordHash: "pwdjohn",
         token: "",
@@ -199,7 +199,7 @@ describe("AuthService", () => {
     });
 
     it("should initiate account verification and return token if login token is 12 hours or older", async () => {
-      const user = await repo.user().findByEmail("john@example.com");
+      const user = await userRepository.findByEmail("john@example.com");
       const afterTwelveHours = new Date(Date.now() - 1000 * 60 * 60 * 12);
       await db
         .update(UserLoginTokenTable)

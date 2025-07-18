@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IUserLoginTokenRepository } from "../interfaces/repository";
 import { DATABASE } from "src/drizzle/constants";
 import {
   Database,
@@ -9,9 +8,10 @@ import {
 import { UserLoginTokenTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
+import { IUserLoginTokenRepo } from "../interfaces/IUserLoginTokenRepo";
 
 @Injectable()
-export class UserLoginTokenRepository implements IUserLoginTokenRepository {
+export class UserLoginTokenRepository implements IUserLoginTokenRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async findByUserId(userId: string): Promise<IUserLoginToken> {

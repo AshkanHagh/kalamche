@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IUserRepository } from "../interfaces/repository";
 import {
   Database,
   IUser,
@@ -11,9 +10,10 @@ import { DATABASE } from "src/drizzle/constants";
 import { UserTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
+import { IUserRepo } from "../interfaces/IUserRepo";
 
 @Injectable()
-export class UserRepository implements IUserRepository {
+export class UserRepository implements IUserRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async emailExists(email: string): Promise<boolean> {

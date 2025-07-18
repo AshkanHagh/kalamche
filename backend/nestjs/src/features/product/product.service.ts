@@ -1,26 +1,24 @@
 import { Injectable } from "@nestjs/common";
 import { IProductService } from "./interfaces/service";
-import { RepositoryService } from "src/repository/repository.service";
 import { SearchDto } from "./dto";
 import { SearchResponse } from "./types";
+import { ProductRepository } from "src/repository/repositories/product.repository";
 
 @Injectable()
 export class ProductService implements IProductService {
-  constructor(private repo: RepositoryService) {}
+  constructor(private productRepository: ProductRepository) {}
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)
   async search(query: SearchDto): Promise<SearchResponse> {
-    const result = await this.repo
-      .product()
-      .findProductsByFilter(
-        query.sort,
-        query.brand,
-        query.q,
-        query.prMax,
-        query.prMin,
-        query.limit,
-        query.offset,
-      );
+    const result = await this.productRepository.findProductsByFilter(
+      query.sort,
+      query.brand,
+      query.q,
+      query.prMax,
+      query.prMin,
+      query.limit,
+      query.offset,
+    );
 
     const hasNext = result.length > query.limit;
     result.pop();

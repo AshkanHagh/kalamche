@@ -1,5 +1,4 @@
 import { Inject } from "@nestjs/common";
-import { IProductRepository } from "../interfaces/repository";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import {
@@ -19,8 +18,9 @@ import {
   ProductTable,
   ShopTable,
 } from "src/drizzle/schemas";
+import { IProductRepo } from "../interfaces/IProductRepo";
 
-export class ProductRepository implements IProductRepository {
+export class ProductRepository implements IProductRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async findProductsByFilter(

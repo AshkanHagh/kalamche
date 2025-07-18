@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IPendingUserRepository } from "../interfaces/repository";
 import {
   Database,
   IPendingUser,
@@ -9,9 +8,10 @@ import {
 import { DATABASE } from "src/drizzle/constants";
 import { PendingUserTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
+import { IPendingUserRepo } from "../interfaces/IPendingUserRepo";
 
 @Injectable()
-export class PendingUserRepository implements IPendingUserRepository {
+export class PendingUserRepository implements IPendingUserRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async findByEmail(email: string): Promise<IPendingUser | undefined> {

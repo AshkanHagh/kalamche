@@ -6,7 +6,6 @@ import { migration } from "src/drizzle/migration";
 import { Database, IShop, IUser } from "src/drizzle/types";
 import { ShopService } from "src/features/shop/shop.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { RepositoryService } from "src/repository/repository.service";
 import {
   clearDb,
   createNestAppInstance,
@@ -17,6 +16,8 @@ import {
 } from "test/test.helper";
 import { faker } from "@faker-js/faker";
 import { USER_ROLE } from "src/constants/global.constant";
+import { ShopRepository } from "src/repository/repositories/shop.repository";
+import { UserRepository } from "src/repository/repositories/user.repository";
 
 describe("ShopService", () => {
   let nestModule: TestingModule;
@@ -24,7 +25,8 @@ describe("ShopService", () => {
   let pgContainer: StartedPostgreSqlContainer;
   let minioContainer: StartedMinioContainer;
   let db: Database;
-  let repo: RepositoryService;
+  let shopRepository: ShopRepository;
+  let userRepository: UserRepository;
 
   beforeEach(async () => {
     await clearDb();
@@ -40,7 +42,8 @@ describe("ShopService", () => {
     nestModule = await createNestAppInstance();
     service = nestModule.get(ShopService);
     db = nestModule.get(DATABASE);
-    repo = nestModule.get(RepositoryService);
+    shopRepository = nestModule.get(ShopRepository);
+    userRepository = nestModule.get(UserRepository);
   }, 1000 * 15);
 
   describe(".createShop", () => {
@@ -62,10 +65,10 @@ describe("ShopService", () => {
     it("should create a temp shop", async () => {
       expect(result.isTemp).toBe(true);
 
-      const shop = repo.shop().findById(result.id);
+      const shop = shopRepository.findById(result.id);
       await expect(shop).resolves.toEqual(result);
 
-      const user2 = await repo.user().findById(user.id);
+      const user2 = await userRepository.findById(user.id);
       expect(user2?.roles).toEqual([USER_ROLE.USER, USER_ROLE.SELLER]);
     });
   });
@@ -96,7 +99,7 @@ describe("ShopService", () => {
     it("should update and complete the shop creation", async () => {
       expect(result.isTemp).toBe(false);
 
-      const shop = repo.shop().findById(result.id);
+      const shop = shopRepository.findById(result.id);
       await expect(shop).resolves.toEqual(result);
     });
 

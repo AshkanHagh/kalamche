@@ -24,10 +24,10 @@ export class S3Service implements IS3Service {
       region: this.config.region!,
     });
 
-    this.init();
+    this.#init();
   }
 
-  private async init() {
+  async #init() {
     try {
       const bucketCommand = new HeadBucketCommand({
         Bucket: this.config.bucketName,
@@ -45,7 +45,7 @@ export class S3Service implements IS3Service {
         // in production i will use s3 so for dev we ignore
         if (process.env.NODE_ENV === "production") {
           // delete temp files after 24 hours
-          await this.initLifecycle();
+          await this.#initLifecycle();
         }
       } catch (error: unknown) {
         throw new KalamcheError(KalamcheErrorType.S3ReqFailed, error);
@@ -53,7 +53,7 @@ export class S3Service implements IS3Service {
     }
   }
 
-  private async initLifecycle() {
+  async #initLifecycle() {
     const command = new PutBucketLifecycleConfigurationCommand({
       Bucket: this.config.bucketName,
       LifecycleConfiguration: {

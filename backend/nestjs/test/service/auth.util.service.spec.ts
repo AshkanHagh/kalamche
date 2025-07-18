@@ -3,33 +3,37 @@ import { Request } from "express";
 import { ConfigModule } from "src/config/config.module";
 import { AuthUtilService } from "src/features/auth/util.service";
 import { EmailService } from "src/features/email/email.service";
-import { PendingUserRepository } from "src/repository/repositories/pending-user";
-import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token";
-import { RepositoryService } from "src/repository/repository.service";
-import { instance, mock, when } from "ts-mockito";
+import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
+import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
+import { UserRepository } from "src/repository/repositories/user.repository";
+import { instance, mock } from "ts-mockito";
 
 describe("AuthUtilService", () => {
   let service: AuthUtilService;
 
   beforeEach(async () => {
-    const mockRepo = mock(RepositoryService);
     const mockEmailService = mock(EmailService);
-
-    when(mockRepo.pendingUser()).thenReturn(
-      instance(mock(PendingUserRepository)),
-    );
-    when(mockRepo.userLoginToken()).thenReturn(
-      instance(mock(UserLoginTokenRepository)),
-    );
+    const mockUserRepo = mock(UserRepository);
+    const mockPendingUserRepo = mock(PendingUserRepository);
+    const mockUserLoginTokenRepo = mock(UserLoginTokenRepository);
 
     const module = await Test.createTestingModule({
       imports: [ConfigModule.register()],
       providers: [
         AuthUtilService,
         {
-          provide: RepositoryService,
-          useValue: instance(mockRepo),
+          provide: UserRepository,
+          useValue: instance(mockUserRepo),
         },
+        {
+          provide: PendingUserRepository,
+          useValue: instance(mockPendingUserRepo),
+        },
+        {
+          provide: UserLoginTokenRepository,
+          useValue: instance(mockUserLoginTokenRepo),
+        },
+
         {
           provide: EmailService,
           useValue: instance(mockEmailService),

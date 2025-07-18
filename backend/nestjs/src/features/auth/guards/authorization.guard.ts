@@ -1,14 +1,14 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Request } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { RepositoryService } from "src/repository/repository.service";
 import { AuthUtilService } from "../util.service";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
+import { UserRepository } from "src/repository/repositories/user.repository";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
-    private repo: RepositoryService,
+    private userRepository: UserRepository,
     private authUtilService: AuthUtilService,
     @AuthConfig() private config: IAuthConfig,
   ) {}
@@ -26,7 +26,7 @@ export class AuthorizationGuard implements CanActivate {
       accessToken,
       this.config.accessToken.secret!,
     );
-    const user = await this.repo.user().findById(payload.userId);
+    const user = await this.userRepository.findById(payload.userId);
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }

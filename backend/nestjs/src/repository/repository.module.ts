@@ -1,11 +1,10 @@
 import { Module } from "@nestjs/common";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
-import { UserRepository } from "./repositories/user";
-import { PendingUserRepository } from "./repositories/pending-user";
-import { RepositoryService } from "./repository.service";
-import { UserLoginTokenRepository } from "./repositories/user-login-token";
-import { ProductRepository } from "./repositories/product";
-import { ShopRepository } from "./repositories/shop.repo";
+import { UserRepository } from "./repositories/user.repository";
+import { PendingUserRepository } from "./repositories/pending-user.repository";
+import { UserLoginTokenRepository } from "./repositories/user-login-token.repository";
+import { ProductRepository } from "./repositories/product.repository";
+import { ShopRepository } from "./repositories/shop.repository";
 
 const repositories = [
   UserRepository,
@@ -17,7 +16,7 @@ const repositories = [
 
 @Module({
   imports: [DrizzleModule],
-  providers: [RepositoryService, ...repositories],
-  exports: [RepositoryService],
+  providers: repositories,
+  exports: repositories,
 })
 export class RepositoryModule {}

@@ -1,15 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
-import { eq } from "drizzle-orm";
-import { ProductTable } from "src/drizzle/schemas";
-import { ProductPriceHistoryTable } from "src/drizzle/schemas/product-price-history.schema";
-import { IProductPriceHistoryInsertForm } from "src/drizzle/types";
-import { RepositoryService } from "src/repository/repository.service";
 
 // TODO: update commented code to match new database structure
 @Injectable()
 export class ProductScheduler {
-  constructor(private repo: RepositoryService) {}
+  constructor() {}
 
   // get all products and insert price history for each product every day
   // only store last 6 mounts

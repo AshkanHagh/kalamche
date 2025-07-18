@@ -4,14 +4,14 @@ import {
   IShopInsertForm,
   IShopUpdateForm,
 } from "src/drizzle/types";
-import { IShopRepository } from "../interfaces/repository";
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
 import { ShopTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
+import { IShopRepo } from "../interfaces/IShopRepo";
 
-export class ShopRepository implements IShopRepository {
+export class ShopRepository implements IShopRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async insert(form: IShopInsertForm): Promise<IShop> {

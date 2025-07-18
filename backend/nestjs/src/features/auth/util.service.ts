@@ -1,16 +1,20 @@
 import { randomInt } from "crypto";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import * as jwt from "jsonwebtoken";
-import { RepositoryService } from "src/repository/repository.service";
 import { EmailService } from "../email/email.service";
 import { CookieOptions, Request, Response } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IUser, IUserInsertForm } from "src/drizzle/types";
+import { UserRepository } from "src/repository/repositories/user.repository";
+import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
+import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 
 export class AuthUtilService {
   constructor(
     @AuthConfig() private authConfig: IAuthConfig,
-    private repo: RepositoryService,
+    private userRepository: UserRepository,
+    private pendingUserRepository: PendingUserRepository,
+    private userLoginTokenRepository: UserLoginTokenRepository,
     private emailService: EmailService,
   ) {}
 
@@ -34,7 +38,9 @@ export class AuthUtilService {
       this.authConfig.verificationToken.secret!,
     );
 
-    await this.repo.pendingUser().update(userId, { token: verificationToken });
+    await this.pendingUserRepository.update(userId, {
+      token: verificationToken,
+    });
 
     await this.emailService.sendVerificationAccountEmail({
       code: verificationCode,
@@ -69,7 +75,7 @@ export class AuthUtilService {
         : req.ip;
     const userAgent = req.headers["user-agent"];
 
-    await this.repo.userLoginToken().insertOrUpdate({
+    await this.userLoginTokenRepository.insertOrUpdate({
       token: refreshToken,
       userId,
       userAgent,
@@ -93,9 +99,9 @@ export class AuthUtilService {
 
   // NOT COMPLETED YET
   async findOrCreateUser(userForm: IUserInsertForm) {
-    let user = await this.repo.user().findByEmail(userForm.email);
+    let user = await this.userRepository.findByEmail(userForm.email);
     if (!user) {
-      user = await this.repo.user().insert(userForm);
+      user = await this.userRepository.insert(userForm);
     }
 
     return user;
@@ -121,7 +127,7 @@ export class AuthUtilService {
   }
 
   async generateLoginRes(res: Response, req: Request, user: IUser) {
-    const userView = await this.repo.user().findUserView(user.id);
+    const userView = await this.userRepository.findUserView(user.id);
     const tokens = await this.refreshToken(req, user.id);
 
     this.setCookies(res, tokens.accessToken, tokens.refreshToken);

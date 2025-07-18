@@ -3,13 +3,14 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { AppModule } from "src/app.module";
 import * as schema from "../src/drizzle/schemas";
 import { sql } from "drizzle-orm";
-import { RepositoryService } from "src/repository/repository.service";
 import { Database, IUser, IUserInsertForm } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { Pool } from "pg";
 import { USER_ROLE } from "src/constants/global.constant";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { MinioContainer } from "@testcontainers/minio";
+import { UserRepository } from "src/repository/repositories/user.repository";
+import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   const module = await Test.createTestingModule({
@@ -71,19 +72,20 @@ export async function createUser(
   form?: Partial<IUserInsertForm>,
   existingUser?: IUser,
 ) {
-  const repo = nestModule.get(RepositoryService);
+  const userRepository = nestModule.get(UserRepository);
+  const userLoginTokenRepository = nestModule.get(UserLoginTokenRepository);
 
   let user: IUser;
   if (!existingUser) {
     if (oauthUser) {
-      user = await repo.user().insert({
+      user = await userRepository.insert({
         email: form?.email || "jane@example.com",
         name: form?.name || "john",
         roles: [USER_ROLE.USER],
       });
     } else {
       const hashedPass = await argon2.hash(form?.passwordHash || "pwd");
-      user = await repo.user().insert({
+      user = await userRepository.insert({
         email: form?.email || "john@example.com",
         name: form?.name || "john",
         passwordHash: hashedPass,
@@ -94,7 +96,7 @@ export async function createUser(
     user = existingUser;
   }
 
-  await repo.userLoginToken().insertOrUpdate({
+  await userLoginTokenRepository.insertOrUpdate({
     token: "",
     userId: user.id,
   });
