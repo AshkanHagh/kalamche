@@ -14,7 +14,6 @@ import {
   UseGuards,
   UseInterceptors,
 } from "@nestjs/common";
-import { IShopController } from "./interfaces/controller";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
 import { IShop, IUser } from "src/drizzle/types";
 import { ShopService } from "./shop.service";
@@ -33,6 +32,7 @@ import {
   UpdateShopDto,
   UpdateShopSchema,
 } from "./dto";
+import { IShopController } from "./interfaces/IController";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)

@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { IShopService } from "./interfaces/service";
+import { IShopService } from "./interfaces/IService";
 import { IShop, IUser } from "src/drizzle/types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";

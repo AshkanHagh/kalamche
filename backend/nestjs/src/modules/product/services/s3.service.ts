@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-s3";
 import { IS3Config, S3Config } from "src/config/s3.config";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { IS3Service } from "../interfaces/service";
+import { IS3Service } from "../interfaces/services/IS3Service";
 
 export class S3Service implements IS3Service {
   private client: S3Client;

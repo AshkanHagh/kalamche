@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { IAuthService } from "./interfaces/service";
+import { IAuthService } from "./interfaces/IService";
 import {
   LoginDto,
   RegisterDto,

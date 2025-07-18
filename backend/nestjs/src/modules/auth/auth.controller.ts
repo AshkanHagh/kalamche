@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
-import { IAuthController } from "./interfaces/controller";
 import {
   LoginDto,
   LoginSchema,
@@ -13,6 +12,7 @@ import {
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { AuthService } from "./auth.service";
 import { Request, Response } from "express";
+import { IAuthController } from "./interfaces/IController";
 
 @Controller("auth")
 export class AuthController implements IAuthController {

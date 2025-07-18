@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { IProductService } from "./interfaces/service";
+import { IProductService } from "./interfaces/IService";
 import { SearchDto } from "./dto";
 import { SearchResponse } from "./types";
 import { ProductRepository } from "src/repository/repositories/product.repository";

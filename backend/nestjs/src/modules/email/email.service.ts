@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { IEmailService } from "./interfaces/service";
+import { IEmailService } from "./interfaces/IService";
 import { IMailConfig, MailConfig } from "src/config/mail.config";
 import * as nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";

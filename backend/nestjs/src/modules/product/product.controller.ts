@@ -1,9 +1,9 @@
 import { Controller, Get, Query } from "@nestjs/common";
-import { IProductController } from "./interfaces/controller";
 import { SearchDto, SearchSchema } from "./dto";
 import { SearchResponse } from "./types";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { ProductService } from "./product.service";
+import { IProductController } from "./interfaces/IController";
 
 @Controller("products")
 export class ProductController implements IProductController {
