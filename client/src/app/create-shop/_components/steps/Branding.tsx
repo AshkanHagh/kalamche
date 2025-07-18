@@ -14,9 +14,11 @@ import Image from "next/image"
 import { useMemo, useState } from "react"
 import { useFormContext } from "react-hook-form"
 import { toast } from "sonner"
+import { FormSchemaValues } from "../../_schema/formSchema"
 
 const Branding = () => {
-  const { control, watch, setError, clearErrors, setValue } = useFormContext()
+  const { control, watch, setError, clearErrors, resetField } =
+    useFormContext<FormSchemaValues>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const logo = watch("logo")
 
@@ -35,8 +37,8 @@ const Branding = () => {
       toast.success("your logo was uploaded!")
     } catch (error) {
       console.log(error)
+      resetField("logo")
       setError("logo", { message: "something went wrong" })
-      setValue("logo", undefined)
     } finally {
       setIsLoading(false)
     }

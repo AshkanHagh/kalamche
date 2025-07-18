@@ -9,9 +9,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Globe, Mail, Phone } from "lucide-react"
 import { useFormContext } from "react-hook-form"
+import { FormSchemaValues } from "../../_schema/formSchema"
 
 const ContactInfo = () => {
-  const { control } = useFormContext()
+  const { control } = useFormContext<FormSchemaValues>()
 
   return (
     <div className="space-y-4">

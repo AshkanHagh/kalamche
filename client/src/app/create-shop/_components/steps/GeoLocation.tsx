@@ -17,9 +17,10 @@ import {
 import { useFormContext } from "react-hook-form"
 import { LOCATIONS_DATA } from "../../_constant/LOCATIONS_DATA"
 import { useEffect } from "react"
+import { FormSchemaValues } from "../../_schema/formSchema"
 
 const GeoLocation = () => {
-  const { control, watch, resetField } = useFormContext()
+  const { control, watch, resetField } = useFormContext<FormSchemaValues>()
 
   const selectedCountry = watch("country")
   const selectedState = watch("state")

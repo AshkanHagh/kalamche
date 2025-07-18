@@ -11,9 +11,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormContext } from "react-hook-form"
+import { FormSchemaValues } from "../../_schema/formSchema"
 
 const ShopDetails = () => {
-  const { control } = useFormContext()
+  const { control } = useFormContext<FormSchemaValues>()
 
   return (
     <div className="space-y-4">
