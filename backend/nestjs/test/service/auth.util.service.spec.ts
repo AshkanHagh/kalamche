@@ -1,8 +1,8 @@
 import { Test } from "@nestjs/testing";
 import { Request } from "express";
 import { ConfigModule } from "src/config/config.module";
-import { AuthUtilService } from "src/features/auth/util.service";
-import { EmailService } from "src/features/email/email.service";
+import { AuthUtilService } from "src/modules/auth/util.service";
+import { EmailService } from "src/modules/email/email.service";
 import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 import { UserRepository } from "src/repository/repositories/user.repository";
