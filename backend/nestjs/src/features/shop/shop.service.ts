@@ -82,4 +82,12 @@ export class ShopService implements IShopService {
     }
     await this.repo.shop().delete(shopId);
   }
+
+  async getShop(shopId: string): Promise<IShop> {
+    const shop = await this.repo.shop().findById(shopId);
+    if (shop.isTemp) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+    return shop;
+  }
 }

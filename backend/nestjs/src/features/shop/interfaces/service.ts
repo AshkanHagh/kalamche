@@ -14,4 +14,5 @@ export interface IShopService {
     payload: UpdateShopCreationDto,
   ): Promise<IShop>;
   deleteShop(userId: string, shopId: string): Promise<void>;
+  getShop(shopId: string): Promise<IShop>;
 }

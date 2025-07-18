@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   HttpCode,
   HttpStatus,
   Param,
@@ -79,5 +80,13 @@ export class ShopController implements IShopController {
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
   ): Promise<void> {
     await this.shopService.deleteShop(userId, shopId);
+  }
+
+  @Get("/:shop_id")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
+  async getShop(
+    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+  ): Promise<IShop> {
+    return await this.shopService.getShop(shopId);
   }
 }
