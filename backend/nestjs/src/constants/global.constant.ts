@@ -16,7 +16,6 @@ export enum USER_RESOURCE_ACTION {
   UPDATE = "update",
   DELETE = "delete",
   READ = "read",
-  READ_MANY = "read_many",
 }
 
 export enum SHOP_RESOURCE_ACTION {
@@ -24,10 +23,19 @@ export enum SHOP_RESOURCE_ACTION {
   UPDATE = "update",
   DELETE = "delete",
   READ = "read",
-  READ_MANY = "read_many",
 }
 
-export type ActionType = USER_RESOURCE_ACTION | SHOP_RESOURCE_ACTION;
+export enum PRODUCT_RESOURCE_ACTION {
+  CREATE = "create",
+  UPDATE = "update",
+  DELETE = "delete",
+  READ = "read",
+}
+
+export type ActionType =
+  | USER_RESOURCE_ACTION
+  | SHOP_RESOURCE_ACTION
+  | PRODUCT_RESOURCE_ACTION;
 
 export const ROLE_PERMISSIONS: Record<
   USER_ROLE,
@@ -36,6 +44,7 @@ export const ROLE_PERMISSIONS: Record<
   [USER_ROLE.ADMIN]: {
     [ResourceType.USER]: Object.values(USER_RESOURCE_ACTION),
     [ResourceType.SHOP]: Object.values(SHOP_RESOURCE_ACTION),
+    [ResourceType.PRODUCT]: Object.values(PRODUCT_RESOURCE_ACTION),
   },
   [USER_ROLE.USER]: {
     [ResourceType.USER]: [
@@ -46,8 +55,10 @@ export const ROLE_PERMISSIONS: Record<
       SHOP_RESOURCE_ACTION.READ,
       SHOP_RESOURCE_ACTION.CREATE,
     ],
+    [ResourceType.PRODUCT]: [PRODUCT_RESOURCE_ACTION.READ],
   },
   [USER_ROLE.SELLER]: {
     [ResourceType.SHOP]: Object.values(SHOP_RESOURCE_ACTION),
+    [ResourceType.PRODUCT]: Object.values(PRODUCT_RESOURCE_ACTION),
   },
 };

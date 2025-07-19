@@ -4,6 +4,7 @@ import { UserTable } from "./user.schema";
 import { relations } from "drizzle-orm";
 import { ProductTable } from "./product.schema";
 import { ProductOfferTable } from "./product-offer.schema";
+import { TempProductTable } from "./temp-product.schema";
 
 // NOTE: removed status field(no admin panel will impl yet)
 // NOTE: added default value for emailVerifiedAt(no verification for email for now)
@@ -40,4 +41,5 @@ export const ShopRelations = relations(ShopTable, ({ one, many }) => ({
   }),
   products: many(ProductTable),
   vendors: many(ProductOfferTable),
+  tempProducts: many(TempProductTable),
 }));

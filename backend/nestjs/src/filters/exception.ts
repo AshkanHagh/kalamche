@@ -18,6 +18,8 @@ export enum KalamcheErrorType {
   S3ReqFailed = "S3_REQUEST_FAILED",
   ShopAlreadyExists = "SHOP_ALREADY_EXISTS",
   DbQueryFailed = "DB_QUERY_FAILED",
+  ProductWithUpcAlreadyExists = "PRODUCT_WITH_UPC_ALREADY_EXISTS",
+  InvalidUpc = "INVALID_UPC",
 }
 
 export class KalamcheError extends HttpException {
@@ -45,7 +47,8 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.PermissionDenied: {
         return HttpStatus.FORBIDDEN;
       }
-      case KalamcheErrorType.ShopAlreadyExists: {
+      case KalamcheErrorType.ShopAlreadyExists ||
+        KalamcheErrorType.ProductWithUpcAlreadyExists: {
         return HttpStatus.CONFLICT;
       }
 
@@ -55,7 +58,8 @@ export class KalamcheError extends HttpException {
         KalamcheErrorType.InvalidEmailAddress ||
         KalamcheErrorType.NoPasswordOAuthError ||
         KalamcheErrorType.InvalidVerifyCode ||
-        KalamcheErrorType.VerifyTokenExpired: {
+        KalamcheErrorType.VerifyTokenExpired ||
+        KalamcheErrorType.InvalidUpc: {
         return HttpStatus.BAD_REQUEST;
       }
 

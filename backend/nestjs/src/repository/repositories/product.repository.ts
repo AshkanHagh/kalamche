@@ -1,6 +1,6 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
-import { Database } from "src/drizzle/types";
+import { Database, IProduct } from "src/drizzle/types";
 import {
   and,
   asc,
@@ -19,9 +19,30 @@ import {
   ShopTable,
 } from "src/drizzle/schemas";
 import { IProductRepo } from "../interfaces/IProductRepo";
+import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 
 export class ProductRepository implements IProductRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
+
+  async findByUpc(upc: string): Promise<IProduct | undefined> {
+    const [product] = await this.db
+      .select()
+      .from(ProductTable)
+      .where(eq(ProductTable.upc, upc));
+    return product;
+  }
+
+  async findById(id: string): Promise<IProduct> {
+    const [product] = await this.db
+      .select()
+      .from(ProductTable)
+      .where(eq(ProductTable.id, id));
+    if (!product) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    return product;
+  }
 
   async findProductsByFilter(
     sort: "cheapest" | "view" | "newest" | "expensive" | "popular",

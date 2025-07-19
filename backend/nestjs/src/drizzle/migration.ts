@@ -32,7 +32,7 @@ export async function migration() {
     CREATE OR REPLACE FUNCTION fn_update_search_vector() RETURNS TRIGGER AS $$
       BEGIN
         NEW.vector :=
-          setweight(to_tsvector('english', NEW.name), 'A') ||
+          setweight(to_tsvector('english', NEW.title), 'A') ||
           setweight(to_tsvector('english', NEW.description), 'B') ||
           setweight(to_tsvector('english', array_to_string(NEW.categories, ' ')), 'C') ||
           setweight(to_tsvector('english', fn_extract_specification_text(NEW.specifications)), 'D');

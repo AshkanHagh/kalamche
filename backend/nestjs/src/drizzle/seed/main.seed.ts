@@ -105,7 +105,7 @@ async function seedProducts(db: Database, shops: IShop[]) {
           shopId: randomShop.id,
           categories: JSON.parse(record.categories) as string[],
           description: record.description,
-          name: record.title,
+          title: record.title,
           specifications: productSpecification,
           websiteUrl: record.url,
           brand: record.brand,
@@ -114,6 +114,7 @@ async function seedProducts(db: Database, shops: IShop[]) {
           upc: faker.string.numeric({ length: 12 }),
           views: faker.number.int({ min: 1, max: 10_000 }),
           status: "public",
+          initialPrice: parseInt(record?.initial_price || "10"),
         };
         productsInsertForm.push(insertForm);
       })

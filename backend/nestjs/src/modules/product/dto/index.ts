@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const CreateProductSchema = z.object({
+  modelNumber: z.string(),
+  upc: z.string(),
+});
+
+export type CreateProductDto = z.infer<typeof CreateProductSchema>;
+
 const sort = z.enum(["cheapest", "view", "newest", "expensive", "popular"]);
 
 export const SearchSchema = z.object({
