@@ -8,6 +8,7 @@ import {
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import { eq } from "drizzle-orm";
+import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 
 @Injectable()
 export class TempProductRepository implements ITempProductRepo {
@@ -26,5 +27,17 @@ export class TempProductRepository implements ITempProductRepo {
       .delete(TempProductTable)
       .where(eq(TempProductTable.id, id))
       .execute();
+  }
+
+  async findById(id: string): Promise<ITempProduct> {
+    const [product] = await this.db
+      .select()
+      .from(TempProductTable)
+      .where(eq(TempProductTable.id, id));
+    if (!product) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    return product;
   }
 }

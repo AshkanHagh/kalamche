@@ -4,11 +4,14 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
 } from "@nestjs/common";
 import {
+  CompleteProductCreationDto,
+  CompleteProductCreationSchema,
   CreateProductDto,
   CreateProductSchema,
   SearchDto,
@@ -27,6 +30,7 @@ import {
   ResourceType,
 } from "src/constants/global.constant";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
+import { IProduct } from "src/drizzle/types";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -43,7 +47,23 @@ export class ProductController implements IProductController {
     return this.productService.createProduct(userId, shopId, payload);
   }
 
+  @Patch("/complete/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
+  async completeProductCreation(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Body(new ZodValidationPipe(CompleteProductCreationSchema))
+    payload: CompleteProductCreationDto,
+  ): Promise<IProduct> {
+    return this.productService.completeProductCreation(
+      userId,
+      productId,
+      payload,
+    );
+  }
+
   @Get("/")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.READ)
   async search(
     @Query(new ZodValidationPipe(SearchSchema)) query: SearchDto,
   ): Promise<SearchResponse> {

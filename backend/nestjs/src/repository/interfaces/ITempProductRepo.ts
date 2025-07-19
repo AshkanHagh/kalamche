@@ -6,4 +6,5 @@ import {
 export interface ITempProductRepo {
   insert(form: ITempProductInsertForm): Promise<ITempProduct>;
   delete(id: string): Promise<void>;
+  findById(id: string): Promise<ITempProduct>;
 }

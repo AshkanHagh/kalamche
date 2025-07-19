@@ -1,6 +1,6 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
-import { Database, IProduct } from "src/drizzle/types";
+import { Database, IProduct, IProductInsertForm } from "src/drizzle/types";
 import {
   and,
   asc,
@@ -41,6 +41,14 @@ export class ProductRepository implements IProductRepo {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
+    return product;
+  }
+
+  async insert(form: IProductInsertForm): Promise<IProduct> {
+    const [product] = await this.db
+      .insert(ProductTable)
+      .values(form)
+      .returning();
     return product;
   }
 

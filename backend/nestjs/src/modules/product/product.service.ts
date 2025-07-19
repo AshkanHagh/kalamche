@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { IProductService } from "./interfaces/IService";
-import { CreateProductDto, SearchDto } from "./dto";
+import { CompleteProductCreationDto, CreateProductDto, SearchDto } from "./dto";
 import { SearchResponse } from "./types";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { TempProductRepository } from "src/repository/repositories/temp-product.repository";
 import { ProductUtilService } from "./util.service";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
+import { IProduct } from "src/drizzle/types";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -51,6 +52,41 @@ export class ProductService implements IProductService {
       upc: payload.upc,
     });
     return tempProduct;
+  }
+
+  async completeProductCreation(
+    userId: string,
+    productId: string,
+    payload: CompleteProductCreationDto,
+  ): Promise<IProduct> {
+    const tempProduct = await this.tempProductRepository.findById(productId);
+    await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
+
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let asin = characters.charAt(Math.floor(Math.random() * 26));
+    for (let i = 0; i < 9; i++) {
+      asin += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+
+    const product = await this.productRepository.insert({
+      id: tempProduct.id,
+      asin,
+      brand: payload.brand,
+      title: payload.title,
+      description: payload.description,
+      initialPrice: payload.initialPrice,
+      categories: payload.categories,
+      modelNumber: tempProduct.modelNumber,
+      upc: tempProduct.upc,
+      shopId: tempProduct.shopId,
+      specifications: payload.specifications,
+      websiteUrl: payload.websiteUrl,
+      status: "draft",
+    });
+
+    await this.tempProductRepository.delete(productId);
+
+    return product;
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

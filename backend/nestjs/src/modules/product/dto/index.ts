@@ -7,6 +7,20 @@ export const CreateProductSchema = z.object({
 
 export type CreateProductDto = z.infer<typeof CreateProductSchema>;
 
+export const CompleteProductCreationSchema = z.object({
+  title: z.string(),
+  description: z.string(),
+  categories: z.array(z.string()),
+  brand: z.string(),
+  specifications: z.array(z.object({ key: z.string(), value: z.string() })),
+  websiteUrl: z.string().url(),
+  initialPrice: z.number(),
+});
+
+export type CompleteProductCreationDto = z.infer<
+  typeof CompleteProductCreationSchema
+>;
+
 const sort = z.enum(["cheapest", "view", "newest", "expensive", "popular"]);
 
 export const SearchSchema = z.object({

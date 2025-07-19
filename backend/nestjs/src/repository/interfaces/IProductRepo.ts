@@ -1,8 +1,9 @@
-import { IProduct } from "src/drizzle/types";
+import { IProduct, IProductInsertForm } from "src/drizzle/types";
 
 export interface IProductRepo {
   findByUpc(upc: string): Promise<IProduct | undefined>;
   findById(id: string): Promise<IProduct>;
+  insert(form: IProductInsertForm): Promise<IProduct>;
   findProductsByFilter(
     sort: "cheapest" | "view" | "newest" | "expensive" | "popular",
     brand: string,
