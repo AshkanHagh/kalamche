@@ -21,6 +21,7 @@ import ShopDetails from "../steps/ShopDetails"
 import Branding from "../steps/Branding"
 import ContactInfo from "../steps/ContactInfo"
 import GeoLocation from "../steps/GeoLocation"
+import AddrLocation from "../steps/AddrLocation"
 
 const CreateShopForm = () => {
   const {
@@ -35,7 +36,8 @@ const CreateShopForm = () => {
     <ShopDetails key="shop-details" />,
     <Branding key="branding" />,
     <ContactInfo key="contact-info" />,
-    <GeoLocation key="geo-location" />
+    <GeoLocation key="geo-location" />,
+    <AddrLocation key="address-location" />
   ])
   const formMethods = useForm<FormSchemaValues>({
     defaultValues: {
