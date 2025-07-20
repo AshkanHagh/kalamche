@@ -1,7 +1,7 @@
 "use client"
 
 import { useForm } from "react-hook-form"
-import useMultiStep from "../../_hooks/useMultiStep"
+import useMultiStep from "../../../../hooks/useMultiStep"
 import { formSchema, FormSchemaValues } from "../../_schema/formSchema"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Form } from "@/components/ui/form"
@@ -22,22 +22,17 @@ import Branding from "../steps/Branding"
 import ContactInfo from "../steps/ContactInfo"
 import GeoLocation from "../steps/GeoLocation"
 import AddrLocation from "../steps/AddrLocation"
+import Review from "../steps/Review"
+import { MultiStepContextProvider } from "@/lib/context/MultiStepContext"
 
 const CreateShopForm = () => {
-  const {
-    step,
-    currentStepIndex,
-    isFirstStep,
-    steps,
-    next,
-    back,
-    currentStepDetails
-  } = useMultiStep([
+  const multiStepData = useMultiStep([
     <ShopDetails key="shop-details" />,
     <Branding key="branding" />,
     <ContactInfo key="contact-info" />,
     <GeoLocation key="geo-location" />,
-    <AddrLocation key="address-location" />
+    <AddrLocation key="address-location" />,
+    <Review key="review" />
   ])
   const formMethods = useForm<FormSchemaValues>({
     defaultValues: {
@@ -56,6 +51,15 @@ const CreateShopForm = () => {
     resolver: zodResolver(formSchema)
   })
 
+  const {
+    step,
+    currentStepIndex,
+    isFirstStep,
+    steps,
+    next,
+    back,
+    currentStepDetails
+  } = multiStepData
   const progress = ((currentStepIndex + 1) / steps.length) * 100
 
   const onSubmit = (data: FormSchemaValues) => {
@@ -81,22 +85,30 @@ const CreateShopForm = () => {
           <Progress value={progress} className="h-1.5" />
         </div>
         <Card className="shadow-lg border-t border-border/50 bg-white/80 flex flex-col h-fit w-full">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-3 text-lg">
-              <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-600/10">
-                {React.createElement(currentStepDetails.icon, {
-                  className: "h-4 w-4 text-blue-600 dark:text-blue-400"
-                })}
-              </div>
-              {currentStepDetails.title}
-            </CardTitle>
-            <CardDescription className="text-gray-600 dark:text-gray-400 text-sm">
-              {currentStepDetails.description}
-            </CardDescription>
-          </CardHeader>
+          {!currentStepDetails.hidden && (
+            <CardHeader>
+              <CardTitle className="flex items-center gap-3 text-lg">
+                <div className="p-1.5 rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-600/10">
+                  {React.createElement(currentStepDetails.icon, {
+                    className: "h-4 w-4 text-blue-600 dark:text-blue-400"
+                  })}
+                </div>
+                {currentStepDetails.title}
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400 text-sm">
+                {currentStepDetails.description}
+              </CardDescription>
+            </CardHeader>
+          )}
+
           <CardContent>
-            <form onSubmit={formMethods.handleSubmit(onSubmit)}>{step}</form>
+            <form onSubmit={formMethods.handleSubmit(onSubmit)}>
+              <MultiStepContextProvider value={multiStepData}>
+                {step}
+              </MultiStepContextProvider>
+            </form>
           </CardContent>
+
           <CardFooter className="flex justify-between">
             <Button onClick={back} variant="outline" disabled={isFirstStep}>
               <ChevronLeft className="size-4" />
