@@ -1,5 +1,5 @@
 import { ReactElement, useState } from "react"
-import { STEPS_DETAILS } from "../_constant/STEPS_DETAILS"
+import { STEPS_DETAILS } from "../app/create-shop/_constant/STEPS_DETAILS"
 
 const useMultiStep = (steps: ReactElement[]) => {
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0)
@@ -13,6 +13,7 @@ const useMultiStep = (steps: ReactElement[]) => {
   }
 
   const goTo = (index: number) => {
+    --index
     setCurrentStepIndex(() => {
       return index > steps.length - 1 ? steps.length - 1 : index < 0 ? 0 : index
     })
@@ -20,7 +21,7 @@ const useMultiStep = (steps: ReactElement[]) => {
 
   const currentStepDetails = STEPS_DETAILS[currentStepIndex]
 
-  return {
+  const data = {
     step: steps[currentStepIndex],
     steps,
     currentStepIndex,
@@ -31,6 +32,8 @@ const useMultiStep = (steps: ReactElement[]) => {
     back,
     goTo
   }
+
+  return data
 }
 
 export default useMultiStep

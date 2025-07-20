@@ -1,6 +1,24 @@
-import { Building, Eye, ImageIcon, Mail, MapPin, Store } from "lucide-react"
+import {
+  Building,
+  Eye,
+  ImageIcon,
+  LucideIcon,
+  Mail,
+  MapPin,
+  Store
+} from "lucide-react"
+import { FormSchemaValues } from "../_schema/formSchema"
 
-export const STEPS_DETAILS = [
+export type StepDetails = {
+  id: number
+  title: string
+  description: string
+  icon: LucideIcon
+  fields: (keyof FormSchemaValues)[]
+  hidden?: boolean
+}
+
+export const STEPS_DETAILS: StepDetails[] = [
   {
     id: 1,
     title: "Shop Details",
@@ -41,6 +59,7 @@ export const STEPS_DETAILS = [
     title: "Review",
     description: "Confirm & submit",
     icon: Eye,
-    fields: [] as const
+    fields: [] as const,
+    hidden: true
   }
 ]
