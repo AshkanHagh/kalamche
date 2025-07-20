@@ -2,13 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
-import { TempProductRepository } from "src/repository/repositories/temp-product.repository";
 
 @Injectable()
 export class ProductUtilService {
   constructor(
     private productRepository: ProductRepository,
-    private tempProductRepository: TempProductRepository,
     private shopRepository: ShopRepository,
   ) {}
 

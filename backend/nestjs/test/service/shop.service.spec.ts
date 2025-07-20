@@ -4,7 +4,7 @@ import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { DATABASE } from "src/drizzle/constants";
 import { migration } from "src/drizzle/migration";
 import { Database, IShop, IUser } from "src/drizzle/types";
-import { ShopService } from "src/modules/shop/shop.service";
+import { ShopService } from "src/features/shop/shop.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   clearDb,
