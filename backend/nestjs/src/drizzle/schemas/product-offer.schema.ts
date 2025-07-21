@@ -16,7 +16,9 @@ export const ProductOfferTable = pgTable("product_offers", (table) => {
       .uuid()
       .notNull()
       .references(() => ProductTable.id),
-    price: table.real().notNull(),
+    title: table.varchar({ length: 255 }).notNull(),
+    finalPrice: table.real().notNull(),
+    pageUrl: table.text().notNull(),
     createdAt,
     updatedAt,
   };

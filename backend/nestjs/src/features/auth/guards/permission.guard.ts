@@ -13,6 +13,14 @@ export class PermissionGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    const skipPermission = this.reflector.get<boolean>(
+      "skip-permission",
+      context.getHandler(),
+    );
+    if (skipPermission) {
+      return true;
+    }
+
     const requiredPermissions = this.reflector.get<{
       resource: ResourceType;
       action: ActionType;

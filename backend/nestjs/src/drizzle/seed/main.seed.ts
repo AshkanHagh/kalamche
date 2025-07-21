@@ -139,7 +139,9 @@ async function seedProducts(db: Database, shops: IShop[]) {
     productOffersForm.push({
       productId: product.id!,
       shopId: product.shopId,
-      price: faker.number.float({ min: 10, max: 1000 }),
+      finalPrice: faker.number.float({ min: 10, max: 1000 }),
+      title: product.title,
+      pageUrl: product.websiteUrl,
     });
 
     // Randomly select 1-5 additional shops to offer prices
@@ -150,7 +152,9 @@ async function seedProducts(db: Database, shops: IShop[]) {
       productOffersForm.push({
         productId: product.id!,
         shopId: shop.id,
-        price: faker.number.float({ min: 10, max: 1000 }),
+        finalPrice: faker.number.float({ min: 10, max: 1000 }),
+        title: product.title,
+        pageUrl: product.websiteUrl,
       });
     });
   });

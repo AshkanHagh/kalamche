@@ -6,6 +6,7 @@ import { UserLoginTokenRepository } from "./repositories/user-login-token.reposi
 import { ProductRepository } from "./repositories/product.repository";
 import { ShopRepository } from "./repositories/shop.repository";
 import { TempProductRepository } from "./repositories/temp-product.repository";
+import { ProductOfferRepository } from "./repositories/product-offer.repository";
 
 const repositories = [
   UserRepository,
@@ -14,6 +15,7 @@ const repositories = [
   ProductRepository,
   ShopRepository,
   TempProductRepository,
+  ProductOfferRepository,
 ];
 
 @Module({

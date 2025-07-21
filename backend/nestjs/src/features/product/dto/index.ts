@@ -21,6 +21,14 @@ export type CompleteProductCreationDto = z.infer<
   typeof CompleteProductCreationSchema
 >;
 
+export const CreateOfferSchema = z.object({
+  title: z.string().max(255),
+  finalPrice: z.number(),
+  pageUrl: z.string().url(),
+});
+
+export type CreateOfferDto = z.infer<typeof CreateOfferSchema>;
+
 const sort = z.enum(["cheapest", "view", "newest", "expensive", "popular"]);
 
 export const SearchSchema = z.object({

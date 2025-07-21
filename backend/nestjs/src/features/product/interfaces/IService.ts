@@ -1,10 +1,9 @@
-import { IProduct } from "src/drizzle/types";
+import { IProduct, IProductOffer, IProductView } from "src/drizzle/types";
 import {
   CompleteProductCreationDto,
+  CreateOfferDto,
   CreateProductDto,
-  SearchDto,
 } from "../dto";
-import { SearchResponse } from "../types";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 
 export interface IProductService {
@@ -18,5 +17,11 @@ export interface IProductService {
     productId: string,
     payload: CompleteProductCreationDto,
   ): Promise<IProduct>;
-  search(query: SearchDto): Promise<SearchResponse>;
+  getProductByUpc(upc: string): Promise<IProductView>;
+  createOffer(
+    userId: string,
+    productId: string,
+    payload: CreateOfferDto,
+  ): Promise<IProductOffer>;
+  // search(query: SearchDto): Promise<SearchResponse>;
 }

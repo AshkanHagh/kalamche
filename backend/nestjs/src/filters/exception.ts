@@ -20,6 +20,8 @@ export enum KalamcheErrorType {
   DbQueryFailed = "DB_QUERY_FAILED",
   ProductWithUpcAlreadyExists = "PRODUCT_WITH_UPC_ALREADY_EXISTS",
   InvalidUpc = "INVALID_UPC",
+  UserHasNoShop = "USER_HAS_NO_SHOP",
+  OfferAlreadyExists = "OFFER_ALREADY_EXISTS",
 }
 
 export class KalamcheError extends HttpException {
@@ -40,26 +42,28 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.InvalidBodyField: {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       }
-      case KalamcheErrorType.InvalidJwtToken ||
-        KalamcheErrorType.UnAuthorized: {
+      case KalamcheErrorType.InvalidJwtToken:
+      case KalamcheErrorType.UnAuthorized: {
         return HttpStatus.UNAUTHORIZED;
       }
+      case KalamcheErrorType.UserHasNoShop:
       case KalamcheErrorType.PermissionDenied: {
         return HttpStatus.FORBIDDEN;
       }
-      case KalamcheErrorType.ShopAlreadyExists ||
-        KalamcheErrorType.ProductWithUpcAlreadyExists: {
+      case KalamcheErrorType.OfferAlreadyExists:
+      case KalamcheErrorType.ShopAlreadyExists:
+      case KalamcheErrorType.ProductWithUpcAlreadyExists: {
         return HttpStatus.CONFLICT;
       }
 
-      case KalamcheErrorType.EmailAlreadyExists ||
-        KalamcheErrorType.RegistrationCooldown ||
-        KalamcheErrorType.NotRegistered ||
-        KalamcheErrorType.InvalidEmailAddress ||
-        KalamcheErrorType.NoPasswordOAuthError ||
-        KalamcheErrorType.InvalidVerifyCode ||
-        KalamcheErrorType.VerifyTokenExpired ||
-        KalamcheErrorType.InvalidUpc: {
+      case KalamcheErrorType.EmailAlreadyExists:
+      case KalamcheErrorType.RegistrationCooldown:
+      case KalamcheErrorType.NotRegistered:
+      case KalamcheErrorType.InvalidEmailAddress:
+      case KalamcheErrorType.NoPasswordOAuthError:
+      case KalamcheErrorType.InvalidVerifyCode:
+      case KalamcheErrorType.VerifyTokenExpired:
+      case KalamcheErrorType.InvalidUpc: {
         return HttpStatus.BAD_REQUEST;
       }
 

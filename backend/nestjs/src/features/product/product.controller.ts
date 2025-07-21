@@ -6,18 +6,16 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
-  Query,
   UseGuards,
 } from "@nestjs/common";
 import {
   CompleteProductCreationDto,
   CompleteProductCreationSchema,
+  CreateOfferDto,
+  CreateOfferSchema,
   CreateProductDto,
   CreateProductSchema,
-  SearchDto,
-  SearchSchema,
 } from "./dto";
-import { SearchResponse } from "./types";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { ProductService } from "./product.service";
 import { IProductController } from "./interfaces/IController";
@@ -30,7 +28,7 @@ import {
   ResourceType,
 } from "src/constants/global.constant";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
-import { IProduct } from "src/drizzle/types";
+import { IProduct, IProductOffer, IProductView } from "src/drizzle/types";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -62,12 +60,30 @@ export class ProductController implements IProductController {
     );
   }
 
-  @Get("/")
-  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.READ)
-  async search(
-    @Query(new ZodValidationPipe(SearchSchema)) query: SearchDto,
-  ): Promise<SearchResponse> {
-    const result = await this.productService.search(query);
-    return result;
+  @Get("/upc/:upc")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
+  async getProductByUpc(@Param("upc") upc: string): Promise<IProductView> {
+    return this.productService.getProductByUpc(upc);
   }
+
+  @Post("/offer/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
+  createOffer(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Body(new ZodValidationPipe(CreateOfferSchema))
+    payload: CreateOfferDto,
+  ): Promise<IProductOffer> {
+    return this.productService.createOffer(userId, productId, payload);
+  }
+
+  // @Get("/")
+  // @SkipAuth()
+  // @SkipPermission()
+  // async search(
+  //   @Query(new ZodValidationPipe(SearchSchema)) query: SearchDto,
+  // ): Promise<SearchResponse> {
+  //   const result = await this.productService.search(query);
+  //   return result;
+  // }
 }
