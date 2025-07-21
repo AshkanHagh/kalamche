@@ -20,6 +20,9 @@ export const formSchema = z.object({
     .refine((file) => file instanceof File && file.size > 0, {
       message: "Please upload a valid logo"
     }),
+  logoHasUploaded: z.boolean().refine((val) => val === true, {
+    message: "Please upload a valid logo"
+  }),
   country: z.string().min(1, "Please select a country"),
   state: z.string().min(1, "Please select a state/province"),
   city: z.string().min(1, "Please select a city"),

@@ -17,7 +17,7 @@ import { toast } from "sonner"
 import { FormSchemaValues } from "../../_schema/formSchema"
 
 const Branding = () => {
-  const { control, watch, setError, clearErrors, resetField } =
+  const { control, watch, setError, clearErrors, resetField, setValue } =
     useFormContext<FormSchemaValues>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const logo = watch("logo")
@@ -33,10 +33,12 @@ const Branding = () => {
     setIsLoading(true)
     clearErrors("logo")
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 4000))
+      setValue("logoHasUploaded", true)
       toast.success("your logo was uploaded!")
     } catch (error) {
       console.log(error)
+      setValue("logoHasUploaded", false)
       resetField("logo")
       setError("logo", { message: "something went wrong" })
     } finally {
@@ -65,15 +67,21 @@ const Branding = () => {
                       width="112"
                       height="112"
                     />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute -top-2 -right-2 h-5 w-5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => field.onChange(undefined)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+                    {!isLoading && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-5 w-5 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity p-0.5 z-10"
+                        onClick={() => {
+                          field.onChange(undefined)
+                          setValue("logoHasUploaded", false)
+                        }}
+                        asChild
+                      >
+                        <X className="size-2 cursor-pointer" />
+                      </Button>
+                    )}
                     <div className="absolute inset-0 flex items-center justify-center">
                       {isLoading && (
                         <LoaderCircle className="animate-spin text-primary size-10" />

@@ -31,7 +31,7 @@ export const STEPS_DETAILS: StepDetails[] = [
     title: "Branding",
     description: "Upload your logo",
     icon: ImageIcon,
-    fields: ["logo"] as const
+    fields: ["logo", "logoHasUploaded"] as const
   },
   {
     id: 3,
