@@ -16,29 +16,46 @@ import {
 } from "@/components/ui/select"
 import { useFormContext } from "react-hook-form"
 import { LOCATIONS_DATA } from "../../_constant/LOCATIONS_DATA"
-import { useEffect } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { FormSchemaValues } from "../../_schema/formSchema"
+import type { Control } from "react-hook-form"
+
+type ControlType = Control<FormSchemaValues>
 
 const GeoLocation = () => {
   const { control, watch, resetField } = useFormContext<FormSchemaValues>()
+  const firstLoad = useRef<boolean>(true)
 
-  const selectedCountry = watch("country")
-  const selectedState = watch("state")
-  const selectedCity = watch("city")
+  console.log(firstLoad)
 
-  const states =
-    LOCATIONS_DATA.find((c) => c.country === selectedCountry)?.states || []
+  const [selectedCountry, selectedState, selectedCity] = watch([
+    "country",
+    "state",
+    "city"
+  ])
 
-  const cities = states.find((c) => c.name === selectedState)?.cities || []
+  const states = useMemo(
+    () =>
+      LOCATIONS_DATA.find((c) => c.country === selectedCountry)?.states || [],
+    [selectedCountry]
+  )
+  const cities = useMemo(
+    () => states.find((c) => c.name === selectedState)?.cities || [],
+    [selectedState, states]
+  )
 
   useEffect(() => {
-    if (selectedState || selectedCity) {
+    if (!firstLoad.current && (selectedState || selectedCity)) {
       resetField("state")
       resetField("city")
     }
   }, [selectedCountry])
 
   useEffect(() => {
+    if (firstLoad.current) {
+      firstLoad.current = false
+      return
+    }
     if (selectedState) {
       resetField("city")
     }
@@ -46,98 +63,93 @@ const GeoLocation = () => {
 
   return (
     <div className="space-y-4">
-      <FormField
+      <GeoLocationSelect
         control={control}
+        title="Country"
         name="country"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-semibold">Country *</FormLabel>
-            <Select
-              onValueChange={(value) => {
-                field.onChange(value)
-              }}
-              value={field.value}
-            >
-              <FormControl>
-                <SelectTrigger className="h-10 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500/20">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {LOCATIONS_DATA.map(({ country }) => (
-                  <SelectItem key={country} value={country}>
-                    {country}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        placeholder="Select Country"
+      >
+        {LOCATIONS_DATA.map(({ country }) => (
+          <SelectItem key={country} value={country}>
+            {country}
+          </SelectItem>
+        ))}
+      </GeoLocationSelect>
 
-      <FormField
+      <GeoLocationSelect
         control={control}
+        title="State/Province"
+        disabled={!selectedCountry}
         name="state"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-semibold">
-              State/Province *
-            </FormLabel>
-            <Select
-              onValueChange={(value) => {
-                field.onChange(value)
-              }}
-              value={field.value}
-              disabled={!selectedCountry}
-            >
-              <FormControl>
-                <SelectTrigger className="h-10 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500/20">
-                  <SelectValue placeholder="Select state" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {states.map((state) => (
-                  <SelectItem key={state.name} value={state.name}>
-                    {state.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        placeholder="Select State"
+      >
+        {states.map((state) => (
+          <SelectItem key={state.name} value={state.name}>
+            {state.name}
+          </SelectItem>
+        ))}
+      </GeoLocationSelect>
 
-      <FormField
+      <GeoLocationSelect
         control={control}
+        title="City"
+        disabled={!selectedState}
         name="city"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-semibold">City *</FormLabel>
-            <Select
-              onValueChange={field.onChange}
-              value={field.value}
-              disabled={!selectedState}
-            >
-              <FormControl>
-                <SelectTrigger className="h-10 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500/20">
-                  <SelectValue placeholder="Select city" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {cities.map((city) => (
-                  <SelectItem key={city} value={city}>
-                    {city}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+        placeholder="Select City"
+      >
+        {cities.map((city) => (
+          <SelectItem key={city} value={city}>
+            {city}
+          </SelectItem>
+        ))}
+      </GeoLocationSelect>
     </div>
   )
 }
+
+// GeoLocationSelect Component Section
+type GeoLocationSelectProps = {
+  control: ControlType
+  title?: string
+  disabled?: boolean
+  children: React.ReactNode
+  name: keyof FormSchemaValues
+  placeholder: string
+}
+const GeoLocationSelect = ({
+  control,
+  title,
+  name,
+  disabled,
+  children,
+  placeholder
+}: GeoLocationSelectProps) => {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="text-sm font-semibold">{title}</FormLabel>
+          <Select
+            onValueChange={(value) => {
+              field.onChange(value)
+            }}
+            disabled={disabled}
+            value={field.value as string | undefined}
+          >
+            <FormControl>
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={placeholder} />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>{children}</SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  )
+}
+
 export default GeoLocation
