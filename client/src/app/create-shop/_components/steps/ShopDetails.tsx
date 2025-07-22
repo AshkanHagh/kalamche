@@ -8,32 +8,21 @@ import {
   FormLabel,
   FormMessage
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useFormContext } from "react-hook-form"
 import { FormSchemaValues } from "../../_schema/formSchema"
+import FormInput from "@/components/ui/FormInput"
 
 const ShopDetails = () => {
   const { control } = useFormContext<FormSchemaValues>()
 
   return (
     <div className="space-y-4">
-      <FormField
+      <FormInput
         control={control}
+        label="Shop Name *"
         name="name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel className="text-sm font-semibold">Shop Name *</FormLabel>
-            <FormControl>
-              <Input
-                placeholder="Enter your shop name"
-                className="h-10 border-gray-200 dark:border-gray-700 focus:border-blue-500 focus:ring-blue-500/20"
-                {...field}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
+        placeholder="Enter your shop name"
       />
 
       <FormField

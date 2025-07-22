@@ -19,6 +19,7 @@ type FormInputProps<T extends FieldValues> = {
   label: string
   placeholder?: string
   type?: HTMLInputTypeAttribute
+  className?: string
 }
 
 const FormInput = <T extends FieldValues>({
@@ -26,7 +27,8 @@ const FormInput = <T extends FieldValues>({
   name,
   label,
   placeholder,
-  type = "text"
+  type = "text",
+  className
 }: FormInputProps<T>) => {
   const [showPassword, setShowPassword] = useState(false)
 
@@ -39,10 +41,15 @@ const FormInput = <T extends FieldValues>({
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel className="text-sm font-semibold">{label}</FormLabel>
           <FormControl>
             <div className="relative">
-              <Input type={inputType} placeholder={placeholder} {...field} />
+              <Input
+                type={inputType}
+                placeholder={placeholder}
+                className={className}
+                {...field}
+              />
               {isPasswordType && (
                 <Button
                   type="button"
