@@ -72,7 +72,7 @@ const CreateShopForm = () => {
 
   return (
     <Form {...formMethods}>
-      <div className="max-w-lg w-full">
+      <div className="max-w-lg w-[98%]">
         <div className="w-11/12 my-6 mx-auto">
           <div className="flex items-center justify-between mb-1">
             <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -84,7 +84,7 @@ const CreateShopForm = () => {
           </div>
           <Progress value={progress} className="h-1.5" />
         </div>
-        <Card className="shadow-lg border-t border-border/50 bg-white/80 flex flex-col h-fit w-full">
+        <Card className="shadow-none sm:shadow-xl sm:border border-border bg-white/80 flex flex-col h-fit w-full">
           {!currentStepDetails.hidden && (
             <CardHeader>
               <CardTitle className="flex items-center gap-3 text-lg">

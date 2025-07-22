@@ -4,10 +4,10 @@ import CreateShopForm from "./_components/form/CreateShopForm"
 const CreateShopPage = () => {
   return (
     <>
-      <div className="flex flex-col justify-center items-center h-screen -mt-10">
+      <div className="flex flex-col justify-center items-center mt-10">
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center size-14 rounded-full bg-gradient-to-tr from-primary to-primary/50 mb-3">
-            <Store className="size-7 text-white" />
+          <div className="items-center justify-center size-14 rounded-full bg-gradient-to-tr from-primary to-primary/50 mb-3 hidden lg:inline-flex">
+            <Store className="size-7 text-white " />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent mb-1">
             Create Your Shop

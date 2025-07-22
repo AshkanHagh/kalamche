@@ -24,7 +24,6 @@ const ContactInfo = () => {
         label="Email Address *"
         placeholder="shop@example.com"
         icon={Mail}
-        required
       />
       <ContactInput
         control={control}
@@ -32,12 +31,11 @@ const ContactInfo = () => {
         label="Phone Number *"
         placeholder="+1 (555) 123-4567"
         icon={Phone}
-        required
       />
       <ContactInput
         control={control}
         name="website"
-        label="Website"
+        label="Website *"
         placeholder="https://yourwebsite.com"
         icon={Globe}
         description="Optional - Your business website or social media"
@@ -62,7 +60,6 @@ const ContactInput = ({
   label,
   placeholder,
   icon: Icon,
-  required,
   description
 }: ContactInputProps) => {
   return (
@@ -71,10 +68,7 @@ const ContactInput = ({
       name={name}
       render={({ field: { value, ...field } }) => (
         <FormItem>
-          <FormLabel className="text-sm font-semibold">
-            {label}
-            {required && <span className="text-red-500 ml-1">*</span>}
-          </FormLabel>
+          <FormLabel className="text-sm font-semibold">{label}</FormLabel>
           <FormControl>
             <div className="relative">
               <Icon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
