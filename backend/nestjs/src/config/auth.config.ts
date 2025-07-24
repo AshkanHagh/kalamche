@@ -19,6 +19,18 @@ export const authConfig = registerAs(AUTH_CONFIG, () => {
       // 7d in seconds
       exp: 60 * 60 * 24 * 7,
     },
+    oauth: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID!,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+        redirectUri: process.env.GITHUB_REDIRECT_URI!,
+      },
+      discord: {
+        clientId: process.env.DISCORD_CLIENT_ID!,
+        clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+        redirectUri: process.env.DISCORD_REDIRECT_URI!,
+      },
+    },
   };
 });
 

@@ -30,5 +30,9 @@ export const ProductImageRelations = relations(
       fields: [ProductImageTable.productId],
       references: [ProductTable.id],
     }),
+    tempProduct: one(TempProductTable, {
+      fields: [ProductImageTable.tempProductId],
+      references: [TempProductTable.id],
+    }),
   }),
 );
