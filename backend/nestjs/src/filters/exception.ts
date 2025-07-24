@@ -26,6 +26,8 @@ export enum KalamcheErrorType {
   ImageLimitExceeded = "IMAGE_LIMIT_EXCEEDED",
   OAuthReqFailed = "OAUTH_REQ_FAILED",
   InvalidOAuthProvider = "INVALID_OAUTH_PROVIDER",
+  StateExpired = "STATE_EXPIRED",
+  InvalidOAuthState = "INVALID_OAUTH_STATE",
 }
 
 export class KalamcheError extends HttpException {
@@ -68,6 +70,8 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.InvalidVerifyCode:
       case KalamcheErrorType.VerifyTokenExpired:
       case KalamcheErrorType.InvalidOAuthProvider:
+      case KalamcheErrorType.StateExpired:
+      case KalamcheErrorType.InvalidOAuthState:
       case KalamcheErrorType.InvalidUpc: {
         return HttpStatus.BAD_REQUEST;
       }

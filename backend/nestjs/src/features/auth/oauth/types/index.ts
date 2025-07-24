@@ -43,3 +43,9 @@ export interface IGitHubUser {
   created_at: string; // ISO 8601 format
   updated_at: string; // ISO 8601 format
 }
+
+export interface IGitHubUserEmail {
+  email: string;
+  primary: boolean;
+  verified: boolean;
+}

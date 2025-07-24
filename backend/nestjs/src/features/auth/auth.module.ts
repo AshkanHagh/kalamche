@@ -7,9 +7,10 @@ import { EmailModule } from "../email/email.module";
 import { OauthController } from "./oauth/oauth.controller";
 import { OAuthService } from "./oauth/oauth.service";
 import { GithubOAuthService } from "./oauth/util-services/github-oauth.service";
+import { DrizzleModule } from "src/drizzle/drizzle.module";
 
 @Module({
-  imports: [RepositoryModule, EmailModule],
+  imports: [RepositoryModule, EmailModule, DrizzleModule],
   providers: [AuthService, AuthUtilService, OAuthService, GithubOAuthService],
   controllers: [AuthController, OauthController],
   exports: [AuthUtilService],

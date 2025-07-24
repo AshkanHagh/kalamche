@@ -1,6 +1,6 @@
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { BaseOAuthService } from "./base-oauth.service";
-import { IGitHubUser } from "../types";
+import { IGitHubUser, IGitHubUserEmail } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { OAUthUserDto } from "../dto";
 import { Injectable } from "@nestjs/common";
@@ -26,31 +26,30 @@ export class GithubOAuthService extends BaseOAuthService {
         fetch("https://api.github.com/user", {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "User-Agent": "kalamche/0.0.1",
+            "User-Agent": "kalamche",
           },
         }),
         fetch("https://api.github.com/user/emails", {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "User-Agent": "kalamche/0.0.1",
+            "User-Agent": "kalamche",
           },
         }),
       ]);
 
       const user = (await userResponse.json()) as IGitHubUser;
-      const emails = (await emailResponse.json()) as unknown[];
+      const emails = (await emailResponse.json()) as IGitHubUserEmail[];
 
-      const primaryEmail: string = emails.find(
-        // eslint-disable-next-line
-        (email: any) => email.primary && email.verified,
-      ) as string;
+      const primaryEmail = emails.find(
+        (email) => email.primary && email.verified,
+      );
       if (!primaryEmail) {
         throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
       }
 
       return {
         avatar: user.avatar_url,
-        email: primaryEmail,
+        email: primaryEmail.email,
         id: user.id.toString(),
         name: user.name || user.login,
         provider: "github",

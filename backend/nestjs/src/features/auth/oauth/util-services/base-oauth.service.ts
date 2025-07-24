@@ -44,9 +44,11 @@ export abstract class BaseOAuthService {
 
     try {
       const result = await this.client.getToken(tokenParams);
+      const accessToken: string = result.token.access_token as string;
+
       return {
-        accessToken: result.token.access_token!,
-        tokenType: result.token.type || "Bearer",
+        accessToken,
+        tokenType: (result.token["type"] as string) || "Bearer",
       };
     } catch (error) {
       throw new KalamcheError(KalamcheErrorType.OAuthReqFailed, error);

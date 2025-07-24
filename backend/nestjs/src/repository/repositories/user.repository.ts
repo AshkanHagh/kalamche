@@ -25,8 +25,9 @@ export class UserRepository implements IUserRepo {
     return user !== undefined;
   }
 
-  async findByEmail(email: string): Promise<IUser | undefined> {
-    const [user] = await this.db
+  async findByEmail(email: string, tx?: Database): Promise<IUser | undefined> {
+    const db = tx || this.db;
+    const [user] = await db
       .select()
       .from(UserTable)
       .where(eq(UserTable.email, email));
@@ -35,8 +36,10 @@ export class UserRepository implements IUserRepo {
   }
 
   // BUG: remove return {user} and return userView it self
-  async findUserView(id: string): Promise<IUserView> {
-    const userView = await this.db.query.UserTable.findFirst({
+  async findUserView(id: string, tx?: Database): Promise<IUserView> {
+    const db = tx || this.db;
+
+    const userView = await db.query.UserTable.findFirst({
       where: (table, funcs) => funcs.eq(table.id, id),
       columns: { passwordHash: false, updatedAt: false },
     });
@@ -49,13 +52,16 @@ export class UserRepository implements IUserRepo {
     };
   }
 
-  async insert(form: IUserInsertForm): Promise<IUser> {
-    const [user] = await this.db.insert(UserTable).values(form).returning();
+  async insert(form: IUserInsertForm, tx?: Database): Promise<IUser> {
+    const db = tx || this.db;
+
+    const [user] = await db.insert(UserTable).values(form).returning();
     return user;
   }
 
-  async findById(id: string): Promise<IUser | undefined> {
-    const [user] = await this.db
+  async findById(id: string, tx?: Database): Promise<IUser | undefined> {
+    const db = tx || this.db;
+    const [user] = await db
       .select()
       .from(UserTable)
       .where(eq(UserTable.id, id));

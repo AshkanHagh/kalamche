@@ -17,6 +17,9 @@ export const OAuthAccountTable = pgTable("oauth_accounts", (table) => {
   };
 });
 
+export type IOAuthAccount = typeof OAuthAccountTable.$inferSelect;
+export type IOAuthAccountInsertForm = typeof OAuthAccountTable.$inferInsert;
+
 export const OAuthAccountRelations = relations(
   OAuthAccountTable,
   ({ one }) => ({
