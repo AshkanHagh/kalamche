@@ -22,6 +22,8 @@ export enum KalamcheErrorType {
   InvalidUpc = "INVALID_UPC",
   UserHasNoShop = "USER_HAS_NO_SHOP",
   OfferAlreadyExists = "OFFER_ALREADY_EXISTS",
+  ImageProcessingFailed = "IMAGE_PROCESSING_FAILED",
+  ImageLimitExceeded = "IMAGE_LIMIT_EXCEEDED",
 }
 
 export class KalamcheError extends HttpException {

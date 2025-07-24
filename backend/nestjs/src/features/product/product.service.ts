@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 import { IProductService } from "./interfaces/IService";
 import {
   CompleteProductCreationDto,
@@ -10,18 +10,27 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { TempProductRepository } from "src/repository/repositories/temp-product.repository";
 import { ProductUtilService } from "./util.service";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
-import { IProduct, IProductOffer, IProductView } from "src/drizzle/types";
+import {
+  Database,
+  IProduct,
+  IProductOffer,
+  IProductView,
+} from "src/drizzle/types";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
 import { ProductOfferRepository } from "src/repository/repositories/product-offer.repository";
+import { ProductImageRepository } from "src/repository/repositories/product-image.repository";
+import { DATABASE } from "src/drizzle/constants";
 
 @Injectable()
 export class ProductService implements IProductService {
   constructor(
+    @Inject(DATABASE) private db: Database,
     private productRepository: ProductRepository,
     private tempProductRepository: TempProductRepository,
     private productUtilService: ProductUtilService,
     private shopRepository: ShopRepository,
     private productOfferRepository: ProductOfferRepository,
+    private productImageRepository: ProductImageRepository,
   ) {}
 
   // TODO: add fr token logic after subscriptions added
@@ -61,6 +70,9 @@ export class ProductService implements IProductService {
     return tempProduct;
   }
 
+  // TODO: remove the temp tag from images in s3 if any image uploaded
+  // TODO: write a test dev for this that user most have a offer created for this product to
+  // TODO: move product images temp id to product id
   async completeProductCreation(
     userId: string,
     productId: string,
@@ -131,6 +143,66 @@ export class ProductService implements IProductService {
     });
 
     return offer;
+  }
+
+  async uploadImages(
+    userId: string,
+    productId: string,
+    isTemp: boolean,
+    files: {
+      thumbnailImage?: Express.Multer.File;
+      images: Express.Multer.File[];
+    },
+  ): Promise<void> {
+    const MAX_IMAGES = 5; // Regular images limit
+    return this.db.transaction(async (tx) => {
+      // Check for user uploaded images limit
+      const [existingThumbnail, totalExistingImages] = await Promise.all([
+        this.productImageRepository.isThumbnailExists(tx, productId, isTemp),
+        this.productImageRepository.countTotal(tx, productId, isTemp),
+      ]);
+      if (existingThumbnail && files.thumbnailImage) {
+        throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
+      }
+      if (totalExistingImages + files.images.length > MAX_IMAGES) {
+        throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
+      }
+
+      const repository = isTemp
+        ? this.tempProductRepository
+        : this.productRepository;
+      const product = await repository.findById(productId);
+
+      await this.productUtilService.userHasPermission(userId, product.shopId);
+
+      const uploadTasks: Promise<void>[] = [];
+
+      if (files.thumbnailImage) {
+        uploadTasks.push(
+          this.productUtilService.processImageUpload(
+            files.thumbnailImage,
+            true,
+            productId,
+            isTemp,
+            tx,
+          ),
+        );
+      }
+
+      uploadTasks.push(
+        ...files.images.map((file) =>
+          this.productUtilService.processImageUpload(
+            file,
+            false,
+            productId,
+            isTemp,
+            tx,
+          ),
+        ),
+      );
+
+      await Promise.all(uploadTasks);
+    });
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

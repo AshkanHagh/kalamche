@@ -3,10 +3,14 @@ import {
   Controller,
   Get,
   Param,
+  ParseBoolPipe,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import {
   CompleteProductCreationDto,
@@ -29,6 +33,7 @@ import {
 } from "src/constants/global.constant";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { IProduct, IProductOffer, IProductView } from "src/drizzle/types";
+import { FileFieldsInterceptor } from "@nestjs/platform-express";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -75,6 +80,40 @@ export class ProductController implements IProductController {
     payload: CreateOfferDto,
   ): Promise<IProductOffer> {
     return this.productService.createOffer(userId, productId, payload);
+  }
+
+  @Post("/images/:product_id")
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      {
+        name: "thumbnailImage",
+        maxCount: 1,
+      },
+      {
+        name: "images",
+        maxCount: 5,
+      },
+    ]),
+  )
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  async uploadImages(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Query("is-temp", new ParseBoolPipe()) isTemp: boolean,
+    // thumbnailImage might not exists
+    // and nestjs sent undefined not empty [] if not image uploaded
+    @UploadedFiles()
+    files: {
+      thumbnailImage?: Express.Multer.File[];
+      images?: Express.Multer.File[];
+    },
+  ): Promise<void> {
+    await this.productService.uploadImages(userId, productId, isTemp, {
+      thumbnailImage: files.thumbnailImage
+        ? files.thumbnailImage[0]
+        : undefined,
+      images: files.images || [],
+    });
   }
 
   // @Get("/")

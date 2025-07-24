@@ -23,5 +23,14 @@ export interface IProductService {
     productId: string,
     payload: CreateOfferDto,
   ): Promise<IProductOffer>;
+  uploadImages(
+    userId: string,
+    productId: string,
+    isTemp: boolean,
+    files: {
+      thumbnailImage: Express.Multer.File;
+      images: Express.Multer.File[];
+    },
+  ): Promise<void>;
   // search(query: SearchDto): Promise<SearchResponse>;
 }
