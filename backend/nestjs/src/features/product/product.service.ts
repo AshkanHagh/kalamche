@@ -9,8 +9,7 @@ import { ProductRepository } from "src/repository/repositories/product.repositor
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { TempProductRepository } from "src/repository/repositories/temp-product.repository";
 import { ProductUtilService } from "./util.service";
-import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
-import { Database, IProduct, IProductOffer } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
 import { ProductOfferRepository } from "src/repository/repositories/product-offer.repository";
 import { ProductImageRepository } from "src/repository/repositories/product-image.repository";
@@ -37,7 +36,7 @@ export class ProductService implements IProductService {
     userId: string,
     shopId: string,
     payload: CreateProductDto,
-  ): Promise<ITempProduct> {
+  ) {
     const product = await this.productRepository.findByUpc(payload.upc);
     if (product) {
       throw new KalamcheError(KalamcheErrorType.ProductWithUpcAlreadyExists);
@@ -70,7 +69,7 @@ export class ProductService implements IProductService {
     userId: string,
     productId: string,
     payload: CompleteProductCreationDto,
-  ): Promise<IProduct> {
+  ) {
     const tempProduct = await this.tempProductRepository.findById(productId);
     await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
 
@@ -130,7 +129,7 @@ export class ProductService implements IProductService {
     userId: string,
     productId: string,
     payload: CreateOfferDto,
-  ): Promise<IProductOffer> {
+  ) {
     await this.productRepository.exists(productId);
 
     const userShop = await this.shopRepository.findByUserId(userId);
@@ -162,7 +161,7 @@ export class ProductService implements IProductService {
       thumbnailImage?: Express.Multer.File;
       images: Express.Multer.File[];
     },
-  ): Promise<void> {
+  ) {
     const MAX_IMAGES = 5; // Regular images limit
     return this.db.transaction(async (tx) => {
       // Check for user uploaded images limit

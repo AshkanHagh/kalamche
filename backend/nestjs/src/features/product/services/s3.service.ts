@@ -88,7 +88,7 @@ export class S3Service implements IS3Service {
     mimeType: string,
     buffer: Buffer,
     temp: boolean = true,
-  ): Promise<string> {
+  ) {
     const command = new PutObjectCommand({
       Bucket: this.config.bucketName,
       Key: id,
@@ -106,7 +106,7 @@ export class S3Service implements IS3Service {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string) {
     const command = new DeleteObjectCommand({
       Bucket: this.config.bucketName,
       Key: id,
@@ -119,11 +119,7 @@ export class S3Service implements IS3Service {
     }
   }
 
-  async updateObjectTag(
-    fileId: string,
-    key: string,
-    value: string,
-  ): Promise<void> {
+  async updateObjectTag(fileId: string, key: string, value: string) {
     // in development we use minio and minio dose not support s3 tagging system
     if (key === "temp" && process.env.NODE_ENV !== "production") {
       return;

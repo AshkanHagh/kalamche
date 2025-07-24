@@ -16,11 +16,7 @@ export class ProductUtilService {
     private s3Service: S3Service,
   ) {}
 
-  async userHasPermission(
-    userId: string,
-    shopId: string,
-    productId?: string,
-  ): Promise<void> {
+  async userHasPermission(userId: string, shopId: string, productId?: string) {
     const shop = await this.shopRepository.findById(shopId);
     if (shop.userId !== userId || shop.isTemp) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);

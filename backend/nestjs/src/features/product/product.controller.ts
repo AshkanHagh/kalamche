@@ -30,8 +30,6 @@ import {
   PRODUCT_RESOURCE_ACTION,
   ResourceType,
 } from "src/constants/global.constant";
-import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
-import { IProduct, IProductOffer } from "src/drizzle/types";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 
 @Controller("products")
@@ -45,7 +43,7 @@ export class ProductController implements IProductController {
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
     @Body(new ZodValidationPipe(CreateProductSchema)) payload: CreateProductDto,
-  ): Promise<ITempProduct> {
+  ) {
     return this.productService.createProduct(userId, shopId, payload);
   }
 
@@ -56,7 +54,7 @@ export class ProductController implements IProductController {
     @Param("product_id", new ParseUUIDPipe()) productId: string,
     @Body(new ZodValidationPipe(CompleteProductCreationSchema))
     payload: CompleteProductCreationDto,
-  ): Promise<IProduct> {
+  ) {
     return this.productService.completeProductCreation(
       userId,
       productId,
@@ -71,7 +69,7 @@ export class ProductController implements IProductController {
     @Param("product_id", new ParseUUIDPipe()) productId: string,
     @Body(new ZodValidationPipe(CreateOfferSchema))
     payload: CreateOfferDto,
-  ): Promise<IProductOffer> {
+  ) {
     return this.productService.createOffer(userId, productId, payload);
   }
 
@@ -100,7 +98,7 @@ export class ProductController implements IProductController {
       thumbnailImage?: Express.Multer.File[];
       images?: Express.Multer.File[];
     },
-  ): Promise<void> {
+  ) {
     await this.productService.uploadImages(userId, productId, isTemp, {
       thumbnailImage: files.thumbnailImage
         ? files.thumbnailImage[0]
