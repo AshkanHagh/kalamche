@@ -1,11 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IProductOfferRepo } from "../interfaces/IProductOfferRepo";
 import { DATABASE } from "src/drizzle/constants";
-import {
-  Database,
-  IProductOffer,
-  IProductOfferInsertForm,
-} from "src/drizzle/types";
+import { Database, IProductOfferInsertForm } from "src/drizzle/types";
 import { ProductOfferTable } from "src/drizzle/schemas";
 import { and, eq } from "drizzle-orm";
 
@@ -13,10 +9,7 @@ import { and, eq } from "drizzle-orm";
 export class ProductOfferRepository implements IProductOfferRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
-  async checkShopOfferExists(
-    shopId: string,
-    productId: string,
-  ): Promise<boolean> {
+  async checkShopOfferExists(shopId: string, productId: string) {
     const [offer] = await this.db
       .select({ id: ProductOfferTable.id })
       .from(ProductOfferTable)
@@ -30,11 +23,8 @@ export class ProductOfferRepository implements IProductOfferRepo {
     return !!offer;
   }
 
-  async insert(form: IProductOfferInsertForm): Promise<IProductOffer> {
-    const [offer] = await this.db
-      .insert(ProductOfferTable)
-      .values(form)
-      .returning();
+  async insert(tx: Database, form: IProductOfferInsertForm) {
+    const [offer] = await tx.insert(ProductOfferTable).values(form).returning();
 
     return offer;
   }

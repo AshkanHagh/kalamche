@@ -34,11 +34,8 @@ export class ProductRepository implements IProductRepo {
     return product;
   }
 
-  async insert(form: IProductInsertForm): Promise<IProduct> {
-    const [product] = await this.db
-      .insert(ProductTable)
-      .values(form)
-      .returning();
+  async insert(tx: Database, form: IProductInsertForm): Promise<IProduct> {
+    const [product] = await tx.insert(ProductTable).values(form).returning();
     return product;
   }
 

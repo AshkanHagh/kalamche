@@ -20,6 +20,7 @@ import { ShopRepository } from "src/repository/repositories/shop.repository";
 import { ProductOfferRepository } from "src/repository/repositories/product-offer.repository";
 import { ProductImageRepository } from "src/repository/repositories/product-image.repository";
 import { DATABASE } from "src/drizzle/constants";
+import { S3Service } from "./services/s3.service";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -31,6 +32,7 @@ export class ProductService implements IProductService {
     private shopRepository: ShopRepository,
     private productOfferRepository: ProductOfferRepository,
     private productImageRepository: ProductImageRepository,
+    private s3Service: S3Service,
   ) {}
 
   // TODO: add fr token logic after subscriptions added
@@ -64,15 +66,11 @@ export class ProductService implements IProductService {
 
     const tempProduct = await this.tempProductRepository.insert({
       shopId,
-      modelNumber: payload.modelNumber,
       upc: payload.upc,
     });
     return tempProduct;
   }
 
-  // TODO: remove the temp tag from images in s3 if any image uploaded
-  // TODO: write a test dev for this that user most have a offer created for this product to
-  // TODO: move product images temp id to product id
   async completeProductCreation(
     userId: string,
     productId: string,
@@ -87,25 +85,49 @@ export class ProductService implements IProductService {
       asin += characters.charAt(Math.floor(Math.random() * characters.length));
     }
 
-    const product = await this.productRepository.insert({
-      id: tempProduct.id,
-      asin,
-      brand: payload.brand,
-      title: payload.title,
-      description: payload.description,
-      initialPrice: payload.initialPrice,
-      categories: payload.categories,
-      modelNumber: tempProduct.modelNumber,
-      upc: tempProduct.upc,
-      shopId: tempProduct.shopId,
-      specifications: payload.specifications,
-      websiteUrl: payload.websiteUrl,
-      status: "draft",
+    const updateTasks: Promise<void>[] = [];
+    const result = await this.db.transaction(async (tx) => {
+      const product = await this.productRepository.insert(tx, {
+        ...payload,
+        id: tempProduct.id,
+        asin,
+        upc: tempProduct.upc,
+        shopId: tempProduct.shopId,
+        status: "draft",
+      });
+
+      const uploadedImages =
+        await this.productImageRepository.findManyByTempProductId(
+          tx,
+          tempProduct.id,
+        );
+      uploadedImages.map((image) => {
+        updateTasks.push(
+          this.s3Service.updateObjectTag(image.id, "temp", "false"),
+        );
+      });
+
+      await Promise.all([
+        this.productOfferRepository.insert(tx, {
+          finalPrice: payload.initialPrice,
+          pageUrl: payload.websiteUrl,
+          productId: product.id,
+          shopId: product.shopId,
+          title: payload.title,
+        }),
+        this.productImageRepository.updateByTempProductId(tx, product.id, {
+          tempProductId: null,
+          productId: product.id,
+        }),
+      ]);
+
+      await this.tempProductRepository.delete(tx, productId);
+
+      return product;
     });
 
-    await this.tempProductRepository.delete(productId);
-
-    return product;
+    await Promise.all(updateTasks);
+    return result;
   }
 
   async getProductByUpc(upc: string): Promise<IProductView> {
@@ -136,7 +158,7 @@ export class ProductService implements IProductService {
     if (hasOffer) {
       throw new KalamcheError(KalamcheErrorType.OfferAlreadyExists);
     }
-    const offer = await this.productOfferRepository.insert({
+    const offer = await this.productOfferRepository.insert(this.db, {
       ...payload,
       productId,
       shopId: userShop.id,

@@ -13,9 +13,21 @@ export interface IProductImageRepo {
     form: IProductImageUpdateForm,
   ): Promise<void>;
   countTotal(tx: Database, productId: string, isTemp: boolean): Promise<number>;
+
   isThumbnailExists(
     tx: Database,
     productId: string,
     isTemp: boolean,
   ): Promise<boolean>;
+
+  findManyByTempProductId(
+    tx: Database,
+    tempProductId: string,
+  ): Promise<IProductImage[]>;
+
+  updateByTempProductId(
+    tx: Database,
+    tempProductId: string,
+    form: IProductImageUpdateForm,
+  ): Promise<void>;
 }

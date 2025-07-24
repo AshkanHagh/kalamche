@@ -22,8 +22,8 @@ export class TempProductRepository implements ITempProductRepo {
     return product;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.db
+  async delete(tx: Database, id: string): Promise<void> {
+    await tx
       .delete(TempProductTable)
       .where(eq(TempProductTable.id, id))
       .execute();

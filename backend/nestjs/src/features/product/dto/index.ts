@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const CreateProductSchema = z.object({
-  modelNumber: z.string(),
   upc: z.string(),
 });
 
@@ -15,6 +14,7 @@ export const CompleteProductCreationSchema = z.object({
   specifications: z.array(z.object({ key: z.string(), value: z.string() })),
   websiteUrl: z.string().url(),
   initialPrice: z.number(),
+  modelNumber: z.string(),
 });
 
 export type CompleteProductCreationDto = z.infer<
