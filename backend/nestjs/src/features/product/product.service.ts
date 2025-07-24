@@ -10,12 +10,7 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { TempProductRepository } from "src/repository/repositories/temp-product.repository";
 import { ProductUtilService } from "./util.service";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
-import {
-  Database,
-  IProduct,
-  IProductOffer,
-  IProductView,
-} from "src/drizzle/types";
+import { Database, IProduct, IProductOffer } from "src/drizzle/types";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
 import { ProductOfferRepository } from "src/repository/repositories/product-offer.repository";
 import { ProductImageRepository } from "src/repository/repositories/product-image.repository";
@@ -128,14 +123,6 @@ export class ProductService implements IProductService {
 
     await Promise.all(updateTasks);
     return result;
-  }
-
-  async getProductByUpc(upc: string): Promise<IProductView> {
-    const product = await this.productRepository.findProductViewByUpc(upc);
-    if (!product) {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
-    return product;
   }
 
   // TODO: check and consume fr tokens

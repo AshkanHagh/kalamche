@@ -1,11 +1,6 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
-import {
-  Database,
-  IProduct,
-  IProductInsertForm,
-  IProductView,
-} from "src/drizzle/types";
+import { Database, IProduct, IProductInsertForm } from "src/drizzle/types";
 import { eq } from "drizzle-orm";
 import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -37,20 +32,6 @@ export class ProductRepository implements IProductRepo {
   async insert(tx: Database, form: IProductInsertForm): Promise<IProduct> {
     const [product] = await tx.insert(ProductTable).values(form).returning();
     return product;
-  }
-
-  async findProductViewByUpc(upc: string): Promise<IProductView | undefined> {
-    const result = await this.db.query.ProductTable.findFirst({
-      where: (table, funcs) => funcs.eq(table.upc, upc),
-      columns: {
-        vector: false,
-      },
-      with: {
-        shop: true,
-      },
-    });
-
-    return result;
   }
 
   async exists(id: string): Promise<void> {

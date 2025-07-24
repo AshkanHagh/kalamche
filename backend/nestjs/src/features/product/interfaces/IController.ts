@@ -1,4 +1,4 @@
-import { IProduct, IProductOffer, IProductView } from "src/drizzle/types";
+import { IProduct, IProductOffer } from "src/drizzle/types";
 import {
   CompleteProductCreationDto,
   CreateOfferDto,
@@ -17,7 +17,6 @@ export interface IProductController {
     productId: string,
     payload: CompleteProductCreationDto,
   ): Promise<IProduct>;
-  getProductByUpc(upc: string): Promise<IProductView>;
   createOffer(
     userId: string,
     productId: string,

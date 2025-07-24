@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   Param,
   ParseBoolPipe,
   ParseUUIDPipe,
@@ -32,7 +31,7 @@ import {
   ResourceType,
 } from "src/constants/global.constant";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
-import { IProduct, IProductOffer, IProductView } from "src/drizzle/types";
+import { IProduct, IProductOffer } from "src/drizzle/types";
 import { FileFieldsInterceptor } from "@nestjs/platform-express";
 
 @Controller("products")
@@ -63,12 +62,6 @@ export class ProductController implements IProductController {
       productId,
       payload,
     );
-  }
-
-  @Get("/upc/:upc")
-  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
-  async getProductByUpc(@Param("upc") upc: string): Promise<IProductView> {
-    return this.productService.getProductByUpc(upc);
   }
 
   @Post("/offer/:product_id")
