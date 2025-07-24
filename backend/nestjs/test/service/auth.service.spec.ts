@@ -1,5 +1,5 @@
 import { TestingModule } from "@nestjs/testing";
-import { AuthService } from "src/modules/auth/auth.service";
+import { AuthService } from "src/features/auth/auth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   clearDb,
@@ -10,7 +10,7 @@ import {
 } from "test/test.helper";
 import { Request, Response } from "express";
 import { mock } from "ts-mockito";
-import { LoginResponse } from "src/modules/auth/types";
+import { LoginResponse } from "src/features/auth/types";
 import { Database } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { UserLoginTokenTable } from "src/drizzle/schemas";

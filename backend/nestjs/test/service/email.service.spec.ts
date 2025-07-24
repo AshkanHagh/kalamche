@@ -1,5 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { EmailService } from "../../src/modules/email/email.service";
+import { EmailService } from "../../src/features/email/email.service";
 import { ConfigModule } from "src/config/config.module";
 import { anything, instance, mock, verify } from "ts-mockito";
 import { Transporter } from "nodemailer";

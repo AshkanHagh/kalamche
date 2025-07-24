@@ -4,10 +4,16 @@ import { UserTable } from "./user.schema";
 import { relations } from "drizzle-orm";
 import { ProductTable } from "./product.schema";
 import { ProductOfferTable } from "./product-offer.schema";
+import { TempProductTable } from "./temp-product.schema";
 
 // NOTE: removed status field(no admin panel will impl yet)
 // NOTE: added default value for emailVerifiedAt(no verification for email for now)
 // TODO: add a price field here
+// -------------
+// TODO: add a temp-shop table
+// TODO: update shop creation and completion
+// TODO: update permission system of create and completions of shop
+// TODO: update all fields that got null because of old version of shop
 export const ShopTable = pgTable("shops", (table) => {
   return {
     id,
@@ -40,4 +46,5 @@ export const ShopRelations = relations(ShopTable, ({ one, many }) => ({
   }),
   products: many(ProductTable),
   vendors: many(ProductOfferTable),
+  tempProducts: many(TempProductTable),
 }));

@@ -34,6 +34,7 @@ export class UserRepository implements IUserRepo {
     return user;
   }
 
+  // BUG: remove return {user} and return userView it self
   async findUserView(id: string): Promise<IUserView> {
     const userView = await this.db.query.UserTable.findFirst({
       where: (table, funcs) => funcs.eq(table.id, id),

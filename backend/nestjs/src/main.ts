@@ -16,7 +16,6 @@ async function bootstrap() {
   });
   app.useGlobalFilters(new KalamcheExceptionFilter());
   app.setGlobalPrefix("/api/v1");
-  // eslint-disable-next-line
   app.use(cookieParser());
   // enable on production(if you are using proxy)
   // app.use("trust proxy", true);

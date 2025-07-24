@@ -4,6 +4,7 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { AuthUtilService } from "../util.service";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { UserRepository } from "src/repository/repositories/user.repository";
+import { Reflector } from "@nestjs/core";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -11,9 +12,18 @@ export class AuthorizationGuard implements CanActivate {
     private userRepository: UserRepository,
     private authUtilService: AuthUtilService,
     @AuthConfig() private config: IAuthConfig,
+    private reflector: Reflector,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const skipAuth = this.reflector.get<boolean>(
+      "skip-auth",
+      context.getHandler(),
+    );
+    if (skipAuth) {
+      return true;
+    }
+
     const req = context.switchToHttp().getRequest<Request>();
 
     const token = req.headers.authorization;

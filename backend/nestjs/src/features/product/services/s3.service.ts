@@ -1,9 +1,11 @@
 import {
   CreateBucketCommand,
   DeleteObjectCommand,
+  GetObjectTaggingCommand,
   HeadBucketCommand,
   PutBucketLifecycleConfigurationCommand,
   PutObjectCommand,
+  PutObjectTaggingCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { IS3Config, S3Config } from "src/config/s3.config";
@@ -86,7 +88,7 @@ export class S3Service implements IS3Service {
     mimeType: string,
     buffer: Buffer,
     temp: boolean = true,
-  ): Promise<string> {
+  ) {
     const command = new PutObjectCommand({
       Bucket: this.config.bucketName,
       Key: id,
@@ -104,7 +106,7 @@ export class S3Service implements IS3Service {
     }
   }
 
-  async delete(id: string): Promise<void> {
+  async delete(id: string) {
     const command = new DeleteObjectCommand({
       Bucket: this.config.bucketName,
       Key: id,
@@ -113,6 +115,43 @@ export class S3Service implements IS3Service {
     try {
       await this.client.send(command);
     } catch (error: unknown) {
+      throw new KalamcheError(KalamcheErrorType.S3ReqFailed, error);
+    }
+  }
+
+  async updateObjectTag(fileId: string, key: string, value: string) {
+    // in development we use minio and minio dose not support s3 tagging system
+    if (key === "temp" && process.env.NODE_ENV !== "production") {
+      return;
+    }
+
+    try {
+      const getTagCommand = new GetObjectTaggingCommand({
+        Bucket: this.config.bucketName,
+        Key: fileId,
+      });
+
+      const existingTag = await this.client.send(getTagCommand);
+      const updatedTags = existingTag.TagSet?.map((tag) => {
+        if (tag.Key === key) {
+          return { Key: key, Value: value };
+        }
+        return tag;
+      });
+
+      if (!updatedTags!.some((tag) => tag.Key === key)) {
+        updatedTags!.push({ Key: key, Value: value });
+      }
+
+      const putTagCommand = new PutObjectTaggingCommand({
+        Bucket: this.config.bucketName,
+        Key: fileId,
+        Tagging: {
+          TagSet: updatedTags,
+        },
+      });
+      await this.client.send(putTagCommand);
+    } catch (error) {
       throw new KalamcheError(KalamcheErrorType.S3ReqFailed, error);
     }
   }

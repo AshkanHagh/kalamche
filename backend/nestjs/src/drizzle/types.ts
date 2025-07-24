@@ -42,8 +42,8 @@ export interface IUserView {
 }
 
 export type IProduct = InferSelectModel<typeof schema.ProductTable>;
-
 export type IProductInsertForm = InferInsertModel<typeof schema.ProductTable>;
+export type IProductView = Omit<IProduct, "vector"> & { shop: IShop };
 
 export type IShop = InferSelectModel<typeof schema.ShopTable>;
 export type IShopInsertForm = InferInsertModel<typeof schema.ShopTable>;
@@ -57,6 +57,7 @@ export type IProductPriceHistoryInsertForm = InferInsertModel<
   typeof schema.ProductPriceHistoryTable
 >;
 
+export type IProductOffer = typeof schema.ProductOfferTable.$inferSelect;
 export type IProductOfferInsertForm = InferInsertModel<
   typeof schema.ProductOfferTable
 >;

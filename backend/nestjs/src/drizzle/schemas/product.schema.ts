@@ -21,7 +21,7 @@ export const ProductTable = pgTable("products", (table) => {
       .uuid()
       .notNull()
       .references(() => ShopTable.id, { onDelete: "no action" }),
-    name: table.varchar({ length: 500 }).notNull(),
+    title: table.varchar({ length: 500 }).notNull(),
     description: table.text().notNull(),
     status: ProductStatusEnum().notNull().default("draft"),
     categories: table.text().array().notNull(),
@@ -32,6 +32,7 @@ export const ProductTable = pgTable("products", (table) => {
       .$type<{ key: string; value: string }[]>()
       .notNull(),
     websiteUrl: table.text().notNull(),
+    initialPrice: table.real().notNull(),
     views: table.integer().notNull().default(0),
     asin: table.varchar({ length: 10 }).notNull().unique(),
     modelNumber: table.text().notNull(),

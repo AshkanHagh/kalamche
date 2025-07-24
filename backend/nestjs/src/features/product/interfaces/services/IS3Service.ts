@@ -6,4 +6,5 @@ export interface IS3Service {
     temp?: boolean,
   ): Promise<string>;
   delete(id: string): Promise<void>;
+  updateObjectTag(imageId: string, key: string, value: string): Promise<void>;
 }
