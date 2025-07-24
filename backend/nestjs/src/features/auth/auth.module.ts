@@ -8,10 +8,18 @@ import { OauthController } from "./oauth/oauth.controller";
 import { OAuthService } from "./oauth/oauth.service";
 import { GithubOAuthService } from "./oauth/util-services/github-oauth.service";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
+import { HttpModule } from "@nestjs/axios";
+import { DiscordOAuthService } from "./oauth/util-services/discrod-oauth.service";
 
 @Module({
-  imports: [RepositoryModule, EmailModule, DrizzleModule],
-  providers: [AuthService, AuthUtilService, OAuthService, GithubOAuthService],
+  imports: [RepositoryModule, EmailModule, DrizzleModule, HttpModule],
+  providers: [
+    AuthService,
+    AuthUtilService,
+    OAuthService,
+    GithubOAuthService,
+    DiscordOAuthService,
+  ],
   controllers: [AuthController, OauthController],
   exports: [AuthUtilService],
 })

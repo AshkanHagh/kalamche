@@ -12,12 +12,14 @@ import { UserRepository } from "src/repository/repositories/user.repository";
 import { AuthUtilService } from "../util.service";
 import { USER_ROLE } from "src/constants/global.constant";
 import { HandelCallbackDto } from "./dto";
+import { DiscordOAuthService } from "./util-services/discrod-oauth.service";
 
 @Injectable()
 export class OAuthService implements IOAuthService {
   constructor(
     @Inject(DATABASE) private db: Database,
     private githubOAuthService: GithubOAuthService,
+    private discordOAuthService: DiscordOAuthService,
     private oauthStateRepository: OAuthStateRepository,
     private oauthAccountRepository: OAuthAccountRepository,
     private userRepository: UserRepository,
@@ -70,7 +72,6 @@ export class OAuthService implements IOAuthService {
 
       let user: IUser;
       if (userOAuthAccount) {
-        console.log("most not be here");
         const existingUser = await this.userRepository.findById(
           userOAuthAccount.userId,
           tx,
@@ -114,6 +115,8 @@ export class OAuthService implements IOAuthService {
     switch (provider) {
       case "github":
         return this.githubOAuthService;
+      case "discord":
+        return this.discordOAuthService;
       default: {
         throw new KalamcheError(KalamcheErrorType.InvalidOAuthProvider);
       }

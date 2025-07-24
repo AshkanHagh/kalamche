@@ -4,10 +4,15 @@ import { IGitHubUser, IGitHubUserEmail } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { OAUthUserDto } from "../dto";
 import { Injectable } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom, map } from "rxjs";
 
 @Injectable()
 export class GithubOAuthService extends BaseOAuthService {
-  constructor(@AuthConfig() private authConfig: IAuthConfig) {
+  constructor(
+    @AuthConfig() private authConfig: IAuthConfig,
+    private httpService: HttpService,
+  ) {
     super({
       clientId: authConfig.oauth.github.clientId,
       clientSecret: authConfig.oauth.github.clientSecret,
@@ -22,25 +27,31 @@ export class GithubOAuthService extends BaseOAuthService {
 
   async getUserInfo(accessToken: string): Promise<OAUthUserDto> {
     try {
-      const [userResponse, emailResponse] = await Promise.all([
-        fetch("https://api.github.com/user", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "User-Agent": "kalamche",
-          },
-        }),
-        fetch("https://api.github.com/user/emails", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "User-Agent": "kalamche",
-          },
-        }),
+      const [user, userEmails] = await Promise.all([
+        firstValueFrom(
+          this.httpService
+            .get<IGitHubUser>("https://api.github.com/user", {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "User-Agent": "kalamche",
+              },
+            })
+            .pipe(map((res) => res.data)),
+        ),
+
+        firstValueFrom(
+          this.httpService
+            .get<IGitHubUserEmail[]>("https://api.github.com/user/emails", {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "User-Agent": "kalamche",
+              },
+            })
+            .pipe(map((res) => res.data)),
+        ),
       ]);
 
-      const user = (await userResponse.json()) as IGitHubUser;
-      const emails = (await emailResponse.json()) as IGitHubUserEmail[];
-
-      const primaryEmail = emails.find(
+      const primaryEmail = userEmails.find(
         (email) => email.primary && email.verified,
       );
       if (!primaryEmail) {

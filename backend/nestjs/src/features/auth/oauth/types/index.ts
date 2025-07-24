@@ -49,3 +49,16 @@ export interface IGitHubUserEmail {
   primary: boolean;
   verified: boolean;
 }
+
+export interface IDiscordUser {
+  id: string;
+  username: string;
+  discriminator: string;
+  avatar: string | null;
+  email?: string;
+  verified?: boolean;
+  mfa_enabled?: boolean;
+  locale?: string;
+  premium_type?: number;
+  public_flags?: number;
+}

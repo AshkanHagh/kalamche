@@ -28,6 +28,7 @@ export enum KalamcheErrorType {
   InvalidOAuthProvider = "INVALID_OAUTH_PROVIDER",
   StateExpired = "STATE_EXPIRED",
   InvalidOAuthState = "INVALID_OAUTH_STATE",
+  OAuthAccountNotVerified = "OAUTH_ACCOUNT_NOT_VERIFIED",
 }
 
 export class KalamcheError extends HttpException {
@@ -49,6 +50,7 @@ export class KalamcheError extends HttpException {
         return HttpStatus.UNPROCESSABLE_ENTITY;
       }
       case KalamcheErrorType.InvalidJwtToken:
+      case KalamcheErrorType.OAuthAccountNotVerified:
       case KalamcheErrorType.UnAuthorized: {
         return HttpStatus.UNAUTHORIZED;
       }
