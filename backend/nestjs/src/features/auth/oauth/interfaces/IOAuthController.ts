@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { HandelCallbackDto } from "../dto";
+import { handleCallbackDto } from "../dto";
 
 export interface IOAuthController {
   initiateOAuth(provider: string): Promise<{ url: string }>;
-  handelCallback(
+  handleCallback(
     req: Request,
     res: Response,
-    payload: HandelCallbackDto,
+    payload: handleCallbackDto,
   ): Promise<Response>;
 }

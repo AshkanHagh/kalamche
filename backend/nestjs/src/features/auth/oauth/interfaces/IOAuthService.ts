@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { IUserView } from "src/drizzle/types";
-import { HandelCallbackDto } from "../dto";
+import { handleCallbackDto } from "../dto";
+import { IUserRecord } from "src/drizzle/types";
 
 export interface IOAuthService {
   initiateOAuth(provider: string): Promise<string>;
-  handelCallback(
+  handleCallback(
     req: Request,
     res: Response,
-    payload: HandelCallbackDto,
-  ): Promise<{ user: IUserView; accessToken: string }>;
+    payload: handleCallbackDto,
+  ): Promise<{ user: IUserRecord; accessToken: string }>;
 }

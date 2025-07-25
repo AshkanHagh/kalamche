@@ -3,7 +3,7 @@ import { OAuthService } from "./oauth.service";
 import { IOAuthController } from "./interfaces/IOAuthController";
 import { Request, Response } from "express";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
-import { HandelCallbackDto, HandelCallbackSchema } from "./dto";
+import { handleCallbackDto, handleCallbackSchema } from "./dto";
 
 @Controller("oauth")
 export class OauthController implements IOAuthController {
@@ -16,13 +16,13 @@ export class OauthController implements IOAuthController {
   }
 
   @Get("/callback")
-  async handelCallback(
+  async handleCallback(
     @Req() req: Request,
     @Res() res: Response,
-    @Query(new ZodValidationPipe(HandelCallbackSchema))
-    payload: HandelCallbackDto,
+    @Query(new ZodValidationPipe(handleCallbackSchema))
+    payload: handleCallbackDto,
   ) {
-    const result = await this.oauthService.handelCallback(req, res, payload);
+    const result = await this.oauthService.handleCallback(req, res, payload);
     return res.status(201).json(result);
   }
 }

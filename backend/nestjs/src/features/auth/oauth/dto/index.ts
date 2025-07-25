@@ -11,10 +11,10 @@ export const OAuthUserSchema = z.object({
 
 export type OAUthUserDto = z.infer<typeof OAuthUserSchema>;
 
-export const HandelCallbackSchema = z.object({
+export const handleCallbackSchema = z.object({
   provider: z.string(),
   code: z.string(),
   state: z.string(),
 });
 
-export type HandelCallbackDto = z.infer<typeof HandelCallbackSchema>;
+export type handleCallbackDto = z.infer<typeof handleCallbackSchema>;

@@ -11,7 +11,7 @@ import { OAuthAccountRepository } from "src/repository/repositories/oauth-accoun
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { AuthUtilService } from "../util.service";
 import { USER_ROLE } from "src/constants/global.constant";
-import { HandelCallbackDto } from "./dto";
+import { handleCallbackDto } from "./dto";
 import { DiscordOAuthService } from "./util-services/discrod-oauth.service";
 
 @Injectable()
@@ -38,10 +38,10 @@ export class OAuthService implements IOAuthService {
     return provider.generateAuthUrl(state);
   }
 
-  async handelCallback(
+  async handleCallback(
     req: Request,
     res: Response,
-    payload: HandelCallbackDto,
+    payload: handleCallbackDto,
   ) {
     const provider = this.#getProvider(payload.provider);
 
@@ -106,7 +106,7 @@ export class OAuthService implements IOAuthService {
       );
       return {
         accessToken: response.tokens.accessToken,
-        user: response.userView,
+        user: response.user,
       };
     });
   }

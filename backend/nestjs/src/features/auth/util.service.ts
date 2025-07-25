@@ -135,11 +135,11 @@ export class AuthUtilService {
     user: IUser,
     tx?: Database,
   ) {
-    const userView = await this.userRepository.findUserView(user.id, tx);
+    const { passwordHash, updatedAt, ...result } = user;
     const tokens = await this.refreshToken(req, user.id, tx);
 
     this.setCookies(res, tokens.accessToken, tokens.refreshToken);
 
-    return { tokens, userView };
+    return { tokens, user: result };
   }
 }

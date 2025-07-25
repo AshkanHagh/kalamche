@@ -4,12 +4,10 @@ import {
   IUser,
   IUserInsertForm,
   IUserUpdateForm,
-  IUserView,
 } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { UserTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
-import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IUserRepo } from "../interfaces/IUserRepo";
 
 @Injectable()
@@ -33,23 +31,6 @@ export class UserRepository implements IUserRepo {
       .where(eq(UserTable.email, email));
 
     return user;
-  }
-
-  // BUG: remove return {user} and return userView it self
-  async findUserView(id: string, tx?: Database): Promise<IUserView> {
-    const db = tx || this.db;
-
-    const userView = await db.query.UserTable.findFirst({
-      where: (table, funcs) => funcs.eq(table.id, id),
-      columns: { passwordHash: false, updatedAt: false },
-    });
-
-    if (!userView) {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
-    return {
-      user: userView,
-    };
   }
 
   async insert(form: IUserInsertForm, tx?: Database): Promise<IUser> {

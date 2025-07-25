@@ -151,7 +151,7 @@ export class AuthService implements IAuthService {
     // scenario 2.
     const response = await this.authUtil.generateLoginRes(res, req, user);
     return {
-      user: response.userView,
+      user: response.user,
       accessToken: response.tokens.accessToken,
       verificationEmailSent: false,
     };
@@ -192,7 +192,7 @@ export class AuthService implements IAuthService {
     const response = await this.authUtil.generateLoginRes(res, req, user);
     return {
       accessToken: response.tokens.accessToken,
-      user: response.userView,
+      user: response.user,
     };
   }
 

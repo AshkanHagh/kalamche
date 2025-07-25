@@ -26,12 +26,7 @@ export type IUserLoginTokenInsertForm = InferInsertModel<
 export type IUser = InferSelectModel<typeof schema.UserTable>;
 export type IUserInsertForm = InferInsertModel<typeof schema.UserTable>;
 export type IUserUpdateForm = Partial<IUser>;
-
-export interface IUserView {
-  user: Omit<IUser, "passwordHash" | "updatedAt">;
-  // not implemented yet
-  wallet?: unknown;
-}
+export type IUserRecord = Omit<IUser, "passwordHash" | "updatedAt">;
 
 export type IProduct = InferSelectModel<typeof schema.ProductTable>;
 export type IProductInsertForm = InferInsertModel<typeof schema.ProductTable>;
