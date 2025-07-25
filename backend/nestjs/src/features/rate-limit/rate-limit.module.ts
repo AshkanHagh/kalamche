@@ -1,9 +1,9 @@
-import { DynamicModule, Global, Module } from "@nestjs/common";
+import { DynamicModule, Module } from "@nestjs/common";
 import { IRateLimitConfig } from "./types";
-import { RATE_LIMIT_CONFIG_TOKEN } from "./constants";
 import { RateLimitService } from "./rate-limit.service";
 import { RateLimitGuard } from "./guards/rate-limit.guard";
 import { RepositoryModule } from "src/repository/repository.module";
+import { RATE_LIMIT_CONFIG } from "./constants";
 
 @Module({
   imports: [RepositoryModule],
@@ -14,7 +14,7 @@ export class RateLimitModule {
       module: RateLimitModule,
       providers: [
         {
-          provide: RATE_LIMIT_CONFIG_TOKEN,
+          provide: RATE_LIMIT_CONFIG,
           useValue: config,
         },
         RateLimitService,
