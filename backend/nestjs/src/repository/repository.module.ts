@@ -8,6 +8,8 @@ import { ShopRepository } from "./repositories/shop.repository";
 import { TempProductRepository } from "./repositories/temp-product.repository";
 import { ProductOfferRepository } from "./repositories/product-offer.repository";
 import { ProductImageRepository } from "./repositories/product-image.repository";
+import { OAuthStateRepository } from "./repositories/oauth-state.repository";
+import { OAuthAccountRepository } from "./repositories/oauth-account.repository";
 
 const repositories = [
   UserRepository,
@@ -18,6 +20,8 @@ const repositories = [
   TempProductRepository,
   ProductOfferRepository,
   ProductImageRepository,
+  OAuthStateRepository,
+  OAuthAccountRepository,
 ];
 
 @Module({

@@ -4,12 +4,10 @@ import {
   IUser,
   IUserInsertForm,
   IUserUpdateForm,
-  IUserView,
 } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { UserTable } from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
-import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IUserRepo } from "../interfaces/IUserRepo";
 
 @Injectable()
@@ -25,8 +23,9 @@ export class UserRepository implements IUserRepo {
     return user !== undefined;
   }
 
-  async findByEmail(email: string): Promise<IUser | undefined> {
-    const [user] = await this.db
+  async findByEmail(email: string, tx?: Database): Promise<IUser | undefined> {
+    const db = tx || this.db;
+    const [user] = await db
       .select()
       .from(UserTable)
       .where(eq(UserTable.email, email));
@@ -34,28 +33,16 @@ export class UserRepository implements IUserRepo {
     return user;
   }
 
-  // BUG: remove return {user} and return userView it self
-  async findUserView(id: string): Promise<IUserView> {
-    const userView = await this.db.query.UserTable.findFirst({
-      where: (table, funcs) => funcs.eq(table.id, id),
-      columns: { passwordHash: false, updatedAt: false },
-    });
+  async insert(form: IUserInsertForm, tx?: Database): Promise<IUser> {
+    const db = tx || this.db;
 
-    if (!userView) {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
-    return {
-      user: userView,
-    };
-  }
-
-  async insert(form: IUserInsertForm): Promise<IUser> {
-    const [user] = await this.db.insert(UserTable).values(form).returning();
+    const [user] = await db.insert(UserTable).values(form).returning();
     return user;
   }
 
-  async findById(id: string): Promise<IUser | undefined> {
-    const [user] = await this.db
+  async findById(id: string, tx?: Database): Promise<IUser | undefined> {
+    const db = tx || this.db;
+    const [user] = await db
       .select()
       .from(UserTable)
       .where(eq(UserTable.id, id));

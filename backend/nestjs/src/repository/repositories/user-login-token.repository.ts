@@ -32,8 +32,11 @@ export class UserLoginTokenRepository implements IUserLoginTokenRepo {
   // this can be helpful for tracking user stolen tokens
   async insertOrUpdate(
     form: IUserLoginTokenInsertForm,
+    tx?: Database,
   ): Promise<IUserLoginToken> {
-    const [token] = await this.db
+    const db = tx || this.db;
+
+    const [token] = await db
       .insert(UserLoginTokenTable)
       .values(form)
       .onConflictDoUpdate({

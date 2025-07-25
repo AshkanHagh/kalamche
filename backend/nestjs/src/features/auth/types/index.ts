@@ -1,4 +1,4 @@
-import { IUserView } from "src/drizzle/types";
+import { IUserRecord } from "src/drizzle/types";
 
 export type LoginPendingResponse = {
   token: string;
@@ -7,11 +7,11 @@ export type LoginPendingResponse = {
 
 export type LoginResponse = {
   accessToken: string;
-  user: IUserView;
+  user: IUserRecord;
   verificationEmailSent: boolean;
 };
 
 export type VerifyEmailRegistrationRes = {
   accessToken: string;
-  user: IUserView;
+  user: IUserRecord;
 };

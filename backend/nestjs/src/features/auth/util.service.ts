@@ -4,7 +4,7 @@ import * as jwt from "jsonwebtoken";
 import { EmailService } from "../email/email.service";
 import { CookieOptions, Request, Response } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { IUser, IUserInsertForm } from "src/drizzle/types";
+import { Database, IUser, IUserInsertForm } from "src/drizzle/types";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
@@ -49,7 +49,7 @@ export class AuthUtilService {
     return verificationToken;
   }
 
-  async refreshToken(req: Request, userId: string) {
+  async refreshToken(req: Request, userId: string, tx?: Database) {
     const now = Math.floor(Date.now() / 1000);
 
     const accessToken = jwt.sign(
@@ -75,12 +75,15 @@ export class AuthUtilService {
         : req.ip;
     const userAgent = req.headers["user-agent"];
 
-    await this.userLoginTokenRepository.insertOrUpdate({
-      token: refreshToken,
-      userId,
-      userAgent,
-      ip: clientIp,
-    });
+    await this.userLoginTokenRepository.insertOrUpdate(
+      {
+        token: refreshToken,
+        userId,
+        userAgent,
+        ip: clientIp,
+      },
+      tx,
+    );
 
     return {
       accessToken,
@@ -98,10 +101,10 @@ export class AuthUtilService {
   }
 
   // NOT COMPLETED YET
-  async findOrCreateUser(userForm: IUserInsertForm) {
-    let user = await this.userRepository.findByEmail(userForm.email);
+  async findOrCreateUser(userForm: IUserInsertForm, tx?: Database) {
+    let user = await this.userRepository.findByEmail(userForm.email, tx);
     if (!user) {
-      user = await this.userRepository.insert(userForm);
+      user = await this.userRepository.insert(userForm, tx);
     }
 
     return user;
@@ -126,12 +129,17 @@ export class AuthUtilService {
       });
   }
 
-  async generateLoginRes(res: Response, req: Request, user: IUser) {
-    const userView = await this.userRepository.findUserView(user.id);
-    const tokens = await this.refreshToken(req, user.id);
+  async generateLoginRes(
+    res: Response,
+    req: Request,
+    user: IUser,
+    tx?: Database,
+  ) {
+    const { passwordHash, updatedAt, ...result } = user;
+    const tokens = await this.refreshToken(req, user.id, tx);
 
     this.setCookies(res, tokens.accessToken, tokens.refreshToken);
 
-    return { tokens, userView };
+    return { tokens, user: result };
   }
 }
