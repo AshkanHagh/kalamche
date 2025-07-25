@@ -29,6 +29,8 @@ export enum KalamcheErrorType {
   StateExpired = "STATE_EXPIRED",
   InvalidOAuthState = "INVALID_OAUTH_STATE",
   OAuthAccountNotVerified = "OAUTH_ACCOUNT_NOT_VERIFIED",
+  RateLimitInvalidIdentifier = "RATE_LIMIT_INVALID_IDENTIFIER",
+  RateLimitExceeded = "RATE_LIMIT_EXCEEDED",
 }
 
 export class KalamcheError extends HttpException {
@@ -43,6 +45,9 @@ export class KalamcheError extends HttpException {
 
   static getStatusCode(type: KalamcheErrorType) {
     switch (type) {
+      case KalamcheErrorType.RateLimitExceeded: {
+        return HttpStatus.TOO_MANY_REQUESTS;
+      }
       case KalamcheErrorType.NotFound: {
         return HttpStatus.NOT_FOUND;
       }
@@ -74,6 +79,7 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.InvalidOAuthProvider:
       case KalamcheErrorType.StateExpired:
       case KalamcheErrorType.InvalidOAuthState:
+      case KalamcheErrorType.RateLimitInvalidIdentifier:
       case KalamcheErrorType.InvalidUpc: {
         return HttpStatus.BAD_REQUEST;
       }

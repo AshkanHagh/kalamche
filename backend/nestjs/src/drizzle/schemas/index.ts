@@ -10,3 +10,4 @@ export * from "./product-like-schema";
 export * from "./product-price-history.schema";
 export * from "./product-offer.schema";
 export * from "./temp-product.schema";
+export * from "./rate-limit-bucket.schema";

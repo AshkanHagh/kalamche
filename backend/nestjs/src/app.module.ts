@@ -7,7 +7,8 @@ import { EmailModule } from "./features/email/email.module";
 import { ProductModule } from "./features/product/product.module";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ShopModule } from "./features/shop/shop.module";
-import { UserModule } from './features/user/user.module';
+import { UserModule } from "./features/user/user.module";
+import { RateLimitModule } from "./features/rate-limit/rate-limit.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UserModule } from './features/user/user.module';
     ProductModule,
     ShopModule,
     UserModule,
+    RateLimitModule,
   ],
 })
 export class AppModule {}

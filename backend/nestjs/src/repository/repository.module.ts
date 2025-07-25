@@ -10,6 +10,7 @@ import { ProductOfferRepository } from "./repositories/product-offer.repository"
 import { ProductImageRepository } from "./repositories/product-image.repository";
 import { OAuthStateRepository } from "./repositories/oauth-state.repository";
 import { OAuthAccountRepository } from "./repositories/oauth-account.repository";
+import { RateLimitBucketRepository } from "./repositories/rate-limit-bucket.repository";
 
 const repositories = [
   UserRepository,
@@ -22,6 +23,7 @@ const repositories = [
   ProductImageRepository,
   OAuthStateRepository,
   OAuthAccountRepository,
+  RateLimitBucketRepository,
 ];
 
 @Module({
