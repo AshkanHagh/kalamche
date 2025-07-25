@@ -3,8 +3,8 @@ import { Request } from "express";
 import { IRateLimitConfig } from "./types";
 import { IRateLimitBucket } from "src/drizzle/schemas";
 import { RateLimitBucketRepository } from "src/repository/repositories/rate-limit-bucket.repository";
-import { RATE_LIMIT_CONFIG_TOKEN } from "./constants";
 import { IRateLimitService } from "./interfaces/IService";
+import { RATE_LIMIT_CONFIG } from "./constants";
 
 @Injectable()
 export class RateLimitService implements IRateLimitService {
@@ -12,7 +12,7 @@ export class RateLimitService implements IRateLimitService {
 
   constructor(
     private rateLimitBucketRepository: RateLimitBucketRepository,
-    @Inject(RATE_LIMIT_CONFIG_TOKEN) private config: IRateLimitConfig,
+    @Inject(RATE_LIMIT_CONFIG) private config: IRateLimitConfig,
   ) {}
 
   async checkRateLimit(identifier: string) {
