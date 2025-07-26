@@ -21,7 +21,7 @@ export class ZarinpalPaymentService
   async createPayment(
     userEmail: string,
     amount: number,
-  ): Promise<{ transactionId: string; url: string }> {
+  ): Promise<{ referenceId: string; url: string }> {
     try {
       const result = (await this.zarinpal.payments.create({
         amount: amount * 10,
@@ -32,7 +32,7 @@ export class ZarinpalPaymentService
 
       const url = this.zarinpal.payments.getRedirectUrl(result.data.authority);
       return {
-        transactionId: result.data.authority,
+        referenceId: result.data.authority,
         url,
       };
     } catch (error) {
@@ -41,20 +41,15 @@ export class ZarinpalPaymentService
   }
 
   async verifyPayment(payload: {
-    status: "OK" | "NOK";
-    authority: string;
+    referenceId: string;
     amount: number;
-  }): Promise<{ refId: string }> {
-    if (payload.status !== "NOK") {
-      throw new KalamcheError(KalamcheErrorType.PaymentVerificationFailed);
-    }
-
+  }): Promise<{ transactionId: string }> {
     let result: ZarinPalVerifyPayment;
     try {
       // eslint-disable-next-line
       result = await this.zarinpal.verifications.verify({
         amount: payload.amount * 10,
-        authority: payload.authority,
+        authority: payload.referenceId,
       });
     } catch (error) {
       throw new KalamcheError(KalamcheErrorType.ZarinpalReqFailed, error);
@@ -64,6 +59,6 @@ export class ZarinpalPaymentService
       throw new KalamcheError(KalamcheErrorType.PaymentVerificationFailed);
     }
 
-    return { refId: result.data.ref_id.toString() };
+    return { transactionId: result.data.ref_id.toString() };
   }
 }

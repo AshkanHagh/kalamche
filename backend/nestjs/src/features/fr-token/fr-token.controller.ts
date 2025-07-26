@@ -1,7 +1,12 @@
-import { Controller, Get, Param, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { FrTokenService } from "./fr-token.service";
 import { IFrTokenController } from "./interfaces/IController";
-import { CreateCheckoutDto, CreateCheckoutSchema } from "./dto";
+import {
+  CreateCheckoutDto,
+  CreateCheckoutSchema,
+  VerifyPaymentDto,
+  VerifyPaymentSchema,
+} from "./dto";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
 import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { User } from "../auth/decorators/user.decorator";
@@ -13,6 +18,7 @@ import {
 } from "src/constants/global.constant";
 import { IUser } from "src/drizzle/types";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
+import { ITransactionRecord } from "src/drizzle/schemas";
 
 @Controller("fr-token")
 @UseGuards(AuthorizationGuard, PermissionGuard, RateLimitGuard)
@@ -24,9 +30,18 @@ export class FrTokenController implements IFrTokenController {
   async createCheckout(
     @User() user: IUser,
     @Param(new ZodValidationPipe(CreateCheckoutSchema))
-    payload: CreateCheckoutDto,
+    params: CreateCheckoutDto,
   ): Promise<{ url: string }> {
-    const url = await this.frTokenService.createCheckout(user, payload);
+    const url = await this.frTokenService.createCheckout(user, params);
     return { url };
+  }
+
+  @Post("/verify")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
+  async verifyPayment(
+    @User("id") userId: string,
+    @Body(new ZodValidationPipe(VerifyPaymentSchema)) params: VerifyPaymentDto,
+  ): Promise<ITransactionRecord> {
+    return await this.frTokenService.verifyPayment(userId, params);
   }
 }

@@ -3,21 +3,11 @@ import { PAYMENT_METHODS } from "../constants";
 export type VerifyPaymentParams<T extends (typeof PAYMENT_METHODS)[number]> =
   T extends "zarinpal"
     ? {
-        status: "OK" | "NOK";
-        authority: string;
+        referenceId: string;
         amount: number;
       }
     : {
-        transactionId: string;
-      };
-
-export type VerifyPaymentResponse<T extends (typeof PAYMENT_METHODS)[number]> =
-  T extends "zarinpal"
-    ? {
-        refId: string;
-      }
-    : {
-        transactionId: string;
+        referenceId: string;
       };
 
 // zarinpal sdk missing types
