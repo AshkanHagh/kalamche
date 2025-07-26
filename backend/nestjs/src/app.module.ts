@@ -9,6 +9,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { ShopModule } from "./features/shop/shop.module";
 import { UserModule } from "./features/user/user.module";
 import { RateLimitModule } from "./features/rate-limit/rate-limit.module";
+import { FrTokenModule } from "./features/fr-token/fr-token.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { RateLimitModule } from "./features/rate-limit/rate-limit.module";
     ShopModule,
     UserModule,
     RateLimitModule,
+    FrTokenModule,
   ],
 })
 export class AppModule {}

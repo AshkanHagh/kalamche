@@ -16,6 +16,7 @@ import {
 } from "../types";
 import { faker } from "@faker-js/faker";
 import { USER_ROLE } from "src/constants/global.constant";
+import { FrTokenPlanDatasets } from "src/assets/datasets/fr-token-plans";
 
 async function main() {
   console.log("Start seeding");
@@ -29,6 +30,7 @@ async function main() {
     const users = await seedUsers(tx);
     const shops = await seedShops(tx, users);
     await seedProducts(tx, shops);
+    await seedFrTokenPlans(tx);
   });
 
   console.log("Seeding completed");
@@ -163,6 +165,10 @@ async function seedProducts(db: Database, shops: IShop[]) {
     const records = productOffersForm.slice(i, i + batchSize);
     await db.insert(schema.ProductOfferTable).values(records).execute();
   }
+}
+
+async function seedFrTokenPlans(db: Database) {
+  await db.insert(schema.FrTokenPlanTable).values(FrTokenPlanDatasets);
 }
 
 main();
