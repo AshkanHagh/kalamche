@@ -15,7 +15,7 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
-import { IShop, IUser } from "src/drizzle/types";
+import { IShop, IShopRecord } from "src/drizzle/types";
 import { ShopService } from "./shop.service";
 import { User } from "../auth/decorators/user.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -31,8 +31,11 @@ import {
   UpdateShopCreationSchema,
   UpdateShopDto,
   UpdateShopSchema,
+  UploadImageDto,
+  UploadImageSchema,
 } from "./dto";
 import { IShopController } from "./interfaces/IController";
+import { ITempShop } from "src/drizzle/schemas";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -41,18 +44,18 @@ export class ShopController implements IShopController {
 
   @Post("/")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.CREATE)
-  async createShop(@User() user: IUser): Promise<IShop> {
-    const result = this.shopService.createShop(user);
+  async createShop(@User("id") userId: string): Promise<ITempShop> {
+    const result = this.shopService.createShop(userId);
     return result;
   }
 
-  @Post("/image/:shop_id")
+  @Post("/images/:shopId/:isTempShop")
   @UseInterceptors(FileInterceptor("image"))
   @HttpCode(HttpStatus.NO_CONTENT)
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
   async uploadImage(
     @User("id") userId: string,
-    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+    @Param(new ZodValidationPipe(UploadImageSchema)) params: UploadImageDto,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addMaxSizeValidator({
@@ -62,19 +65,33 @@ export class ShopController implements IShopController {
     )
     image: Express.Multer.File,
   ): Promise<void> {
-    await this.shopService.uploadImage(userId, shopId, image);
+    await this.shopService.uploadImage(userId, params, image);
     return;
   }
 
-  @Patch("/complete/:shop_id")
+  @Patch("/complete/:temp_shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
-  async updateShopCreation(
+  async completeShopCreation(
     @User("id") userId: string,
-    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+    @Param("temp_shop_id", new ParseUUIDPipe()) tempShopId: string,
     @Body(new ZodValidationPipe(UpdateShopCreationSchema))
     payload: UpdateShopCreationDto,
   ): Promise<IShop> {
-    return await this.shopService.updateShopCreation(userId, shopId, payload);
+    return await this.shopService.completeShopCreation(
+      userId,
+      tempShopId,
+      payload,
+    );
+  }
+
+  @Delete("/temp/:temp_shop_id")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.DELETE)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteTempShop(
+    @User("id") userId: string,
+    @Param("temp_shop_id", new ParseUUIDPipe()) tempShopId: string,
+  ): Promise<void> {
+    await this.shopService.deleteTempShop(userId, tempShopId);
   }
 
   @Delete("/:shop_id")
@@ -91,7 +108,7 @@ export class ShopController implements IShopController {
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
   async getShop(
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
-  ): Promise<IShop> {
+  ): Promise<IShopRecord> {
     return await this.shopService.getShop(shopId);
   }
 
@@ -101,7 +118,7 @@ export class ShopController implements IShopController {
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
     @Body(new ZodValidationPipe(UpdateShopSchema)) payload: UpdateShopDto,
-  ): Promise<IShop> {
+  ): Promise<IShopRecord> {
     return await this.shopService.updateShop(userId, shopId, payload);
   }
 }

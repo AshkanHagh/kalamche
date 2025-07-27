@@ -15,11 +15,16 @@ export const UpdateShopCreationSchema = z.object({
 
 export type UpdateShopCreationDto = z.infer<typeof UpdateShopCreationSchema>;
 
+export const UploadImageSchema = z.object({
+  shopId: z.string().uuid(),
+  isTempShop: z.boolean(),
+});
+
+export type UploadImageDto = z.infer<typeof UploadImageSchema>;
+
 export const UpdateShopSchema = z.object({
   name: z.string().max(255).optional(),
   description: z.string().max(500).optional(),
-  email: z.string().email().optional(),
-  phone: z.string().min(11).max(20).optional(),
   website: z.string().url().optional(),
   country: z.string().max(100).optional(),
   city: z.string().max(100).optional(),

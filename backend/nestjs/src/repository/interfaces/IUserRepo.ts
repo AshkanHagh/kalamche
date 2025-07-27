@@ -11,4 +11,5 @@ export interface IUserRepo {
   insert(form: IUserInsertForm, tx?: Database): Promise<IUser>;
   findById(id: string, tx?: Database): Promise<IUser | undefined>;
   update(id: string, form: IUserUpdateForm): Promise<IUser>;
+  updateRole(tx: Database, id: string, role: string): Promise<void>;
 }

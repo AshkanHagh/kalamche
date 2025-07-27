@@ -6,6 +6,7 @@ import { id } from "./schema.helper";
 import { ShopTable } from "./shop.schema";
 import { ProductLikeTable } from "./product-like-schema";
 import { OAuthAccountTable } from "./oauth-account.schema";
+import { TempShopTable } from "./temp-shop.schema";
 
 export const UserRoleEnum = pgEnum("user_roles_enum", USER_ROLE);
 
@@ -36,4 +37,5 @@ export const UserRelations = relations(UserTable, ({ one, many }) => ({
   loginToken: one(UserLoginTokenTable),
   shop: one(ShopTable),
   likedProducts: many(ProductLikeTable),
+  tempShop: one(TempShopTable),
 }));

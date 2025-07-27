@@ -7,7 +7,7 @@ import {
 } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { UserTable } from "src/drizzle/schemas";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { IUserRepo } from "../interfaces/IUserRepo";
 
 @Injectable()
@@ -58,5 +58,27 @@ export class UserRepository implements IUserRepo {
       .returning();
 
     return user;
+  }
+
+  async updateRole(tx: Database, id: string, role: string): Promise<void> {
+    await tx
+      .update(UserTable)
+      .set({ roles: sql`array_append(roles, ${role})` })
+      .where(eq(UserTable.id, id))
+      .execute();
+  }
+
+  async removeRoles(tx: Database, id: string, roles: string[]) {
+    await tx
+      .update(UserTable)
+      .set({
+        roles: sql`(
+          SELECT ARRAY_AGG(elem)
+          FROM UNNEST(${UserTable.roles}) AS elem
+          WHERE elem NOT IN (${roles.join(", ")})
+        )`,
+      })
+      .where(eq(UserTable.id, id))
+      .execute();
   }
 }

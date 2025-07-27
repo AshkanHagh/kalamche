@@ -14,6 +14,7 @@ import { RateLimitBucketRepository } from "./repositories/rate-limit-bucket.repo
 import { TransactionRepository } from "./repositories/transaction.repository";
 import { FrTokenPlanRepository } from "./repositories/fr-token-plan.repository";
 import { WalletRepository } from "./repositories/wallet.repository";
+import { TempShopRepository } from "./repositories/temp-shop.repository";
 
 const repositories = [
   UserRepository,
@@ -30,6 +31,7 @@ const repositories = [
   TransactionRepository,
   FrTokenPlanRepository,
   WalletRepository,
+  TempShopRepository,
 ];
 
 @Module({

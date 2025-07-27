@@ -2,6 +2,7 @@ export enum USER_ROLE {
   ADMIN = "admin",
   USER = "user",
   SELLER = "seller",
+  PENDING_SELLER = "pending_seller",
 }
 
 export enum ResourceType {
@@ -60,5 +61,12 @@ export const ROLE_PERMISSIONS: Record<
   [USER_ROLE.SELLER]: {
     [ResourceType.SHOP]: Object.values(SHOP_RESOURCE_ACTION),
     [ResourceType.PRODUCT]: Object.values(PRODUCT_RESOURCE_ACTION),
+  },
+  [USER_ROLE.PENDING_SELLER]: {
+    [ResourceType.SHOP]: [
+      SHOP_RESOURCE_ACTION.CREATE,
+      SHOP_RESOURCE_ACTION.UPDATE,
+      SHOP_RESOURCE_ACTION.DELETE,
+    ],
   },
 };

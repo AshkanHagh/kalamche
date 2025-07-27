@@ -2,19 +2,20 @@ import {
   Database,
   IShop,
   IShopInsertForm,
+  IShopRecord,
   IShopUpdateForm,
 } from "src/drizzle/types";
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
 import { ShopTable } from "src/drizzle/schemas";
-import { eq } from "drizzle-orm";
+import { eq, getTableColumns } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IShopRepo } from "../interfaces/IShopRepo";
 
 export class ShopRepository implements IShopRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
-  async insert(form: IShopInsertForm): Promise<IShop> {
+  async insert(tx: Database, form: IShopInsertForm): Promise<IShop> {
     const [shop] = await this.db.insert(ShopTable).values(form).returning();
     return shop;
   }
@@ -27,11 +28,14 @@ export class ShopRepository implements IShopRepo {
     return shop;
   }
 
-  async findById(id: string): Promise<IShop> {
-    const [shop] = await this.db
-      .select()
-      .from(ShopTable)
-      .where(eq(ShopTable.id, id));
+  async findById(id: string): Promise<IShopRecord> {
+    const shop = await this.db.query.ShopTable.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, id),
+      columns: {
+        updatedAt: false,
+        emailVerifiedAt: false,
+      },
+    });
     if (!shop) {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
@@ -39,16 +43,27 @@ export class ShopRepository implements IShopRepo {
     return shop;
   }
 
-  async update(id: string, form: IShopUpdateForm): Promise<IShop> {
+  async userHasShop(userId: string): Promise<boolean> {
+    const [shop] = await this.db
+      .select()
+      .from(ShopTable)
+      .where(eq(ShopTable.userId, userId));
+
+    return !!shop;
+  }
+
+  async update(id: string, form: IShopUpdateForm): Promise<IShopRecord> {
+    const { emailVerifiedAt, updatedAt, ...rest } = getTableColumns(ShopTable);
+
     const [shop] = await this.db
       .update(ShopTable)
       .set(form)
       .where(eq(ShopTable.id, id))
-      .returning();
+      .returning(rest);
     return shop;
   }
 
-  async delete(id: string): Promise<void> {
-    await this.db.delete(ShopTable).where(eq(ShopTable.id, id));
+  async delete(tx: Database, id: string): Promise<void> {
+    await tx.delete(ShopTable).where(eq(ShopTable.id, id));
   }
 }

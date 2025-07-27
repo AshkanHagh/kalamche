@@ -35,6 +35,7 @@ export type IProductView = Omit<IProduct, "vector"> & { shop: IShop };
 export type IShop = InferSelectModel<typeof schema.ShopTable>;
 export type IShopInsertForm = InferInsertModel<typeof schema.ShopTable>;
 export type IShopUpdateForm = Partial<IShop>;
+export type IShopRecord = Omit<IShop, "emailVerifiedAt" | "updatedAt">;
 
 export type IProductPriceHistory = InferSelectModel<
   typeof schema.ProductPriceHistoryTable

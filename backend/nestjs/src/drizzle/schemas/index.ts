@@ -14,3 +14,4 @@ export * from "./rate-limit-bucket.schema";
 export * from "./fr-token-plan.schema";
 export * from "./wallet.schema";
 export * from "./transaction.schema";
+export * from "./temp-shop.schema";
