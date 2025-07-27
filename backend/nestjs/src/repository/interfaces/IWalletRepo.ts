@@ -1,3 +1,4 @@
+import { IWalletInsertForm } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
 
 export interface IWalletRepo {
@@ -6,4 +7,5 @@ export interface IWalletRepo {
     userId: string,
     tokens: number,
   ): Promise<void>;
+  insert(form: IWalletInsertForm): Promise<void>;
 }

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { eq, sql } from "drizzle-orm";
 import { DATABASE } from "src/drizzle/constants";
-import { WalletTable } from "src/drizzle/schemas";
+import { IWalletInsertForm, WalletTable } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
 import { IWalletRepo } from "../interfaces/IWalletRepo";
 
@@ -20,5 +20,9 @@ export class WalletRepository implements IWalletRepo {
         tokens: sql`${WalletTable.tokens} + ${tokens}`,
       })
       .where(eq(WalletTable.userId, userId));
+  }
+
+  async insert(form: IWalletInsertForm): Promise<void> {
+    await this.db.insert(WalletTable).values(form).execute();
   }
 }

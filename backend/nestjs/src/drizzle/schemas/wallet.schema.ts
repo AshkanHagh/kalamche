@@ -16,6 +16,9 @@ export const WalletTable = pgTable("wallets", (table) => {
   };
 });
 
+export type IWallet = typeof WalletTable.$inferSelect;
+export type IWalletInsertForm = typeof WalletTable.$inferInsert;
+
 export const WalletRelations = relations(WalletTable, ({ one }) => ({
   user: one(UserTable, {
     fields: [WalletTable.userId],
