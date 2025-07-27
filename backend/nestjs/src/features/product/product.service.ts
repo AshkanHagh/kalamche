@@ -15,6 +15,10 @@ import { ProductOfferRepository } from "src/repository/repositories/product-offe
 import { ProductImageRepository } from "src/repository/repositories/product-image.repository";
 import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
+import { WalletRepository } from "src/repository/repositories/wallet.repository";
+import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
+import { HttpService } from "@nestjs/axios";
+import { firstValueFrom } from "rxjs";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -26,12 +30,11 @@ export class ProductService implements IProductService {
     private shopRepository: ShopRepository,
     private productOfferRepository: ProductOfferRepository,
     private productImageRepository: ProductImageRepository,
+    private walletRepository: WalletRepository,
     private s3Service: S3Service,
+    private httpService: HttpService,
   ) {}
 
-  // TODO: add fr token logic after subscriptions added
-  // 1. check user has min token required
-  // 2. reduce required token
   async createProduct(
     userId: string,
     shopId: string,
@@ -43,26 +46,33 @@ export class ProductService implements IProductService {
     }
     await this.productUtilService.userHasPermission(userId, shopId);
 
-    if (process.env.NODE_ENV === "production") {
-      const result = await fetch(
-        `https://go-upc.com/api/v1/code/${payload.upc}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${process.env.GO_UPC_API_TOKEN}`,
-          },
-        },
-      );
-      if (result.status !== 200) {
-        throw new KalamcheError(KalamcheErrorType.InvalidUpc);
+    const wallet = await this.walletRepository.findByUserId(userId);
+    if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {
+      throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
+    }
+
+    // validate upc in production if GO_UPC_API_TOKEN is set
+    if (process.env.NODE_ENV === "production" && process.env.GO_UPC_API_TOKEN) {
+      try {
+        await firstValueFrom(
+          this.httpService.get(
+            `https://go-upc.com/api/v1/code/${payload.upc}`,
+            {
+              headers: {
+                Authorization: `Bearer ${process.env.GO_UPC_API_TOKEN}`,
+              },
+            },
+          ),
+        );
+      } catch (error) {
+        throw new KalamcheError(KalamcheErrorType.InvalidUpc, error);
       }
     }
 
-    const tempProduct = await this.tempProductRepository.insert({
+    return await this.tempProductRepository.insert({
       shopId,
       upc: payload.upc,
     });
-    return tempProduct;
   }
 
   async completeProductCreation(
@@ -73,6 +83,11 @@ export class ProductService implements IProductService {
     const tempProduct = await this.tempProductRepository.findById(productId);
     await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
 
+    const wallet = await this.walletRepository.findByUserId(userId);
+    if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {
+      throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
+    }
+
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let asin = characters.charAt(Math.floor(Math.random() * 26));
     for (let i = 0; i < 9; i++) {
@@ -81,6 +96,12 @@ export class ProductService implements IProductService {
 
     const updateTasks: Promise<void>[] = [];
     const result = await this.db.transaction(async (tx) => {
+      await this.walletRepository.consumeTokens(
+        tx,
+        userId,
+        MIN_TOKEN_FOR_PRODUCT_CREATION,
+      );
+
       const product = await this.productRepository.insert(tx, {
         ...payload,
         id: tempProduct.id,
@@ -124,7 +145,6 @@ export class ProductService implements IProductService {
     return result;
   }
 
-  // TODO: check and consume fr tokens
   async createOffer(
     userId: string,
     productId: string,
@@ -137,6 +157,11 @@ export class ProductService implements IProductService {
       throw new KalamcheError(KalamcheErrorType.UserHasNoShop);
     }
 
+    const wallet = await this.walletRepository.findByUserId(userId);
+    if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {
+      throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
+    }
+
     const hasOffer = await this.productOfferRepository.checkShopOfferExists(
       userShop.id,
       productId,
@@ -144,13 +169,19 @@ export class ProductService implements IProductService {
     if (hasOffer) {
       throw new KalamcheError(KalamcheErrorType.OfferAlreadyExists);
     }
-    const offer = await this.productOfferRepository.insert(this.db, {
-      ...payload,
-      productId,
-      shopId: userShop.id,
-    });
 
-    return offer;
+    return await this.db.transaction(async (tx) => {
+      await this.walletRepository.consumeTokens(
+        tx,
+        userId,
+        MIN_TOKEN_FOR_PRODUCT_CREATION,
+      );
+      return await this.productOfferRepository.insert(tx, {
+        ...payload,
+        productId,
+        shopId: userShop.id,
+      });
+    });
   }
 
   async uploadImages(

@@ -34,6 +34,8 @@ export enum KalamcheErrorType {
   ZarinpalReqFailed = "ZARINPAL_REQUEST_FAILED",
   PaymentVerificationFailed = "PAYMENT_VERIFICATION_FAILED",
   InvalidPaymentMethod = "INVALID_PAYMENT_METHOD",
+  NotEnoughTokens = "NOT_ENOUGH_TOKENS",
+  ApiFetchFailed = "API_FETCH_FAILED",
 }
 
 export class KalamcheError extends HttpException {
@@ -48,6 +50,9 @@ export class KalamcheError extends HttpException {
 
   static getStatusCode(type: KalamcheErrorType) {
     switch (type) {
+      case KalamcheErrorType.NotEnoughTokens: {
+        return HttpStatus.PAYMENT_REQUIRED;
+      }
       case KalamcheErrorType.PaymentVerificationFailed: {
         return HttpStatus.NOT_ACCEPTABLE;
       }
