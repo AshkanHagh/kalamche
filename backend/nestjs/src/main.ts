@@ -4,9 +4,6 @@ import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.int
 import { KalamcheExceptionFilter } from "./filters/exception-filter";
 import cookieParser from "cookie-parser";
 
-// TODO(optional): write testing for verification email registration
-// TODO: refactor testings to use test container
-// TODO: add search
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

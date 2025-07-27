@@ -8,6 +8,7 @@ import { Database, IUser, IUserInsertForm } from "src/drizzle/types";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
+import { WalletRepository } from "src/repository/repositories/wallet.repository";
 
 export class AuthUtilService {
   constructor(
@@ -15,6 +16,7 @@ export class AuthUtilService {
     private userRepository: UserRepository,
     private pendingUserRepository: PendingUserRepository,
     private userLoginTokenRepository: UserLoginTokenRepository,
+    private walletRepository: WalletRepository,
     private emailService: EmailService,
   ) {}
 
@@ -105,6 +107,11 @@ export class AuthUtilService {
     let user = await this.userRepository.findByEmail(userForm.email, tx);
     if (!user) {
       user = await this.userRepository.insert(userForm, tx);
+      // initiate default user free trial wallet
+      await this.walletRepository.insert({
+        tokens: 50,
+        userId: user.id,
+      });
     }
 
     return user;

@@ -9,6 +9,7 @@ import { OAuthAccountTable } from "./oauth-account.schema";
 
 export const UserRoleEnum = pgEnum("user_roles_enum", USER_ROLE);
 
+// TODO: make email unique
 export const UserTable = pgTable(
   "users",
   (table) => {

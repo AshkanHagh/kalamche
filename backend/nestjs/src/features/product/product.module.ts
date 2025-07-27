@@ -7,9 +7,10 @@ import { ProductScheduler } from "./scheduler";
 import { S3Service } from "./services/s3.service";
 import { ProductUtilService } from "./util.service";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
+import { HttpModule } from "@nestjs/axios";
 
 @Module({
-  imports: [AuthModule, RepositoryModule, DrizzleModule],
+  imports: [AuthModule, RepositoryModule, DrizzleModule, HttpModule],
   controllers: [ProductController],
   providers: [ProductService, ProductScheduler, S3Service, ProductUtilService],
   exports: [S3Service],

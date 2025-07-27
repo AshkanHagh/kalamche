@@ -31,6 +31,11 @@ export enum KalamcheErrorType {
   OAuthAccountNotVerified = "OAUTH_ACCOUNT_NOT_VERIFIED",
   RateLimitInvalidIdentifier = "RATE_LIMIT_INVALID_IDENTIFIER",
   RateLimitExceeded = "RATE_LIMIT_EXCEEDED",
+  ZarinpalReqFailed = "ZARINPAL_REQUEST_FAILED",
+  PaymentVerificationFailed = "PAYMENT_VERIFICATION_FAILED",
+  InvalidPaymentMethod = "INVALID_PAYMENT_METHOD",
+  NotEnoughTokens = "NOT_ENOUGH_TOKENS",
+  ApiFetchFailed = "API_FETCH_FAILED",
 }
 
 export class KalamcheError extends HttpException {
@@ -45,6 +50,12 @@ export class KalamcheError extends HttpException {
 
   static getStatusCode(type: KalamcheErrorType) {
     switch (type) {
+      case KalamcheErrorType.NotEnoughTokens: {
+        return HttpStatus.PAYMENT_REQUIRED;
+      }
+      case KalamcheErrorType.PaymentVerificationFailed: {
+        return HttpStatus.NOT_ACCEPTABLE;
+      }
       case KalamcheErrorType.RateLimitExceeded: {
         return HttpStatus.TOO_MANY_REQUESTS;
       }
@@ -78,6 +89,7 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.VerifyTokenExpired:
       case KalamcheErrorType.InvalidOAuthProvider:
       case KalamcheErrorType.StateExpired:
+      case KalamcheErrorType.InvalidPaymentMethod:
       case KalamcheErrorType.InvalidOAuthState:
       case KalamcheErrorType.RateLimitInvalidIdentifier:
       case KalamcheErrorType.InvalidUpc: {

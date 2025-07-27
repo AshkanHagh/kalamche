@@ -11,6 +11,9 @@ import { ProductImageRepository } from "./repositories/product-image.repository"
 import { OAuthStateRepository } from "./repositories/oauth-state.repository";
 import { OAuthAccountRepository } from "./repositories/oauth-account.repository";
 import { RateLimitBucketRepository } from "./repositories/rate-limit-bucket.repository";
+import { TransactionRepository } from "./repositories/transaction.repository";
+import { FrTokenPlanRepository } from "./repositories/fr-token-plan.repository";
+import { WalletRepository } from "./repositories/wallet.repository";
 
 const repositories = [
   UserRepository,
@@ -24,6 +27,9 @@ const repositories = [
   OAuthStateRepository,
   OAuthAccountRepository,
   RateLimitBucketRepository,
+  TransactionRepository,
+  FrTokenPlanRepository,
+  WalletRepository,
 ];
 
 @Module({
