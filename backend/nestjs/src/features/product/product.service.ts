@@ -4,6 +4,7 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  RedirectToProductPageDto,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -19,6 +20,7 @@ import { WalletRepository } from "src/repository/repositories/wallet.repository"
 import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
+import { Request } from "express";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -129,6 +131,7 @@ export class ProductService implements IProductService {
           productId: product.id,
           shopId: product.shopId,
           title: payload.title,
+          status: "active",
         }),
         this.productImageRepository.updateByTempProductId(tx, product.id, {
           tempProductId: null,
@@ -179,6 +182,7 @@ export class ProductService implements IProductService {
       return await this.productOfferRepository.insert(tx, {
         ...payload,
         productId,
+        status: "active",
         shopId: userShop.id,
       });
     });
@@ -242,6 +246,44 @@ export class ProductService implements IProductService {
 
       await Promise.all(uploadTasks);
     });
+  }
+
+  async redirectToProductPage(
+    req: Request,
+    params: RedirectToProductPageDto,
+  ): Promise<string> {
+    let ip: string | undefined = req.headers["x-forwarded-for"] as string;
+    if (ip) {
+      ip = ip.split(",")[0].trim();
+    } else {
+      ip =
+        (req.headers["x-real-ip"] as string) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        req.ip;
+    }
+
+    if (!ip) {
+      throw new KalamcheError(KalamcheErrorType.BadRequest);
+    }
+
+    const userAgent = req.headers["user-agent"] as string;
+
+    const [shop, offer] = await Promise.all([
+      this.shopRepository.findById(params.shopId),
+      this.productOfferRepository.findByProductId(params.productId),
+      this.productRepository.findById(params.productId),
+    ]);
+
+    await this.productUtilService.handleTokenCharging(
+      shop.userId,
+      params.shopId,
+      params.productId,
+      ip,
+      userAgent,
+    );
+
+    return offer.pageUrl;
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

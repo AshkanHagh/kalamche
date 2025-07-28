@@ -1,8 +1,13 @@
-import { pgTable } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "./schema.helper";
 import { ShopTable } from "./shop.schema";
 import { ProductTable } from "./product.schema";
 import { relations } from "drizzle-orm";
+
+export const ProductOfferStatusEnum = pgEnum("product_offer_status", [
+  "active",
+  "inactive",
+]);
 
 // TODO: remove price and add final_price
 export const ProductOfferTable = pgTable("product_offers", (table) => {
@@ -19,6 +24,7 @@ export const ProductOfferTable = pgTable("product_offers", (table) => {
     title: table.text().notNull(),
     finalPrice: table.real().notNull(),
     pageUrl: table.text().notNull(),
+    status: ProductOfferStatusEnum().notNull(),
     createdAt,
     updatedAt,
   };

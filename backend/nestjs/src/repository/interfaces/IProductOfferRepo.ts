@@ -7,4 +7,5 @@ import {
 export interface IProductOfferRepo {
   checkShopOfferExists(shopId: string, productId: string): Promise<boolean>;
   insert(tx: Database, form: IProductOfferInsertForm): Promise<IProductOffer>;
+  findByProductId(productId: string): Promise<IProductOffer>;
 }

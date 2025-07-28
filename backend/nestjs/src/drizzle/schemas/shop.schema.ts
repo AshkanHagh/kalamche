@@ -5,6 +5,7 @@ import { relations } from "drizzle-orm";
 import { ProductTable } from "./product.schema";
 import { ProductOfferTable } from "./product-offer.schema";
 import { TempProductTable } from "./temp-product.schema";
+import { ShopViewTable } from "./shop-view.schema";
 
 export const ShopStatusEnum = pgEnum("shop_status", [
   "pending",
@@ -47,4 +48,5 @@ export const ShopRelations = relations(ShopTable, ({ one, many }) => ({
   products: many(ProductTable),
   vendors: many(ProductOfferTable),
   tempProducts: many(TempProductTable),
+  views: many(ShopViewTable),
 }));

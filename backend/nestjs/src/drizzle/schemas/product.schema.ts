@@ -6,6 +6,7 @@ import { ProductPriceHistoryTable } from "./product-price-history.schema";
 import { ProductLikeTable } from "./product-like-schema";
 import { ProductOfferTable } from "./product-offer.schema";
 import { ShopTable } from "./shop.schema";
+import { ShopViewTable } from "./shop-view.schema";
 
 export const ProductStatusEnum = pgEnum("product_status_enum", [
   "draft",
@@ -31,9 +32,7 @@ export const ProductTable = pgTable("products", (table) => {
       .array()
       .$type<{ key: string; value: string }[]>()
       .notNull(),
-    websiteUrl: table.text().notNull(),
     initialPrice: table.real().notNull(),
-    views: table.integer().notNull().default(0),
     asin: table.varchar({ length: 10 }).notNull().unique(),
     modelNumber: table.text().notNull(),
     upc: table.varchar({ length: 50 }),
@@ -52,4 +51,5 @@ export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   priceHistory: many(ProductPriceHistoryTable),
   likes: many(ProductLikeTable),
   offers: many(ProductOfferTable),
+  views: many(ShopViewTable),
 }));

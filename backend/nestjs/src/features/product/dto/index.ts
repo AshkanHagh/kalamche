@@ -42,3 +42,12 @@ export const SearchSchema = z.object({
 });
 
 export type SearchDto = z.infer<typeof SearchSchema>;
+
+export const RedirectToProductPageSchema = z.object({
+  shopId: z.string().uuid(),
+  productId: z.string().uuid(),
+});
+
+export type RedirectToProductPageDto = z.infer<
+  typeof RedirectToProductPageSchema
+>;

@@ -3,8 +3,10 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  RedirectToProductPageDto,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
+import { Request } from "express";
 
 export interface IProductController {
   createProduct(
@@ -12,16 +14,19 @@ export interface IProductController {
     shopId: string,
     payload: CreateProductDto,
   ): Promise<ITempProduct>;
+
   completeProductCreation(
     userId: string,
     productId: string,
     payload: CompleteProductCreationDto,
   ): Promise<IProduct>;
+
   createOffer(
     userId: string,
     productId: string,
     payload: CreateOfferDto,
   ): Promise<IProductOffer>;
+
   uploadImages(
     userId: string,
     productId: string,
@@ -31,5 +36,11 @@ export interface IProductController {
       images: Express.Multer.File[];
     },
   ): Promise<void>;
+
+  redirectToProductPage(
+    req: Request,
+    params: RedirectToProductPageDto,
+  ): Promise<{ url: string; statusCode: number }>;
+
   // search(query: SearchDto): Promise<SearchResponse>;
 }

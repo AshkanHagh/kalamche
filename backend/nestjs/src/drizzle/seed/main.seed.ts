@@ -41,14 +41,28 @@ async function main() {
 async function seedUsers(db: Database) {
   console.log("Seeding users");
 
-  const users: IUserInsertForm[] = Array.from({ length: 10 }).map(() => ({
+  const insertForms: IUserInsertForm[] = Array.from({ length: 10 }).map(() => ({
     id: crypto.randomUUID(),
     email: faker.internet.email(),
     name: faker.person.fullName(),
     roles: [USER_ROLE.ADMIN],
   }));
 
-  return await db.insert(schema.UserTable).values(users).returning();
+  const users = await db
+    .insert(schema.UserTable)
+    .values(insertForms)
+    .returning();
+
+  await Promise.all([
+    users.map(async (user) => {
+      await db.insert(schema.WalletTable).values({
+        tokens: faker.number.int({ min: 1, max: 100 }),
+        userId: user.id,
+      });
+    }),
+  ]);
+
+  return users;
 }
 
 async function seedShops(db: Database, users: IUser[]) {
@@ -109,12 +123,10 @@ async function seedProducts(db: Database, shops: IShop[]) {
           description: record.description,
           title: record.title,
           specifications: productSpecification,
-          websiteUrl: record.url,
           brand: record.brand,
           asin: record.asin,
           modelNumber: record.model_number,
           upc: faker.string.numeric({ length: 12 }),
-          views: faker.number.int({ min: 1, max: 10_000 }),
           status: "public",
           initialPrice: parseInt(record?.initial_price || "10"),
         };
@@ -143,7 +155,8 @@ async function seedProducts(db: Database, shops: IShop[]) {
       shopId: product.shopId,
       finalPrice: faker.number.float({ min: 10, max: 1000 }),
       title: product.title,
-      pageUrl: product.websiteUrl,
+      pageUrl: faker.internet.url(),
+      status: "active",
     });
 
     // Randomly select 1-5 additional shops to offer prices
@@ -156,7 +169,8 @@ async function seedProducts(db: Database, shops: IShop[]) {
         shopId: shop.id,
         finalPrice: faker.number.float({ min: 10, max: 1000 }),
         title: product.title,
-        pageUrl: product.websiteUrl,
+        pageUrl: faker.internet.url(),
+        status: faker.helpers.arrayElement(["active", "inactive"]),
       });
     });
   });
