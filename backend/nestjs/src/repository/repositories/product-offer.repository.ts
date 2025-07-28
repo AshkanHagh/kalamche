@@ -6,7 +6,7 @@ import {
   IProductOfferInsertForm,
   ProductOfferTable,
 } from "src/drizzle/schemas";
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 
 @Injectable()
@@ -43,5 +43,33 @@ export class ProductOfferRepository implements IProductOfferRepo {
     }
 
     return offers;
+  }
+
+  async byboxWinner(
+    tx: Database,
+    productId: string,
+    finalPrice: number,
+  ): Promise<boolean> {
+    const [offer] = await tx
+      .select()
+      .from(ProductOfferTable)
+      .where(
+        and(
+          eq(ProductOfferTable.productId, productId),
+          lt(ProductOfferTable.finalPrice, finalPrice),
+        ),
+      )
+      .limit(1);
+
+    if (offer) {
+      return false;
+    } else {
+      // remove the by box winner from any offer with that product id
+      await this.db
+        .update(ProductOfferTable)
+        .set({ byboxWinner: false })
+        .where(eq(ProductOfferTable.productId, productId));
+      return true;
+    }
   }
 }

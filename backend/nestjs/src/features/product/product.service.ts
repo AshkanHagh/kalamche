@@ -115,7 +115,7 @@ export class ProductService implements IProductService {
         asin,
         upc: tempProduct.upc,
         shopId: tempProduct.shopId,
-        status: "draft",
+        status: "public",
       });
 
       const uploadedImages =
@@ -130,16 +130,22 @@ export class ProductService implements IProductService {
       });
 
       const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
+      const byboxWinner = await this.productOfferRepository.byboxWinner(
+        tx,
+        productId,
+        payload.finalPrice,
+      );
+
       await Promise.all([
         this.productOfferRepository.insert(tx, {
           redirectPageUrl,
-          finalPrice: payload.initialPrice,
+          finalPrice: payload.finalPrice,
           pageUrl: payload.websiteUrl,
           productId: product.id,
           shopId: product.shopId,
           title: payload.title,
           status: "active",
-          byboxWinner: false,
+          byboxWinner,
         }),
         this.productImageRepository.updateByTempProductId(tx, product.id, {
           tempProductId: null,
@@ -189,13 +195,19 @@ export class ProductService implements IProductService {
       );
 
       const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
+      const byboxWinner = await this.productOfferRepository.byboxWinner(
+        tx,
+        productId,
+        payload.finalPrice,
+      );
+
       return await this.productOfferRepository.insert(tx, {
         ...payload,
         redirectPageUrl,
         productId,
         status: "active",
         shopId: userShop.id,
-        byboxWinner: false,
+        byboxWinner,
       });
     });
   }

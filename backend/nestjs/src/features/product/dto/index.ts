@@ -14,6 +14,7 @@ export const CompleteProductCreationSchema = z.object({
   specifications: z.array(z.object({ key: z.string(), value: z.string() })),
   websiteUrl: z.string().url(),
   initialPrice: z.number(),
+  finalPrice: z.number(),
   modelNumber: z.string(),
 });
 
