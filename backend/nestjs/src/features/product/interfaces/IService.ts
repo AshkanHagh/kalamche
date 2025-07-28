@@ -1,4 +1,3 @@
-import { IProduct, IProductOffer } from "src/drizzle/types";
 import {
   CompleteProductCreationDto,
   CreateOfferDto,
@@ -7,6 +6,7 @@ import {
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
+import { IProduct, IProductOffer, IProductView } from "src/drizzle/schemas";
 
 export interface IProductService {
   createProduct(
@@ -41,5 +41,8 @@ export interface IProductService {
     req: Request,
     params: RedirectToProductPageDto,
   ): Promise<string>;
+
+  getProduct(productId: string): Promise<IProductView>;
+
   // search(query: SearchDto): Promise<SearchResponse>;
 }

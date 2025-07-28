@@ -1,10 +1,14 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
-import { Database, IProduct, IProductInsertForm } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { eq } from "drizzle-orm";
 import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { ProductTable } from "src/drizzle/schemas";
+import {
+  IProduct,
+  IProductInsertForm,
+  ProductTable,
+} from "src/drizzle/schemas";
 
 export class ProductRepository implements IProductRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
@@ -43,6 +47,37 @@ export class ProductRepository implements IProductRepo {
     if (!productId) {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
+  }
+
+  async findProductView(id: string) {
+    const sixMountsAgo = new Date();
+    sixMountsAgo.setMonth(sixMountsAgo.getMonth() - 6);
+
+    return await this.db.query.ProductTable.findFirst({
+      where: (table, funcs) =>
+        funcs.and(funcs.eq(table.id, id), funcs.eq(table.status, "public")),
+      with: {
+        offers: {
+          where: (table, funcs) => funcs.eq(table.status, "active"),
+          with: {
+            shop: true,
+          },
+          columns: {
+            pageUrl: false,
+          },
+        },
+        views: true,
+        likes: true,
+        priceHistory: {
+          where: (table, funcs) => funcs.gte(table.createdAt, sixMountsAgo),
+          limit: 6,
+        },
+      },
+      columns: {
+        vector: false,
+        initialPrice: false,
+      },
+    });
   }
 
   // async findProductsByFilter(

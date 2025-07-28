@@ -39,6 +39,7 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Request } from "express";
 import { SkipAuth } from "../auth/decorators/skip-auth.decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
+import { IProductView } from "src/drizzle/schemas";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -126,6 +127,15 @@ export class ProductController implements IProductController {
   ): Promise<{ url: string; statusCode: number }> {
     const url = await this.productService.redirectToProductPage(req, params);
     return { url, statusCode: 302 };
+  }
+
+  @Get("/:product_id")
+  @SkipAuth()
+  @SkipPermission()
+  async getProduct(
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+  ): Promise<IProductView> {
+    return await this.productService.getProduct(productId);
   }
 
   // @Get("/")

@@ -1,14 +1,13 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "../schemas";
+import { IProductInsertForm, IProductOfferInsertForm } from "../schemas";
 import csv from "csv-parser";
 import fs from "node:fs";
 import path from "node:path";
 import { AmazonProduct } from "./types";
 import {
   Database,
-  IProductInsertForm,
-  IProductOfferInsertForm,
   IShop,
   IShopInsertForm,
   IUser,
@@ -157,6 +156,7 @@ async function seedProducts(db: Database, shops: IShop[]) {
       title: product.title,
       pageUrl: faker.internet.url(),
       status: "active",
+      byboxWinner: true,
     });
 
     // Randomly select 1-5 additional shops to offer prices
@@ -171,6 +171,7 @@ async function seedProducts(db: Database, shops: IShop[]) {
         title: product.title,
         pageUrl: faker.internet.url(),
         status: faker.helpers.arrayElement(["active", "inactive"]),
+        byboxWinner: false,
       });
     });
   });

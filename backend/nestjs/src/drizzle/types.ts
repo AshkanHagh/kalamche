@@ -28,24 +28,7 @@ export type IUserInsertForm = InferInsertModel<typeof schema.UserTable>;
 export type IUserUpdateForm = Partial<IUser>;
 export type IUserRecord = Omit<IUser, "passwordHash" | "updatedAt">;
 
-export type IProduct = InferSelectModel<typeof schema.ProductTable>;
-export type IProductInsertForm = InferInsertModel<typeof schema.ProductTable>;
-export type IProductView = Omit<IProduct, "vector"> & { shop: IShop };
-
 export type IShop = InferSelectModel<typeof schema.ShopTable>;
 export type IShopInsertForm = InferInsertModel<typeof schema.ShopTable>;
 export type IShopUpdateForm = Partial<IShop>;
 export type IShopRecord = Omit<IShop, "emailVerifiedAt" | "updatedAt">;
-
-export type IProductPriceHistory = InferSelectModel<
-  typeof schema.ProductPriceHistoryTable
->;
-
-export type IProductPriceHistoryInsertForm = InferInsertModel<
-  typeof schema.ProductPriceHistoryTable
->;
-
-export type IProductOffer = typeof schema.ProductOfferTable.$inferSelect;
-export type IProductOfferInsertForm = InferInsertModel<
-  typeof schema.ProductOfferTable
->;

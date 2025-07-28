@@ -2,9 +2,12 @@ import { pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "./schema.helper";
 import { relations } from "drizzle-orm";
 import { ProductImageTable } from "./product-image.schema";
-import { ProductPriceHistoryTable } from "./product-price-history.schema";
+import {
+  IProductPriceHistory,
+  ProductPriceHistoryTable,
+} from "./product-price-history.schema";
 import { ProductLikeTable } from "./product-like-schema";
-import { ProductOfferTable } from "./product-offer.schema";
+import { IProductOfferView, ProductOfferTable } from "./product-offer.schema";
 import { ShopTable } from "./shop.schema";
 import { ShopViewTable } from "./shop-view.schema";
 
@@ -41,6 +44,15 @@ export const ProductTable = pgTable("products", (table) => {
     updatedAt,
   };
 });
+
+export type IProduct = typeof ProductTable.$inferSelect;
+export type IProductInsertForm = typeof ProductTable.$inferInsert;
+export type IProductView = Omit<IProduct, "vector" | "initialPrice"> & {
+  offers: IProductOfferView[];
+  priceHistory: IProductPriceHistory[];
+  views: number;
+  likes: number;
+};
 
 export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   shop: one(ShopTable, {

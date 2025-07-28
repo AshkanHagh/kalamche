@@ -1,8 +1,5 @@
-import {
-  Database,
-  IProductOffer,
-  IProductOfferInsertForm,
-} from "src/drizzle/types";
+import { IProductOffer, IProductOfferInsertForm } from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 
 export interface IProductOfferRepo {
   checkShopOfferExists(shopId: string, productId: string): Promise<boolean>;

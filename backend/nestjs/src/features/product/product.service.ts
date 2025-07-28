@@ -24,6 +24,7 @@ import {
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
+import { IProductView } from "src/drizzle/schemas";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -137,6 +138,7 @@ export class ProductService implements IProductService {
           shopId: product.shopId,
           title: payload.title,
           status: "active",
+          byboxWinner: false,
         }),
         this.productImageRepository.updateByTempProductId(tx, product.id, {
           tempProductId: null,
@@ -192,6 +194,7 @@ export class ProductService implements IProductService {
         productId,
         status: "active",
         shopId: userShop.id,
+        byboxWinner: false,
       });
     });
   }
@@ -292,6 +295,24 @@ export class ProductService implements IProductService {
     );
 
     return offer.pageUrl;
+  }
+
+  async getProduct(productId: string): Promise<IProductView> {
+    const result = await this.productRepository.findProductView(productId);
+    if (!result) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    const { offers, likes, views, priceHistory, ...product } = result;
+    const productView: IProductView = {
+      ...product,
+      offers,
+      views: views.length,
+      likes: likes.length,
+      priceHistory,
+    };
+
+    return productView;
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

@@ -1,8 +1,11 @@
 import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { DATABASE } from "src/drizzle/constants";
-import { ProductPriceHistoryTable } from "src/drizzle/schemas";
-import { Database, IProductPriceHistoryInsertForm } from "src/drizzle/types";
+import {
+  IProductPriceHistoryInsertForm,
+  ProductPriceHistoryTable,
+} from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 
 @Injectable()
 export class ProductScheduler {
@@ -18,6 +21,7 @@ export class ProductScheduler {
       where: (table, funcs) => funcs.eq(table.status, "public"),
       with: {
         offers: {
+          where: (table, funcs) => funcs.eq(table.status, "active"),
           orderBy: (table, funcs) => funcs.asc(table.finalPrice),
           columns: { id: true, finalPrice: true },
         },

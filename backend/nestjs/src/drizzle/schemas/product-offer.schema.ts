@@ -3,13 +3,13 @@ import { createdAt, id, updatedAt } from "./schema.helper";
 import { ShopTable } from "./shop.schema";
 import { ProductTable } from "./product.schema";
 import { relations } from "drizzle-orm";
+import { IShop } from "../types";
 
 export const ProductOfferStatusEnum = pgEnum("product_offer_status", [
   "active",
   "inactive",
 ]);
 
-// TODO: remove price and add final_price
 export const ProductOfferTable = pgTable("product_offers", (table) => {
   return {
     id,
@@ -25,13 +25,20 @@ export const ProductOfferTable = pgTable("product_offers", (table) => {
     finalPrice: table.real().notNull(),
     pageUrl: table.text().notNull(),
     redirectPageUrl: table.text(),
+    byboxWinner: table.boolean().notNull(),
     status: ProductOfferStatusEnum().notNull(),
     createdAt,
     updatedAt,
   };
 });
 
-export const ProductVendorRelations = relations(
+export type IProductOffer = typeof ProductOfferTable.$inferSelect;
+export type IProductOfferInsertForm = typeof ProductOfferTable.$inferInsert;
+export type IProductOfferView = Omit<IProductOffer, "pageUrl"> & {
+  shop: IShop;
+};
+
+export const ProductOfferRelations = relations(
   ProductOfferTable,
   ({ one }) => ({
     shop: one(ShopTable, {
