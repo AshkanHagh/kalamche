@@ -18,7 +18,7 @@ export class ProductUtilService {
 
   async userHasPermission(userId: string, shopId: string, productId?: string) {
     const shop = await this.shopRepository.findById(shopId);
-    if (shop.userId !== userId || shop.isTemp) {
+    if (shop.userId !== userId || shop.status !== "verified") {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
 

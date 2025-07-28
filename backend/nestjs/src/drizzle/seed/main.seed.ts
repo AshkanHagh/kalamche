@@ -70,7 +70,7 @@ async function seedShops(db: Database, users: IUser[]) {
       city: faker.location.city(),
       state: faker.location.state(),
       zipCode: faker.location.zipCode(),
-      status: faker.helpers.arrayElement(["pending", "active", "closed"]),
+      status: faker.helpers.arrayElement(["pending", "verified", "denied"]),
     }));
   });
 
