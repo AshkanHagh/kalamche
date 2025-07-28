@@ -1,12 +1,13 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import { eq } from "drizzle-orm";
+import { asc, eq, ne, sql } from "drizzle-orm";
 import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   IProduct,
   IProductInsertForm,
+  ProductOfferTable,
   ProductTable,
 } from "src/drizzle/schemas";
 
@@ -77,6 +78,58 @@ export class ProductRepository implements IProductRepo {
         vector: false,
         initialPrice: false,
       },
+    });
+  }
+
+  async findSimilarProducts(product: IProduct, limit: number, offset: number) {
+    const searchTerms = [
+      product.title,
+      product.brand,
+      ...product.categories,
+      product.modelNumber,
+    ]
+      .filter(Boolean) // remove empty values
+      .join(" ")
+      .replace(/[^\w\s]/g, " ") // remove special characters
+      .split(/\s+/) // split into words
+      .filter((word) => word.length > 2) // remove short words
+      .slice(0, 10) // limit to first 10 words to avoid query complexity
+      .join(" | "); // use OR operator for broader matching
+
+    if (!searchTerms) {
+      return [];
+    }
+
+    return await this.db.query.ProductTable.findMany({
+      where: (table, funcs) =>
+        funcs.and(
+          sql`${table.vector} @@ to_tsquery('english', ${searchTerms})`,
+          ne(table.id, product.id),
+          eq(table.status, "public"),
+        ),
+      with: {
+        images: {
+          where: (table, funcs) => funcs.eq(table.isThumbnail, true),
+          limit: 1,
+        },
+        offers: {
+          where: (table, funcs) => funcs.and(funcs.eq(table.status, "active")),
+          orderBy: [asc(ProductOfferTable.finalPrice)],
+          limit: 1,
+        },
+      },
+      columns: {
+        initialPrice: false,
+        vector: false,
+      },
+      orderBy: [
+        sql`
+          ts_rank(${ProductTable.vector}, to_tsquery('english', ${searchTerms})) DESC
+        `,
+        asc(ProductTable.initialPrice),
+      ],
+      limit: limit + 1,
+      offset,
     });
   }
 

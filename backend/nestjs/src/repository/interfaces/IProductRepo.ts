@@ -7,6 +7,11 @@ export interface IProductRepo {
   insert(tx: Database, form: IProductInsertForm): Promise<IProduct>;
   exists(id: string): Promise<void>;
   findProductView(id: string): Promise<any>;
+  findSimilarProducts(
+    product: IProduct,
+    limit: number,
+    offset: number,
+  ): Promise<any>;
   // findProductsByFilter(
   //   sort: "cheapest" | "view" | "newest" | "expensive" | "popular",
   //   brand: string,

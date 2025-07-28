@@ -47,6 +47,12 @@ export const ProductTable = pgTable("products", (table) => {
 
 export type IProduct = typeof ProductTable.$inferSelect;
 export type IProductInsertForm = typeof ProductTable.$inferInsert;
+// Product record for search and similar product results,
+// excluding vector and initialPrice, and using only the primary image
+export type IProductRecord = Omit<IProduct, "vector" | "initialPrice"> & {
+  imageUrl: string;
+  price: number;
+};
 export type IProductView = Omit<IProduct, "vector" | "initialPrice"> & {
   offers: IProductOfferView[];
   priceHistory: IProductPriceHistory[];

@@ -4,6 +4,7 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  PaginationDto,
   RedirectToProductPageDto,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
@@ -24,7 +25,7 @@ import {
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
-import { IProductView } from "src/drizzle/schemas";
+import { IProductRecord, IProductView } from "src/drizzle/schemas";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -313,6 +314,27 @@ export class ProductService implements IProductService {
     };
 
     return productView;
+  }
+
+  async getSimilarProduct(
+    productId: string,
+    params: PaginationDto,
+  ): Promise<IProductRecord[]> {
+    const product = await this.productRepository.findById(productId);
+    const result = await this.productRepository.findSimilarProducts(
+      product,
+      params.limit,
+      params.offset,
+    );
+
+    const productRecord: IProductRecord[] = result.map(
+      ({ images, offers, ...product }) => ({
+        imageUrl: images[0]?.url || "",
+        price: offers[0]?.finalPrice || 0,
+        ...product,
+      }),
+    );
+    return productRecord;
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

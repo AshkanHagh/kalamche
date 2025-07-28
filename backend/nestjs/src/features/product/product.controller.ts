@@ -21,6 +21,8 @@ import {
   CreateOfferSchema,
   CreateProductDto,
   CreateProductSchema,
+  PaginationDto,
+  PaginationSchema,
   RedirectToProductPageDto,
   RedirectToProductPageSchema,
 } from "./dto";
@@ -39,7 +41,7 @@ import { FileFieldsInterceptor } from "@nestjs/platform-express";
 import { Request } from "express";
 import { SkipAuth } from "../auth/decorators/skip-auth.decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
-import { IProductView } from "src/drizzle/schemas";
+import { IProductRecord, IProductView } from "src/drizzle/schemas";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -136,6 +138,16 @@ export class ProductController implements IProductController {
     @Param("product_id", new ParseUUIDPipe()) productId: string,
   ): Promise<IProductView> {
     return await this.productService.getProduct(productId);
+  }
+
+  @Get("/similar/:product_id")
+  @SkipAuth()
+  @SkipPermission()
+  async getSimilarProduct(
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Query(new ZodValidationPipe(PaginationSchema)) params: PaginationDto,
+  ): Promise<IProductRecord[]> {
+    return await this.productService.getSimilarProduct(productId, params);
   }
 
   // @Get("/")

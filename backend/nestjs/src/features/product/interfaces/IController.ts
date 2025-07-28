@@ -2,11 +2,17 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  PaginationDto,
   RedirectToProductPageDto,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
-import { IProduct, IProductOffer, IProductView } from "src/drizzle/schemas";
+import {
+  IProduct,
+  IProductOffer,
+  IProductRecord,
+  IProductView,
+} from "src/drizzle/schemas";
 
 export interface IProductController {
   createProduct(
@@ -43,6 +49,10 @@ export interface IProductController {
   ): Promise<{ url: string; statusCode: number }>;
 
   getProduct(productId: string): Promise<IProductView>;
+  getSimilarProduct(
+    productId: string,
+    params: PaginationDto,
+  ): Promise<IProductRecord[]>;
 
   // search(query: SearchDto): Promise<SearchResponse>;
 }
