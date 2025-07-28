@@ -65,7 +65,7 @@ export const openBrowserPopup = (
   return window.open(url, windowName, features)
 }
 
-export function formatPrice(price: number): string {
+export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
