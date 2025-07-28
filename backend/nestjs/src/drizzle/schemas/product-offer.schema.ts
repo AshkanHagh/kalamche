@@ -24,6 +24,7 @@ export const ProductOfferTable = pgTable("product_offers", (table) => {
     title: table.text().notNull(),
     finalPrice: table.real().notNull(),
     pageUrl: table.text().notNull(),
+    redirectPageUrl: table.text(),
     status: ProductOfferStatusEnum().notNull(),
     createdAt,
     updatedAt,

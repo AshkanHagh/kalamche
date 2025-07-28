@@ -17,7 +17,10 @@ import { ProductImageRepository } from "src/repository/repositories/product-imag
 import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
+import {
+  MIN_TOKEN_FOR_PRODUCT_CREATION,
+  OFFER_REDIRECT_PAGE_BASE_URL,
+} from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
@@ -124,8 +127,10 @@ export class ProductService implements IProductService {
         );
       });
 
+      const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
       await Promise.all([
         this.productOfferRepository.insert(tx, {
+          redirectPageUrl,
           finalPrice: payload.initialPrice,
           pageUrl: payload.websiteUrl,
           productId: product.id,
@@ -179,8 +184,11 @@ export class ProductService implements IProductService {
         userId,
         MIN_TOKEN_FOR_PRODUCT_CREATION,
       );
+
+      const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
       return await this.productOfferRepository.insert(tx, {
         ...payload,
+        redirectPageUrl,
         productId,
         status: "active",
         shopId: userShop.id,
