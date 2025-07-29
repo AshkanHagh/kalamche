@@ -2,10 +2,14 @@ import { pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "./schema.helper";
 import { relations } from "drizzle-orm";
 import { ProductImageTable } from "./product-image.schema";
-import { ProductPriceHistoryTable } from "./product-price-history.schema";
+import {
+  IProductPriceHistory,
+  ProductPriceHistoryTable,
+} from "./product-price-history.schema";
 import { ProductLikeTable } from "./product-like-schema";
-import { ProductOfferTable } from "./product-offer.schema";
+import { IProductOfferView, ProductOfferTable } from "./product-offer.schema";
 import { ShopTable } from "./shop.schema";
+import { ShopViewTable } from "./shop-view.schema";
 
 export const ProductStatusEnum = pgEnum("product_status_enum", [
   "draft",
@@ -19,8 +23,7 @@ export const ProductTable = pgTable("products", (table) => {
     id,
     shopId: table
       .uuid()
-      .notNull()
-      .references(() => ShopTable.id, { onDelete: "no action" }),
+      .references(() => ShopTable.id, { onDelete: "set null" }),
     title: table.varchar({ length: 500 }).notNull(),
     description: table.text().notNull(),
     status: ProductStatusEnum().notNull().default("draft"),
@@ -31,9 +34,7 @@ export const ProductTable = pgTable("products", (table) => {
       .array()
       .$type<{ key: string; value: string }[]>()
       .notNull(),
-    websiteUrl: table.text().notNull(),
     initialPrice: table.real().notNull(),
-    views: table.integer().notNull().default(0),
     asin: table.varchar({ length: 10 }).notNull().unique(),
     modelNumber: table.text().notNull(),
     upc: table.varchar({ length: 50 }),
@@ -42,6 +43,21 @@ export const ProductTable = pgTable("products", (table) => {
     updatedAt,
   };
 });
+
+export type IProduct = typeof ProductTable.$inferSelect;
+export type IProductInsertForm = typeof ProductTable.$inferInsert;
+// Product record for search and similar product results,
+// excluding vector and initialPrice, and using only the primary image
+export type IProductRecord = Omit<IProduct, "vector" | "initialPrice"> & {
+  imageUrl: string;
+  price: number;
+};
+export type IProductView = Omit<IProduct, "vector" | "initialPrice"> & {
+  offers: IProductOfferView[];
+  priceHistory: IProductPriceHistory[];
+  views: number;
+  likes: number;
+};
 
 export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   shop: one(ShopTable, {
@@ -52,4 +68,5 @@ export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   priceHistory: many(ProductPriceHistoryTable),
   likes: many(ProductLikeTable),
   offers: many(ProductOfferTable),
+  views: many(ShopViewTable),
 }));

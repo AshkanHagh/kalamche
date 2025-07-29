@@ -4,6 +4,8 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  PaginationDto,
+  RedirectToProductPageDto,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -16,9 +18,14 @@ import { ProductImageRepository } from "src/repository/repositories/product-imag
 import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
+import {
+  MIN_TOKEN_FOR_PRODUCT_CREATION,
+  OFFER_REDIRECT_PAGE_BASE_URL,
+} from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
+import { Request } from "express";
+import { IProductRecord, IProductView } from "src/drizzle/schemas";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -108,7 +115,7 @@ export class ProductService implements IProductService {
         asin,
         upc: tempProduct.upc,
         shopId: tempProduct.shopId,
-        status: "draft",
+        status: "public",
       });
 
       const uploadedImages =
@@ -122,13 +129,23 @@ export class ProductService implements IProductService {
         );
       });
 
+      const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
+      const byboxWinner = await this.productOfferRepository.byboxWinner(
+        tx,
+        productId,
+        payload.finalPrice,
+      );
+
       await Promise.all([
         this.productOfferRepository.insert(tx, {
-          finalPrice: payload.initialPrice,
+          redirectPageUrl,
+          finalPrice: payload.finalPrice,
           pageUrl: payload.websiteUrl,
           productId: product.id,
-          shopId: product.shopId,
+          shopId: product.shopId!,
           title: payload.title,
+          status: "active",
+          byboxWinner,
         }),
         this.productImageRepository.updateByTempProductId(tx, product.id, {
           tempProductId: null,
@@ -176,10 +193,21 @@ export class ProductService implements IProductService {
         userId,
         MIN_TOKEN_FOR_PRODUCT_CREATION,
       );
+
+      const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
+      const byboxWinner = await this.productOfferRepository.byboxWinner(
+        tx,
+        productId,
+        payload.finalPrice,
+      );
+
       return await this.productOfferRepository.insert(tx, {
         ...payload,
+        redirectPageUrl,
         productId,
+        status: "active",
         shopId: userShop.id,
+        byboxWinner,
       });
     });
   }
@@ -242,6 +270,83 @@ export class ProductService implements IProductService {
 
       await Promise.all(uploadTasks);
     });
+  }
+
+  async redirectToProductPage(
+    req: Request,
+    params: RedirectToProductPageDto,
+  ): Promise<string> {
+    let ip: string | undefined = req.headers["x-forwarded-for"] as string;
+    if (ip) {
+      ip = ip.split(",")[0].trim();
+    } else {
+      ip =
+        (req.headers["x-real-ip"] as string) ||
+        req.connection?.remoteAddress ||
+        req.socket?.remoteAddress ||
+        req.ip;
+    }
+
+    if (!ip) {
+      throw new KalamcheError(KalamcheErrorType.BadRequest);
+    }
+
+    const userAgent = req.headers["user-agent"] as string;
+
+    const [shop, offer] = await Promise.all([
+      this.shopRepository.findById(params.shopId),
+      this.productOfferRepository.findByProductId(params.productId),
+      this.productRepository.findById(params.productId),
+    ]);
+
+    await this.productUtilService.handleTokenCharging(
+      shop.userId,
+      params.shopId,
+      params.productId,
+      ip,
+      userAgent,
+    );
+
+    return offer.pageUrl;
+  }
+
+  async getProduct(productId: string): Promise<IProductView> {
+    const result = await this.productRepository.findProductView(productId);
+    if (!result) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    const { offers, likes, views, priceHistory, ...product } = result;
+    const productView: IProductView = {
+      ...product,
+      offers,
+      views: views.length,
+      likes: likes.length,
+      priceHistory,
+    };
+
+    return productView;
+  }
+
+  async getSimilarProduct(
+    productId: string,
+    params: PaginationDto,
+  ): Promise<IProductRecord[]> {
+    const product = await this.productRepository.findById(productId);
+    const result = await this.productRepository.findSimilarProducts(
+      product,
+      params.limit,
+      params.offset,
+    );
+
+    const productRecord: IProductRecord[] = result.map(
+      ({ images, offers, ...product }) => ({
+        imageUrl: images[0]?.url || "",
+        price: offers[0]?.finalPrice || 0,
+        ...product,
+      }),
+    );
+    return productRecord;
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

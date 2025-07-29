@@ -69,13 +69,15 @@ export class UserRepository implements IUserRepo {
   }
 
   async removeRoles(tx: Database, id: string, roles: string[]) {
+    const rolesArrayLiteral = `{${roles.join(",")}}`;
+
     await tx
       .update(UserTable)
       .set({
-        roles: sql`(
-          SELECT ARRAY_AGG(elem)
+        roles: sql`ARRAY(
+          SELECT elem
           FROM UNNEST(${UserTable.roles}) AS elem
-          WHERE elem NOT IN (${roles.join(", ")})
+          WHERE NOT (elem::text = ANY(${rolesArrayLiteral}::text[]))
         )`,
       })
       .where(eq(UserTable.id, id))

@@ -18,6 +18,10 @@ export const ProductPriceHistoryTable = pgTable(
   },
 );
 
+export type IProductPriceHistory = typeof ProductPriceHistoryTable.$inferSelect;
+export type IProductPriceHistoryInsertForm =
+  typeof ProductPriceHistoryTable.$inferInsert;
+
 export const ProductPriceHistoryRelations = relations(
   ProductPriceHistoryTable,
   ({ one }) => ({

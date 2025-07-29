@@ -14,6 +14,7 @@ export const CompleteProductCreationSchema = z.object({
   specifications: z.array(z.object({ key: z.string(), value: z.string() })),
   websiteUrl: z.string().url(),
   initialPrice: z.number(),
+  finalPrice: z.number(),
   modelNumber: z.string(),
 });
 
@@ -42,3 +43,19 @@ export const SearchSchema = z.object({
 });
 
 export type SearchDto = z.infer<typeof SearchSchema>;
+
+export const RedirectToProductPageSchema = z.object({
+  shopId: z.string().uuid(),
+  productId: z.string().uuid(),
+});
+
+export type RedirectToProductPageDto = z.infer<
+  typeof RedirectToProductPageSchema
+>;
+
+export const PaginationSchema = z.object({
+  limit: z.coerce.number().min(1).max(100).default(10),
+  offset: z.coerce.number().min(0).default(0),
+});
+
+export type PaginationDto = z.infer<typeof PaginationSchema>;

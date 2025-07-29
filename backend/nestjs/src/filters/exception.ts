@@ -36,6 +36,9 @@ export enum KalamcheErrorType {
   InvalidPaymentMethod = "INVALID_PAYMENT_METHOD",
   NotEnoughTokens = "NOT_ENOUGH_TOKENS",
   ApiFetchFailed = "API_FETCH_FAILED",
+  TokenChargingFailed = "TOKEN_CHARGING_FAILED",
+  FailedToRedirect = "FAILED_TO_REDIRECT",
+  BadRequest = "BAD_REQUEST",
 }
 
 export class KalamcheError extends HttpException {
@@ -92,7 +95,10 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.InvalidPaymentMethod:
       case KalamcheErrorType.InvalidOAuthState:
       case KalamcheErrorType.RateLimitInvalidIdentifier:
-      case KalamcheErrorType.InvalidUpc: {
+      case KalamcheErrorType.TokenChargingFailed:
+      case KalamcheErrorType.FailedToRedirect:
+      case KalamcheErrorType.InvalidUpc:
+      case KalamcheErrorType.BadRequest: {
         return HttpStatus.BAD_REQUEST;
       }
 

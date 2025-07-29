@@ -1,36 +1,50 @@
-import { Injectable } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
+import { DATABASE } from "src/drizzle/constants";
+import {
+  IProductPriceHistoryInsertForm,
+  ProductPriceHistoryTable,
+} from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 
-// TODO: update commented code to match new database structure
 @Injectable()
 export class ProductScheduler {
-  constructor() {}
+  private logger = new Logger(ProductScheduler.name);
 
-  // get all products and insert price history for each product every day
-  // only store last 6 mounts
+  constructor(@Inject(DATABASE) private db: Database) {}
+
   @Cron(CronExpression.EVERY_1ST_DAY_OF_MONTH_AT_MIDNIGHT)
   async handelPriceHistoryCron() {
-    // const products = await this.repo
-    //   .db()
-    //   .select({
-    //     id: ProductTable.id,
-    //     price: ProductTable.price,
-    //   })
-    //   .from(ProductTable)
-    //   .where(eq(ProductTable.status, "public"));
-    // const batchSize = 50;
-    // for (let i = 0; i < products.length; i += batchSize) {
-    //   const forms: IProductPriceHistoryInsertForm[] = products
-    //     .slice(i, i + batchSize)
-    //     .map((product) => ({
-    //       price: product.price,
-    //       productId: product.id,
-    //     }));
-    //   await this.repo
-    //     .db()
-    //     .insert(ProductPriceHistoryTable)
-    //     .values(forms)
-    //     .execute();
-    // }
+    this.logger.log("Price history cron job started");
+
+    const products = await this.db.query.ProductTable.findMany({
+      where: (table, funcs) => funcs.eq(table.status, "public"),
+      with: {
+        offers: {
+          where: (table, funcs) => funcs.eq(table.status, "active"),
+          orderBy: (table, funcs) => funcs.asc(table.finalPrice),
+          columns: { id: true, finalPrice: true },
+        },
+      },
+      columns: {
+        id: true,
+      },
+    });
+
+    const batchSize = 50;
+    await this.db.transaction(async (tx) => {
+      for (let i = 0; i < products.length; i += batchSize) {
+        const records = products.slice(i, i + batchSize);
+
+        const insertForms: IProductPriceHistoryInsertForm[] = records.map(
+          (product) => ({
+            price: product.offers[0].finalPrice,
+            productId: product.id,
+          }),
+        );
+
+        await tx.insert(ProductPriceHistoryTable).values(insertForms).execute();
+      }
+    });
   }
 }
