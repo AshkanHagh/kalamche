@@ -12,6 +12,8 @@ export interface IProductRepo {
     limit: number,
     offset: number,
   ): Promise<any>;
+  findByShopId(shopId: string, limit: number, offset: number): Promise<any>;
+
   // findProductsByFilter(
   //   sort: "cheapest" | "view" | "newest" | "expensive" | "popular",
   //   brand: string,
