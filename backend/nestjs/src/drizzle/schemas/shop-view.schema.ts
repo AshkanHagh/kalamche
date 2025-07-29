@@ -10,11 +10,11 @@ export const ShopViewTable = pgTable("shop_views", (table) => {
     shopId: table
       .uuid()
       .notNull()
-      .references(() => ShopTable.id),
+      .references(() => ShopTable.id, { onDelete: "cascade" }),
     productId: table
       .uuid()
       .notNull()
-      .references(() => ProductTable.id),
+      .references(() => ProductTable.id, { onDelete: "cascade" }),
     ip: table.varchar({ length: 46 }).notNull(),
     userAgent: table.text().notNull(),
     tokenCharged: table.integer().notNull(),

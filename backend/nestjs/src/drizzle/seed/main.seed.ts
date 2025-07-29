@@ -151,7 +151,7 @@ async function seedProducts(db: Database, shops: IShop[]) {
     // Each product has 1 offer from the owning shop
     productOffersForm.push({
       productId: product.id!,
-      shopId: product.shopId,
+      shopId: product.shopId!,
       finalPrice: faker.number.float({ min: 10, max: 1000 }),
       title: product.title,
       pageUrl: faker.internet.url(),

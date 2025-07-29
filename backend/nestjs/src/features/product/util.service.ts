@@ -26,7 +26,15 @@ export class ProductUtilService {
     private s3Service: S3Service,
   ) {}
 
-  async userHasPermission(userId: string, shopId: string, productId?: string) {
+  async userHasPermission(
+    userId: string,
+    shopId: string | null,
+    productId?: string,
+  ) {
+    if (!shopId) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+
     const shop = await this.shopRepository.findById(shopId);
     if (shop.userId !== userId || shop.status !== "verified") {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);

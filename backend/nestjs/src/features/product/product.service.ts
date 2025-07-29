@@ -142,7 +142,7 @@ export class ProductService implements IProductService {
           finalPrice: payload.finalPrice,
           pageUrl: payload.websiteUrl,
           productId: product.id,
-          shopId: product.shopId,
+          shopId: product.shopId!,
           title: payload.title,
           status: "active",
           byboxWinner,

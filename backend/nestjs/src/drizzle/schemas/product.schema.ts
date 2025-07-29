@@ -23,8 +23,7 @@ export const ProductTable = pgTable("products", (table) => {
     id,
     shopId: table
       .uuid()
-      .notNull()
-      .references(() => ShopTable.id, { onDelete: "no action" }),
+      .references(() => ShopTable.id, { onDelete: "set null" }),
     title: table.varchar({ length: 500 }).notNull(),
     description: table.text().notNull(),
     status: ProductStatusEnum().notNull().default("draft"),
