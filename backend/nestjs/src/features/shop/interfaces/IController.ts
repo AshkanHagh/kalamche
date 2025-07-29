@@ -1,6 +1,11 @@
 import { IShop, IShopRecord } from "src/drizzle/types";
-import { UpdateShopCreationDto, UpdateShopDto, UploadImageDto } from "../dto";
-import { ITempShop } from "src/drizzle/schemas";
+import {
+  PaginationDto,
+  UpdateShopCreationDto,
+  UpdateShopDto,
+  UploadImageDto,
+} from "../dto";
+import { IProductRecord, ITempShop } from "src/drizzle/schemas";
 
 export interface IShopController {
   createShop(userId: string): Promise<ITempShop>;
@@ -16,10 +21,15 @@ export interface IShopController {
   ): Promise<IShop>;
   deleteTempShop(userId: string, tempShopId: string): Promise<void>;
   deleteShop(userId: string, shopId: string): Promise<void>;
-  getShop(shopId: string): Promise<IShopRecord>;
   updateShop(
     userId: string,
     shopId: string,
     payload: UpdateShopDto,
   ): Promise<IShopRecord>;
+
+  getMyProducts(
+    userId: string,
+    shopId: string,
+    params: PaginationDto,
+  ): Promise<IProductRecord[]>;
 }

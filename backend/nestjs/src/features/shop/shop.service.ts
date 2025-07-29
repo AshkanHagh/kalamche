@@ -3,14 +3,20 @@ import { IShopService } from "./interfaces/IService";
 import { Database, IShop, IShopRecord } from "src/drizzle/types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";
-import { UpdateShopCreationDto, UpdateShopDto, UploadImageDto } from "./dto";
+import {
+  PaginationDto,
+  UpdateShopCreationDto,
+  UpdateShopDto,
+  UploadImageDto,
+} from "./dto";
 import { USER_ROLE } from "src/constants/global.constant";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
-import { ITempShop } from "src/drizzle/schemas";
+import { IProductRecord, ITempShop } from "src/drizzle/schemas";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
 import { DATABASE } from "src/drizzle/constants";
 import sharp from "sharp";
+import { ProductRepository } from "src/repository/repositories/product.repository";
 
 @Injectable()
 export class ShopService implements IShopService {
@@ -19,6 +25,7 @@ export class ShopService implements IShopService {
     private shopRepository: ShopRepository,
     private userRepository: UserRepository,
     private tempShopRepository: TempShopRepository,
+    private productRepository: ProductRepository,
     private s3Service: S3Service,
   ) {}
 
@@ -154,15 +161,6 @@ export class ShopService implements IShopService {
     });
   }
 
-  async getShop(shopId: string): Promise<IShopRecord> {
-    const shop = await this.shopRepository.findById(shopId);
-    if (shop.status !== "verified") {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
-
-    return shop;
-  }
-
   async updateShop(
     userId: string,
     shopId: string,
@@ -178,5 +176,31 @@ export class ShopService implements IShopService {
 
     const updatedShop = await this.shopRepository.update(shopId, payload);
     return updatedShop;
+  }
+
+  async getMyProducts(
+    userId: string,
+    shopId: string,
+    params: PaginationDto,
+  ): Promise<IProductRecord[]> {
+    const shop = await this.shopRepository.findById(shopId);
+    if (shop.userId !== userId) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+
+    const result = await this.productRepository.findByShopId(
+      shopId,
+      params.limit,
+      params.offset,
+    );
+
+    const productRecord: IProductRecord[] = result.map(
+      ({ images, offers, ...product }) => ({
+        imageUrl: images[0]?.url || "",
+        price: offers[0]?.finalPrice || 0,
+        ...product,
+      }),
+    );
+    return productRecord;
   }
 }

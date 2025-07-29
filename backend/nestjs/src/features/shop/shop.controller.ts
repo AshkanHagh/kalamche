@@ -10,6 +10,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -27,6 +28,8 @@ import {
 } from "src/constants/global.constant";
 import { PermissionGuard } from "../auth/guards/permission.guard";
 import {
+  PaginationDto,
+  PaginationSchema,
   UpdateShopCreationDto,
   UpdateShopCreationSchema,
   UpdateShopDto,
@@ -35,7 +38,7 @@ import {
   UploadImageSchema,
 } from "./dto";
 import { IShopController } from "./interfaces/IController";
-import { ITempShop } from "src/drizzle/schemas";
+import { IProductRecord, ITempShop } from "src/drizzle/schemas";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -104,14 +107,6 @@ export class ShopController implements IShopController {
     await this.shopService.deleteShop(userId, shopId);
   }
 
-  @Get("/:shop_id")
-  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
-  async getShop(
-    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
-  ): Promise<IShopRecord> {
-    return await this.shopService.getShop(shopId);
-  }
-
   @Patch("/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
   async updateShop(
@@ -120,5 +115,15 @@ export class ShopController implements IShopController {
     @Body(new ZodValidationPipe(UpdateShopSchema)) payload: UpdateShopDto,
   ): Promise<IShopRecord> {
     return await this.shopService.updateShop(userId, shopId, payload);
+  }
+
+  @Get("/products/:shop_id")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
+  async getMyProducts(
+    @User("id") userId: string,
+    @Param("shop_id", new ParseUUIDPipe()) shopId: string,
+    @Query(new ZodValidationPipe(PaginationSchema)) params: PaginationDto,
+  ): Promise<IProductRecord[]> {
+    return await this.shopService.getMyProducts(userId, shopId, params);
   }
 }

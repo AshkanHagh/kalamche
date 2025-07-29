@@ -7,7 +7,6 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   IProduct,
   IProductInsertForm,
-  ProductOfferTable,
   ProductTable,
 } from "src/drizzle/schemas";
 
@@ -110,12 +109,13 @@ export class ProductRepository implements IProductRepo {
       with: {
         images: {
           where: (table, funcs) => funcs.eq(table.isThumbnail, true),
-          limit: 1,
         },
         offers: {
-          where: (table, funcs) => funcs.and(funcs.eq(table.status, "active")),
-          orderBy: [asc(ProductOfferTable.finalPrice)],
-          limit: 1,
+          where: (table, funcs) =>
+            funcs.and(
+              funcs.eq(table.status, "active"),
+              funcs.eq(table.byboxWinner, true),
+            ),
         },
       },
       columns: {
@@ -128,6 +128,26 @@ export class ProductRepository implements IProductRepo {
         `,
         asc(ProductTable.initialPrice),
       ],
+      limit: limit + 1,
+      offset,
+    });
+  }
+
+  async findByShopId(shopId: string, limit: number, offset: number) {
+    return await this.db.query.ProductTable.findMany({
+      where: (table, funcs) => funcs.and(funcs.eq(table.shopId, shopId)),
+      with: {
+        images: {
+          where: (table, funcs) => funcs.eq(table.isThumbnail, true),
+        },
+        offers: {
+          where: (table, funcs) => funcs.eq(table.shopId, shopId),
+        },
+      },
+      columns: {
+        vector: false,
+        initialPrice: false,
+      },
       limit: limit + 1,
       offset,
     });
