@@ -6,7 +6,7 @@ export const API_ENDPOINTS = {
       callback: "/auth/oauth/callback"
     },
     token: {
-      refresh: "/auth/token/refresh"
+      refresh: "/auth/refresh"
     },
     register: "/auth/register",
     login: "/auth/login",
@@ -14,5 +14,8 @@ export const API_ENDPOINTS = {
       verifyCode: "/auth/verify",
       resend: "/auth/verify/resend"
     }
+  },
+  users: {
+    me: "api/users/me"
   }
 }

@@ -7,6 +7,7 @@ import { logout, setCredentials } from "@/lib/redux/slices/authSlice"
 import { handleApiError } from "@/lib/utils"
 import { ServerError, User } from "@/types"
 import { toast } from "sonner"
+import { API_ENDPOINTS } from "../ENDPOINTS"
 
 type RefreshTokenResponse = {
   success: boolean
@@ -27,8 +28,9 @@ const useRefreshToken = () => {
     options: RefreshOptions = { redirectOnFail: true, silent: false }
   ): Promise<string | undefined> => {
     try {
-      const response =
-        await axios.get<RefreshTokenResponse>("auth/token/refresh")
+      const response = await axios.get<RefreshTokenResponse>(
+        API_ENDPOINTS.auth.token.refresh
+      )
       const newAccessToken = response.data.accessToken
 
       if (newAccessToken) {
