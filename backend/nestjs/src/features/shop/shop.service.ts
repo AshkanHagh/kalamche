@@ -203,4 +203,12 @@ export class ShopService implements IShopService {
     );
     return productRecord;
   }
+
+  async getMyShop(userId: string): Promise<IShop> {
+    const shop = await this.shopRepository.findByUserId(userId);
+    if (!shop) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+    return shop;
+  }
 }

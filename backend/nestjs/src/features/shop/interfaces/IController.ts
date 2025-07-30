@@ -32,4 +32,6 @@ export interface IShopController {
     shopId: string,
     params: PaginationDto,
   ): Promise<IProductRecord[]>;
+
+  getMyShop(userId: string): Promise<IShop>;
 }

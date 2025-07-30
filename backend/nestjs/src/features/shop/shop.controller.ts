@@ -126,4 +126,10 @@ export class ShopController implements IShopController {
   ): Promise<IProductRecord[]> {
     return await this.shopService.getMyProducts(userId, shopId, params);
   }
+
+  @Get("/")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
+  async getMyShop(@User("id") userId: string): Promise<IShop> {
+    return await this.shopService.getMyShop(userId);
+  }
 }
