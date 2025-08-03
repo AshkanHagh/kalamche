@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger
 } from "../ui/dropdown-menu"
 import { Children } from "react"
-import { ProfileDropdown } from "../profile/ProfileDropdown"
+// import { ProfileDropdown } from "../profile/ProfileDropdown"
 import { useAppSelector } from "@/lib/redux/hooks/useRedux"
 
 type NavbarProps = {
@@ -44,7 +44,7 @@ export const Navbar = ({ children }: NavbarProps) => {
           {needsUserInit ? (
             <div className="animate-pulse rounded-md bg-muted h-9 w-40" />
           ) : user ? (
-            <ProfileDropdown />
+            <div />
           ) : (
             <Button asChild variant="outline" size="sm">
               <Link href="/auth/login">

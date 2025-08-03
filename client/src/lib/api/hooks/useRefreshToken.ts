@@ -1,11 +1,10 @@
-import { useAppSelector } from "@/lib/redux/hooks/useRedux"
 import axios from "../axios"
 import { AxiosError } from "axios"
 import { useRouter } from "next/navigation"
 import { useAppDispatch } from "@/lib/redux/hooks/useRedux"
-import { logout, setCredentials } from "@/lib/redux/slices/authSlice"
+import { logout } from "@/lib/redux/slices/authSlice"
 import { handleApiError } from "@/lib/utils"
-import { ServerError, User } from "@/types"
+import { ServerError } from "@/types"
 import { toast } from "sonner"
 import { API_ENDPOINTS } from "../ENDPOINTS"
 
@@ -20,7 +19,6 @@ type RefreshOptions = {
 }
 
 const useRefreshToken = () => {
-  const auth = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const { push } = useRouter()
 
@@ -33,16 +31,7 @@ const useRefreshToken = () => {
       )
       const newAccessToken = response.data.accessToken
 
-      if (newAccessToken) {
-        dispatch(
-          setCredentials({
-            ...auth,
-            user: auth.user as User,
-            accessToken: newAccessToken
-          })
-        )
-        return newAccessToken
-      }
+      if (newAccessToken) return newAccessToken
     } catch (e) {
       const error = e as AxiosError<ServerError>
       const status = error.response?.status

@@ -29,7 +29,7 @@ export const handleApiError = (
   if (error.response) {
     // The request was made and the server responded with a status code
     const { status, data } = error.response
-    const statusCode = status as ServerStatusCode
+    const statusCode = status as ServerStatusCode | undefined
     errorData.data = data
     errorData.errorMessage = getErrorMessage(statusCode, endpoint)
   } else if (error.request) {

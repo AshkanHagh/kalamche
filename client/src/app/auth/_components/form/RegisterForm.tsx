@@ -44,7 +44,8 @@ const RegisterForm = () => {
     const body: AuthBody = { email, password }
 
     const handleRegisterSuccess = async (data: VerificationResponse) => {
-      const token = data.verificationToken
+      const token = data.token
+      console.log(data)
       setIsOpen(true)
       setVerificationToken(token)
     }

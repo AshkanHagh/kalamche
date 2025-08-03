@@ -12,7 +12,7 @@ export type Login = {
 }
 export type VerificationResponse = {
   success: boolean
-  verificationToken: string
+  token: string
 }
 export type VerifyCodeBody = {
   code: number

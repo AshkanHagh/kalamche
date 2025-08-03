@@ -48,7 +48,7 @@ const LoginForm = () => {
     const handleLoginSuccess = (data: LoginResponse) => {
       if (data.verifyEmailSent) {
         setIsOpen(true)
-        setVerificationToken(data.verificationToken)
+        setVerificationToken(data.token)
         return
       }
 

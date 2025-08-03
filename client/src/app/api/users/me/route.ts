@@ -1,27 +1,42 @@
 import axios from "@/lib/api/axios"
-import { ServerError } from "@/types"
+import {
+  clearUserRoleToken,
+  setUserRoleToken
+} from "@/lib/auth/user-roles-cookie"
+import { ServerError, User } from "@/types"
 import { AxiosError } from "axios"
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 
-export const GET = async () => {
-  const token = (await cookies()).get("access_token")?.value
+export const GET = async (req: NextRequest) => {
+  await new Promise((resolve) => setTimeout(resolve, 3000))
+  const accessToken = req.headers.get("Authorization")
+  if (!accessToken) {
+    return NextResponse.json({ message: "UNAUTHORIZED" }, { status: 401 })
+  }
+
   try {
-    const response = await axios.get("users/me", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+    const { data } = await axios.get<User>("users/me", {
+      headers: { Authorization: accessToken }
     })
+    const userRoles = data.roles
+    const nextResponse = NextResponse.json(data)
 
-    return NextResponse.json(response.data)
+    const response = await setUserRoleToken(userRoles, nextResponse)
+    return response
   } catch (e) {
     const error = e as AxiosError<ServerError>
 
-    return NextResponse.json(
+    const nextResponse = NextResponse.json(
       error.response?.data ?? { message: "Unexpected error" },
       {
         status: error.response?.status || 500
       }
     )
+
+    if (error.response?.status === 401) {
+      const response = clearUserRoleToken(nextResponse)
+      return response
+    }
+    return nextResponse
   }
 }
