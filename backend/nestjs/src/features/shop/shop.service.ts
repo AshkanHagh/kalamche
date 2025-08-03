@@ -4,6 +4,7 @@ import { Database, IShop, IShopRecord } from "src/drizzle/types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";
 import {
+  GetProductDto,
   PaginationDto,
   UpdateShopCreationDto,
   UpdateShopDto,
@@ -178,7 +179,7 @@ export class ShopService implements IShopService {
     return updatedShop;
   }
 
-  async getMyProducts(
+  async getProducts(
     userId: string,
     shopId: string,
     params: PaginationDto,
@@ -210,5 +211,21 @@ export class ShopService implements IShopService {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
     return shop;
+  }
+
+  async getProduct(userId: string, params: GetProductDto) {
+    const shop = await this.shopRepository.findById(params.shopId);
+    if (shop.userId !== userId) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
+    }
+
+    const result = await this.productRepository.findWithShop(
+      shop.id,
+      params.productId,
+    );
+    if (!result) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+    return result;
   }
 }

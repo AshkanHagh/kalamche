@@ -1,5 +1,6 @@
 import { IShop, IShopRecord } from "src/drizzle/types";
 import {
+  GetProductDto,
   PaginationDto,
   UpdateShopCreationDto,
   UpdateShopDto,
@@ -27,11 +28,11 @@ export interface IShopController {
     payload: UpdateShopDto,
   ): Promise<IShopRecord>;
 
-  getMyProducts(
+  getProducts(
     userId: string,
     shopId: string,
     params: PaginationDto,
   ): Promise<IProductRecord[]>;
-
   getMyShop(userId: string): Promise<IShop>;
+  getProduct(userId: string, params: GetProductDto): Promise<any>;
 }

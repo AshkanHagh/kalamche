@@ -1,6 +1,7 @@
 import { pgTable } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "./schema.helper";
 
+// NOTE: this will change in strucher for front
 export const FrTokenPlanTable = pgTable("fr_token_plans", (table) => {
   return {
     id,

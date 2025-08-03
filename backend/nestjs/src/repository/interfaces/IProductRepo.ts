@@ -13,6 +13,7 @@ export interface IProductRepo {
     offset: number,
   ): Promise<any>;
   findByShopId(shopId: string, limit: number, offset: number): Promise<any>;
+  findWithShop(shopId: string, id: string): Promise<any>;
 
   // findProductsByFilter(
   //   sort: "cheapest" | "view" | "newest" | "expensive" | "popular",

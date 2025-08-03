@@ -41,3 +41,10 @@ export const PaginationSchema = z.object({
 });
 
 export type PaginationDto = z.infer<typeof PaginationSchema>;
+
+export const GetProductSchema = z.object({
+  shopId: z.string().uuid(),
+  productId: z.string().uuid(),
+});
+
+export type GetProductDto = z.infer<typeof GetProductSchema>;

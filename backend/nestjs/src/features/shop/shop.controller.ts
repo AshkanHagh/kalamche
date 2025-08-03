@@ -28,6 +28,8 @@ import {
 } from "src/constants/global.constant";
 import { PermissionGuard } from "../auth/guards/permission.guard";
 import {
+  GetProductDto,
+  GetProductSchema,
   PaginationDto,
   PaginationSchema,
   UpdateShopCreationDto,
@@ -119,17 +121,26 @@ export class ShopController implements IShopController {
 
   @Get("/products/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
-  async getMyProducts(
+  async getProducts(
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
     @Query(new ZodValidationPipe(PaginationSchema)) params: PaginationDto,
   ): Promise<IProductRecord[]> {
-    return await this.shopService.getMyProducts(userId, shopId, params);
+    return await this.shopService.getProducts(userId, shopId, params);
   }
 
   @Get("/")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
   async getMyShop(@User("id") userId: string): Promise<IShop> {
     return await this.shopService.getMyShop(userId);
+  }
+
+  @Get("/products/:shopId/:productId")
+  @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
+  async getProduct(
+    @User("id") userId: string,
+    @Param(new ZodValidationPipe(GetProductSchema)) params: GetProductDto,
+  ) {
+    return await this.shopService.getProduct(userId, params);
   }
 }

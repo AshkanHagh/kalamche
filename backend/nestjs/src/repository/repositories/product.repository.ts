@@ -153,6 +153,18 @@ export class ProductRepository implements IProductRepo {
     });
   }
 
+  async findWithShop(shopId: string, id: string) {
+    return await this.db.query.ProductTable.findFirst({
+      where: (table, funcs) => funcs.eq(table.id, id),
+      with: {
+        offers: {
+          where: (table, funcs) => funcs.eq(table.shopId, shopId),
+        },
+        images: true,
+      },
+    });
+  }
+
   // async findProductsByFilter(
   //   sort: "cheapest" | "view" | "newest" | "expensive" | "popular",
   //   brand: string,

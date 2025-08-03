@@ -46,7 +46,7 @@ export const ShopRelations = relations(ShopTable, ({ one, many }) => ({
     references: [UserTable.id],
   }),
   products: many(ProductTable),
-  vendors: many(ProductOfferTable),
+  offers: many(ProductOfferTable),
   tempProducts: many(TempProductTable),
   views: many(ShopViewTable),
 }));
