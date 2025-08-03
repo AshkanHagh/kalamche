@@ -150,6 +150,15 @@ export class ProductController implements IProductController {
     return await this.productService.getSimilarProduct(productId, params);
   }
 
+  @Patch("/like/:product_id")
+  @SkipPermission()
+  async toggleLike(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+  ): Promise<void> {
+    await this.productService.toggleLike(userId, productId);
+  }
+
   // @Get("/")
   // @SkipAuth()
   // @SkipPermission()

@@ -26,6 +26,7 @@ import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
 import { IProductRecord, IProductView } from "src/drizzle/schemas";
+import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -38,6 +39,7 @@ export class ProductService implements IProductService {
     private productOfferRepository: ProductOfferRepository,
     private productImageRepository: ProductImageRepository,
     private walletRepository: WalletRepository,
+    private productLikeRepository: ProductLikeRepository,
     private s3Service: S3Service,
     private httpService: HttpService,
   ) {}
@@ -296,7 +298,7 @@ export class ProductService implements IProductService {
     const [shop, offer] = await Promise.all([
       this.shopRepository.findById(params.shopId),
       this.productOfferRepository.findByProductId(params.productId),
-      this.productRepository.findById(params.productId),
+      this.productRepository.exists(params.productId),
     ]);
 
     await this.productUtilService.handleTokenCharging(
@@ -347,6 +349,20 @@ export class ProductService implements IProductService {
       }),
     );
     return productRecord;
+  }
+
+  async toggleLike(userId: string, productId: string): Promise<void> {
+    await this.productRepository.exists(productId);
+
+    const liked = await this.productLikeRepository.exists(userId, productId);
+    if (liked) {
+      await this.productLikeRepository.delete(userId, productId);
+    } else {
+      await this.productLikeRepository.insert({
+        userId,
+        productId,
+      });
+    }
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)

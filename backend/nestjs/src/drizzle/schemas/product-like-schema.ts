@@ -18,6 +18,9 @@ export const ProductLikeTable = pgTable(
   (table) => [primaryKey({ columns: [table.userId, table.productId] })],
 );
 
+export type IProductLike = typeof ProductLikeTable.$inferSelect;
+export type IProductLikeInsertForm = typeof ProductLikeTable.$inferInsert;
+
 export const ProductLikeRelations = relations(ProductLikeTable, ({ one }) => ({
   user: one(UserTable, {
     fields: [ProductLikeTable.userId],

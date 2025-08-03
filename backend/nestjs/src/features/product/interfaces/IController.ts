@@ -53,6 +53,7 @@ export interface IProductController {
     productId: string,
     params: PaginationDto,
   ): Promise<IProductRecord[]>;
+  toggleLike(userId: string, productId: string): Promise<void>;
 
   // search(query: SearchDto): Promise<SearchResponse>;
 }
