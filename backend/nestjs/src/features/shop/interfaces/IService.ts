@@ -14,7 +14,7 @@ export interface IShopService {
   uploadImage(
     userId: string,
     params: UploadImageDto,
-    image: Express.Multer.File,
+    imageBuffer: Buffer,
   ): Promise<void>;
 
   completeShopCreation(
