@@ -9,11 +9,13 @@ import { faker } from "@faker-js/faker/.";
 import * as jwt from "jsonwebtoken";
 import { RESEND_CODE_COOLDOWN } from "src/features/auth/constants";
 import { KalamcheErrorType } from "src/filters/exception";
+import { EmailService } from "src/features/email/email.service";
 
 describe("AuthService", () => {
   let nestModule: TestingModule;
   let authService: AuthService;
   let db: Database;
+  let emailService: EmailService;
 
   beforeEach(async () => {
     await truncateTables(db, UserTable);
@@ -21,8 +23,10 @@ describe("AuthService", () => {
 
   beforeAll(async () => {
     nestModule = await createNestAppInstance();
+
     authService = nestModule.get(AuthService);
     db = nestModule.get(DATABASE);
+    emailService = nestModule.get(EmailService);
   });
 
   describe(".register", () => {
@@ -95,6 +99,32 @@ describe("AuthService", () => {
           password,
         }),
       ).resolves.not.toThrow(KalamcheErrorType.RegistrationCooldown);
+    });
+
+    it("should rollback database transaction on any failure", async () => {
+      const emailSpy = jest
+        .spyOn(emailService, "sendVerificationAccountEmail")
+        .mockRejectedValue(new Error("Failed to send email"));
+
+      const email = faker.internet.email();
+
+      await expect(
+        authService.register({
+          email,
+          password: faker.internet.password(),
+        }),
+      ).rejects.toThrow();
+      // check that error comes from email service
+      expect(emailSpy).toHaveBeenCalled();
+
+      // currently send email is the last step and if failed all the transaction most be rolled back
+      // if any pendingUser with this email exists that mean it dosent
+      const [pendingUser] = await db
+        .select()
+        .from(PendingUserTable)
+        .where(eq(PendingUserTable.email, email));
+
+      expect(pendingUser).not.toBeDefined();
     });
   });
 
