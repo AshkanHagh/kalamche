@@ -43,14 +43,6 @@ export class EmailService implements IEmailService {
       html: template,
     };
 
-    // Skip sending email if test env or production and smtp disabled
-    if (
-      process.env.NODE_ENV === "test" ||
-      (process.env.NODE_ENV !== "development" && !this.mailConfig.enable)
-    ) {
-      return;
-    }
-
     try {
       if (process.env.NODE_ENV === "development" && !this.mailConfig.enable) {
         console.log("Captured email");

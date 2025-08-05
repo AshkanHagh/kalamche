@@ -27,6 +27,9 @@ describe("AuthService", () => {
     authService = nestModule.get(AuthService);
     db = nestModule.get(DATABASE);
     emailService = nestModule.get(EmailService);
+
+    // mocking inline send mail method(all wrapers)
+    jest.spyOn(emailService, "sendMail").mockResolvedValue();
   });
 
   describe(".register", () => {
