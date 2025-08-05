@@ -125,6 +125,8 @@ describe("AuthService", () => {
         .where(eq(PendingUserTable.email, email));
 
       expect(pendingUser).not.toBeDefined();
+
+      emailSpy.mockRestore();
     });
   });
 
