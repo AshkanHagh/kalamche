@@ -49,6 +49,7 @@ export class AuthService implements IAuthService {
         throw new KalamcheError(KalamcheErrorType.RegistrationCooldown);
       }
 
+      // TODO: remove this line(unnecessary we upate createdAt in initiateAccountVerification)
       await this.pendingUserRepository.update(pendingUser.id);
     } else {
       const hashedPassword = await argon2.hash(payload.password);

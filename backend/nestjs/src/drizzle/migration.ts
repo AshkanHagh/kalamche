@@ -2,9 +2,13 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { resolve } from "node:path";
+import { Pool } from "pg";
 
 export async function migration() {
-  const db = drizzle(process.env.DATABASE_URL!);
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+  const db = drizzle(pool, { casing: "snake_case" });
 
   const path = resolve(__dirname, "migrations");
   await migrate(db, { migrationsFolder: path });
@@ -50,6 +54,7 @@ export async function migration() {
   `;
 
   await db.execute(query);
+  await pool.end();
 }
 
 if (require.main === module) {
