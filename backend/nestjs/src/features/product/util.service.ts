@@ -28,9 +28,11 @@ export class ProductUtilService {
 
   async userHasPermission(
     userId: string,
+    // Shop ID can be null if products are no longer associated with a shop
     shopId: string | null,
     productId?: string,
   ) {
+    // deny access if no shop ID is provided
     if (!shopId) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }

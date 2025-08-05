@@ -8,7 +8,12 @@ import { Database, IUser } from "src/drizzle/types";
 import { S3Service } from "src/features/product/services/s3.service";
 import { ShopService } from "src/features/shop/shop.service";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
-import { createNestAppInstance, truncateTables } from "test/test.helper";
+import {
+  createNestAppInstance,
+  createShop,
+  createUser,
+  truncateTables,
+} from "test/test.helper";
 
 describe("ShopService", () => {
   let nestModule: TestingModule;
@@ -33,16 +38,7 @@ describe("ShopService", () => {
     let user: IUser;
 
     beforeEach(async () => {
-      const [newUser] = await db
-        .insert(UserTable)
-        .values({
-          email: faker.internet.email(),
-          name: faker.person.fullName(),
-          roles: [USER_ROLE.USER],
-        })
-        .returning();
-
-      user = newUser;
+      user = await createUser(db, {});
     });
 
     it("should create a temp shop", async () => {
@@ -87,17 +83,7 @@ describe("ShopService", () => {
     });
 
     beforeEach(async () => {
-      // create a random user
-      const [newUser] = await db
-        .insert(UserTable)
-        .values({
-          email: faker.internet.email(),
-          name: faker.person.fullName(),
-          roles: [USER_ROLE.USER],
-        })
-        .returning();
-
-      user = newUser;
+      user = await createUser(db, {});
     });
 
     it("should upload a new image for pending shop", async () => {
@@ -119,25 +105,9 @@ describe("ShopService", () => {
     });
 
     it("should upload/update a new image for shop", async () => {
-      // create a complete shop
-      const [shop] = await db
-        .insert(ShopTable)
-        .values({
-          userId: user.id,
-          email: faker.internet.email(),
-          name: faker.company.name(),
-          phone: faker.phone.number(),
-          website: faker.internet.url(),
-          country: faker.location.country(),
-          description: faker.lorem.paragraph(),
-          state: faker.location.state(),
-          streetAddress: faker.location.streetAddress(),
-          zipCode: faker.location.zipCode(),
-          imageUrl: faker.image.avatar(),
-          status: "verified",
-          city: faker.location.city(),
-        })
-        .returning();
+      const shop = await createShop(db, {
+        userId: user.id,
+      });
 
       await shopService.uploadImage(
         user.id,

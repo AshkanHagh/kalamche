@@ -1,7 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "src/app.module";
 import { getTableName, sql } from "drizzle-orm";
-import { Database } from "src/drizzle/types";
+import { Database, IShopUpdateForm, IUserUpdateForm } from "src/drizzle/types";
+import {
+  IProductInsertForm,
+  ProductTable,
+  ShopTable,
+  UserTable,
+} from "src/drizzle/schemas";
+import { faker } from "@faker-js/faker/.";
+import { USER_ROLE } from "src/constants/global.constant";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   process.env.NODE_ENV = "test";
@@ -23,6 +31,70 @@ export async function truncateTables(db: Database, ...tables: any[]) {
 
     await Promise.all(queries.map((q) => tx.execute(q)));
   });
+}
 
-  // await db.$client?.end();
+export async function createShop(db: Database, form: IShopUpdateForm) {
+  // create a complete shop
+  const [shop] = await db
+    .insert(ShopTable)
+    .values({
+      userId: form.userId!,
+      email: form.email ?? faker.internet.email(),
+      name: form.name ?? faker.company.name(),
+      phone: form.phone ?? faker.phone.number(),
+      website: form.website ?? faker.internet.url(),
+      country: form.country ?? faker.location.country(),
+      description: form.description ?? faker.lorem.paragraph(),
+      state: form.state ?? faker.location.state(),
+      streetAddress: form.streetAddress ?? faker.location.streetAddress(),
+      zipCode: form.zipCode ?? faker.location.zipCode(),
+      imageUrl: form.imageUrl ?? faker.image.avatar(),
+      status: form.status ?? "verified",
+      city: form.city ?? faker.location.city(),
+      id: form.id,
+    })
+    .returning();
+
+  return shop;
+}
+
+export async function createProduct(
+  db: Database,
+  form: Partial<IProductInsertForm>,
+) {
+  const [product] = await db
+    .insert(ProductTable)
+    .values({
+      asin: form.asin ?? "",
+      brand: form.brand ?? faker.commerce.product(),
+      categories: form.categories ?? [faker.commerce.product()],
+      description: form.description ?? faker.commerce.productDescription(),
+      initialPrice: form.initialPrice ?? +faker.commerce.price(),
+      modelNumber: form.modelNumber ?? faker.commerce.isbn(),
+      specifications: form.specifications ?? [
+        { key: "brand", value: faker.commerce.product() },
+      ],
+      title: form.title ?? faker.commerce.productName(),
+      status: form.status ?? "public",
+      shopId: form.shopId,
+      id: form.id,
+    })
+    .returning();
+
+  return product;
+}
+
+export async function createUser(db: Database, form: IUserUpdateForm) {
+  const [newUser] = await db
+    .insert(UserTable)
+    .values({
+      email: form.email || faker.internet.email(),
+      name: form.name || faker.person.fullName(),
+      roles: form.roles || [USER_ROLE.USER],
+      id: form.id,
+      passwordHash: form.passwordHash,
+    })
+    .returning();
+
+  return newUser;
 }
