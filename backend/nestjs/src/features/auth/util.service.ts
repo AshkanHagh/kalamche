@@ -108,10 +108,13 @@ export class AuthUtilService {
     if (!user) {
       user = await this.userRepository.insert(userForm, tx);
       // initiate default user free trial wallet
-      await this.walletRepository.insert({
-        tokens: 50,
-        userId: user.id,
-      });
+      await this.walletRepository.insert(
+        {
+          tokens: 50,
+          userId: user.id,
+        },
+        tx,
+      );
     }
 
     return user;

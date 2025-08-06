@@ -22,8 +22,9 @@ export class WalletRepository implements IWalletRepo {
       .where(eq(WalletTable.userId, userId));
   }
 
-  async insert(form: IWalletInsertForm): Promise<void> {
-    await this.db.insert(WalletTable).values(form).execute();
+  async insert(form: IWalletInsertForm, tx?: Database): Promise<void> {
+    const db = tx || this.db;
+    await db.insert(WalletTable).values(form).execute();
   }
 
   async findByUserId(userId: string): Promise<IWallet> {

@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { BaseOAuthService } from "./base-oauth.service";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
-import { OAUthUserDto } from "../dto";
 import { HttpService } from "@nestjs/axios";
 import { IDiscordUser } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { firstValueFrom, map } from "rxjs";
+import { OAuthUserDto } from "../dto";
 
 @Injectable()
 export class DiscordOAuthService extends BaseOAuthService {
@@ -25,7 +25,7 @@ export class DiscordOAuthService extends BaseOAuthService {
     });
   }
 
-  async getUserInfo(accessToken: string): Promise<OAUthUserDto> {
+  async getUserInfo(accessToken: string): Promise<OAuthUserDto> {
     try {
       const user = await firstValueFrom(
         this.httpService
@@ -42,12 +42,11 @@ export class DiscordOAuthService extends BaseOAuthService {
       }
 
       return {
-        id: user.id,
+        providerId: user.id,
         email: user.email!,
         name: user.username,
         avatar: `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`,
         provider: "discord",
-        providerId: user.id,
       };
     } catch (error) {
       throw new KalamcheError(KalamcheErrorType.OAuthReqFailed, error);

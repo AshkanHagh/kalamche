@@ -1,15 +1,14 @@
 import { z } from "zod";
 
 export const OAuthUserSchema = z.object({
-  id: z.string(),
+  providerId: z.string(),
   email: z.string().email(),
   name: z.string(),
   avatar: z.string().url().optional(),
-  provider: z.enum(["github", "discord", "google"]),
-  providerId: z.string(),
+  provider: z.enum(["github", "discord"]),
 });
 
-export type OAUthUserDto = z.infer<typeof OAuthUserSchema>;
+export type OAuthUserDto = z.infer<typeof OAuthUserSchema>;
 
 export const handleCallbackSchema = z.object({
   provider: z.string(),
