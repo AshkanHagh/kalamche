@@ -70,7 +70,7 @@ export class ShopController implements IShopController {
     )
     image: Express.Multer.File,
   ): Promise<void> {
-    await this.shopService.uploadImage(userId, params, image);
+    await this.shopService.uploadImage(userId, params, image.buffer);
     return;
   }
 

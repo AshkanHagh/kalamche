@@ -54,7 +54,7 @@ export class ShopService implements IShopService {
   async uploadImage(
     userId: string,
     params: UploadImageDto,
-    image: Express.Multer.File,
+    imageBuffer: Buffer,
   ): Promise<void> {
     const repository = params.isTempShop
       ? this.tempShopRepository
@@ -66,7 +66,7 @@ export class ShopService implements IShopService {
 
     let imageUrl: string;
     try {
-      const fileBuffer = await sharp(image.buffer)
+      const fileBuffer = await sharp(imageBuffer)
         .resize({
           height: 800,
           width: 800,
@@ -86,12 +86,12 @@ export class ShopService implements IShopService {
       throw new KalamcheError(KalamcheErrorType.ImageProcessingFailed, error);
     }
 
+    await repository.update(params.shopId, { imageUrl });
+
     if (shop.imageUrl) {
       const imageId = shop.imageUrl.split("/").at(-1)!;
       await this.s3Service.delete(imageId);
     }
-
-    await repository.update(params.shopId, { imageUrl });
   }
 
   async completeShopCreation(

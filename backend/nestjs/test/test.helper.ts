@@ -1,18 +1,19 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { drizzle } from "drizzle-orm/node-postgres";
 import { AppModule } from "src/app.module";
-import * as schema from "../src/drizzle/schemas";
-import { sql } from "drizzle-orm";
-import { Database, IUser, IUserInsertForm } from "src/drizzle/types";
-import * as argon2 from "argon2";
-import { Pool } from "pg";
+import { getTableName, sql } from "drizzle-orm";
+import { Database, IShopUpdateForm, IUserUpdateForm } from "src/drizzle/types";
+import {
+  IProductInsertForm,
+  ProductTable,
+  ShopTable,
+  UserTable,
+} from "src/drizzle/schemas";
+import { faker } from "@faker-js/faker/.";
 import { USER_ROLE } from "src/constants/global.constant";
-import { PostgreSqlContainer } from "@testcontainers/postgresql";
-import { MinioContainer } from "@testcontainers/minio";
-import { UserRepository } from "src/repository/repositories/user.repository";
-import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
+  process.env.NODE_ENV = "test";
+
   const module = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();
@@ -20,92 +21,80 @@ export async function createNestAppInstance(): Promise<TestingModule> {
   return module;
 }
 
-export async function createTestPostgresDb() {
-  const container = await new PostgreSqlContainer(
-    "registry.docker.ir/pgvector/pgvector:0.8.0-pg17",
-  ).start();
-  process.env.DATABASE_URL = container.getConnectionUri();
-
-  return container;
-}
-
-export async function createTestMinio() {
-  const container = await new MinioContainer(
-    "registry.docker.ir/minio/minio:latest",
-  ).start();
-
-  process.env.AWS_S3_ACCESS_KEY = "minioadmin";
-  process.env.AWS_S3_SECRET_KEY = "minioadmin";
-  process.env.AWS_S3_BUCKET_NAME = "kalamche";
-  process.env.AWS_S3_ENDPOINT = `http://${container.getHost()}:${container.getPort()}`;
-  process.env.AWS_S3_REGION = " ";
-  process.env.AWS_S3_USE_PATH_STYLE = "true";
-
-  return container;
-}
-
-export async function clearDb() {
-  if (process.env.NODE_ENV !== "test") {
-    return;
-  }
-
-  const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 1,
-  });
-  const db = drizzle(pool, { schema });
-
-  const tableNames = db._.schema!;
-  const queries = Object.values(tableNames).map((table) => {
-    return sql.raw(`TRUNCATE ${table.dbName} CASCADE`);
-  });
+export async function truncateTables(db: Database, ...tables: any[]) {
   await db.transaction(async (tx) => {
+    const queries = tables.map((table) => {
+      // eslint-disable-next-line
+      const tableName = getTableName(table);
+      return sql.raw(`TRUNCATE ${tableName} CASCADE`);
+    });
+
     await Promise.all(queries.map((q) => tx.execute(q)));
   });
-
-  await pool.end();
 }
 
-export async function createUser(
-  nestModule: TestingModule,
-  oauthUser?: boolean,
-  form?: Partial<IUserInsertForm>,
-  existingUser?: IUser,
+export async function createShop(db: Database, form: IShopUpdateForm) {
+  // create a complete shop
+  const [shop] = await db
+    .insert(ShopTable)
+    .values({
+      userId: form.userId!,
+      email: form.email ?? faker.internet.email(),
+      name: form.name ?? faker.company.name(),
+      phone: form.phone ?? faker.phone.number(),
+      website: form.website ?? faker.internet.url(),
+      country: form.country ?? faker.location.country(),
+      description: form.description ?? faker.lorem.paragraph(),
+      state: form.state ?? faker.location.state(),
+      streetAddress: form.streetAddress ?? faker.location.streetAddress(),
+      zipCode: form.zipCode ?? faker.location.zipCode(),
+      imageUrl: form.imageUrl ?? faker.image.avatar(),
+      status: form.status ?? "verified",
+      city: form.city ?? faker.location.city(),
+      id: form.id,
+    })
+    .returning();
+
+  return shop;
+}
+
+export async function createProduct(
+  db: Database,
+  form: Partial<IProductInsertForm>,
 ) {
-  const userRepository = nestModule.get(UserRepository);
-  const userLoginTokenRepository = nestModule.get(UserLoginTokenRepository);
+  const [product] = await db
+    .insert(ProductTable)
+    .values({
+      asin: form.asin ?? "",
+      brand: form.brand ?? faker.commerce.product(),
+      categories: form.categories ?? [faker.commerce.product()],
+      description: form.description ?? faker.commerce.productDescription(),
+      initialPrice: form.initialPrice ?? +faker.commerce.price(),
+      modelNumber: form.modelNumber ?? faker.commerce.isbn(),
+      specifications: form.specifications ?? [
+        { key: "brand", value: faker.commerce.product() },
+      ],
+      title: form.title ?? faker.commerce.productName(),
+      status: form.status ?? "public",
+      shopId: form.shopId,
+      id: form.id,
+    })
+    .returning();
 
-  let user: IUser;
-  if (!existingUser) {
-    if (oauthUser) {
-      user = await userRepository.insert({
-        email: form?.email || "jane@example.com",
-        name: form?.name || "john",
-        roles: [USER_ROLE.USER],
-      });
-    } else {
-      const hashedPass = await argon2.hash(form?.passwordHash || "pwd");
-      user = await userRepository.insert({
-        email: form?.email || "john@example.com",
-        name: form?.name || "john",
-        passwordHash: hashedPass,
-        roles: [USER_ROLE.USER],
-      });
-    }
-  } else {
-    user = existingUser;
-  }
-
-  await userLoginTokenRepository.insertOrUpdate({
-    token: "",
-    userId: user.id,
-  });
-
-  return user;
+  return product;
 }
 
-export async function stopDb(db: Database) {
-  await db.$client?.end();
-  // TODO: find a way to remove timeout for drizzle to close conns
-  await new Promise((resolve) => setTimeout(resolve, 1000 * 10));
+export async function createUser(db: Database, form: IUserUpdateForm) {
+  const [newUser] = await db
+    .insert(UserTable)
+    .values({
+      email: form.email || faker.internet.email(),
+      name: form.name || faker.person.fullName(),
+      roles: form.roles || [USER_ROLE.USER],
+      id: form.id,
+      passwordHash: form.passwordHash,
+    })
+    .returning();
+
+  return newUser;
 }

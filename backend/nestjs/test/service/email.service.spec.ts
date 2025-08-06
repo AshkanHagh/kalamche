@@ -1,62 +1,74 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { EmailService } from "../../src/features/email/email.service";
-import { ConfigModule } from "src/config/config.module";
-import { anything, instance, mock, verify } from "ts-mockito";
+import { faker } from "@faker-js/faker/.";
+import { TestingModule } from "@nestjs/testing";
 import { Transporter } from "nodemailer";
-import { IMailConfig } from "src/config/mail.config";
-import { MAIL_CONFIG } from "src/config/constants";
-import { ConfigService } from "@nestjs/config";
+import { EmailService } from "src/features/email/email.service";
+import { createNestAppInstance } from "test/test.helper";
+import { instance, mock } from "ts-mockito";
 
 describe("EmailService", () => {
-  let service: EmailService;
-  let mockTransport: Transporter;
-  let mailConfig: IMailConfig;
+  let nestModule: TestingModule;
+  let emailService: EmailService;
+  let spyTransporter: jest.SpyInstance;
 
-  beforeEach(async () => {
-    // mock internal transport that used to send emails
-    // after initialization of nodemailer
-    mockTransport = mock<Transporter>();
-
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.register()],
-      providers: [EmailService],
-    }).compile();
-
-    const configService = module.get(ConfigService);
-    service = module.get<EmailService>(EmailService);
-    mailConfig = configService.get<IMailConfig>(MAIL_CONFIG)!;
-
-    // return mock transport from nodemailer method
-    jest
-      .spyOn(service, "mailTransport")
-      .mockReturnValue(instance(mockTransport));
-
-    // re value each time to be on test
-    process.env.NODE_ENV = "test";
+  beforeAll(async () => {
+    nestModule = await createNestAppInstance();
+    emailService = nestModule.get(EmailService);
   });
 
   describe(".sendMail", () => {
-    it("should send email on production", async () => {
-      process.env.NODE_ENV = "production";
-      mailConfig.enable = true;
+    beforeEach(() => {
+      const mockNodeMailerTransporter = mock<Transporter>();
 
-      const result = service.sendMail("test@test.ts", "", "");
-
-      await expect(result).resolves.toBeUndefined();
-      verify(mockTransport.sendMail(anything())).called();
+      spyTransporter = jest
+        .spyOn(emailService, "mailTransport")
+        // eslint-disable-next-line
+        .mockReturnValue(instance(mockNodeMailerTransporter));
     });
 
-    it("should log email content without sending in development when SMTP is disabled", async () => {
+    it("should sends email", async () => {
+      const htmlContent = `
+        <div>
+          <h1>${faker.person.fullName()}</h1>
+          <p>Content: ${faker.word.sample()}</p>
+        </div>
+      `;
+
+      await emailService.sendMail(
+        faker.internet.email(),
+        faker.word.sample(),
+        htmlContent,
+      );
+
+      expect(spyTransporter).toHaveBeenCalled();
+      spyTransporter.mockReset();
+    });
+
+    it("should logs email in development mode", async () => {
+      const htmlContent = `
+        <div>
+          <h1>${faker.person.fullName()}</h1>
+          <p>Content: ${faker.word.sample()}</p>
+        </div>
+      `;
+
+      // Set env to development to avoid sending emails
       process.env.NODE_ENV = "development";
-      mailConfig.enable = false;
+      await emailService.sendMail(
+        faker.internet.email(),
+        faker.word.sample(),
+        htmlContent,
+      );
 
-      await service.sendMail("test@test.com", "", "");
-      verify(mockTransport.sendMail(anything())).never();
+      expect(spyTransporter).not.toHaveBeenCalled();
+      spyTransporter.mockReset();
     });
 
-    it("should skip email sending in test environment", async () => {
-      await service.sendMail("test@example.com", "", "");
-      verify(mockTransport.sendMail(anything())).never();
+    afterEach(() => {
+      process.env.NODE_ENV = "test";
     });
+  });
+
+  afterAll(async () => {
+    await nestModule.close();
   });
 });

@@ -2,10 +2,10 @@ import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { BaseOAuthService } from "./base-oauth.service";
 import { IGitHubUser, IGitHubUserEmail } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { OAUthUserDto } from "../dto";
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom, map } from "rxjs";
+import { OAuthUserDto } from "../dto";
 
 @Injectable()
 export class GithubOAuthService extends BaseOAuthService {
@@ -25,7 +25,7 @@ export class GithubOAuthService extends BaseOAuthService {
     });
   }
 
-  async getUserInfo(accessToken: string): Promise<OAUthUserDto> {
+  async getUserInfo(accessToken: string): Promise<OAuthUserDto> {
     try {
       const [user, userEmails] = await Promise.all([
         firstValueFrom(
@@ -59,12 +59,11 @@ export class GithubOAuthService extends BaseOAuthService {
       }
 
       return {
+        providerId: user.id.toString(),
         avatar: user.avatar_url,
         email: primaryEmail.email,
-        id: user.id.toString(),
         name: user.name || user.login,
         provider: "github",
-        providerId: user.id.toString(),
       };
     } catch (error) {
       throw new KalamcheError(KalamcheErrorType.OAuthReqFailed, error);

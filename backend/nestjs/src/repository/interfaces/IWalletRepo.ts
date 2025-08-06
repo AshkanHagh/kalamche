@@ -7,7 +7,7 @@ export interface IWalletRepo {
     userId: string,
     tokens: number,
   ): Promise<void>;
-  insert(form: IWalletInsertForm): Promise<void>;
+  insert(form: IWalletInsertForm, tx?: Database): Promise<void>;
   findByUserId(userId: string): Promise<IWallet>;
   consumeTokens(tx: Database, userId: string, tokens: number): Promise<void>;
 }

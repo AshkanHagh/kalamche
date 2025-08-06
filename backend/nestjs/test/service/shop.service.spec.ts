@@ -1,146 +1,173 @@
+import { faker } from "@faker-js/faker/.";
 import { TestingModule } from "@nestjs/testing";
-import { StartedMinioContainer } from "@testcontainers/minio";
-import { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { DATABASE } from "src/drizzle/constants";
-import { migration } from "src/drizzle/migration";
-import { Database, IShop, IUser } from "src/drizzle/types";
-import { ShopService } from "src/features/shop/shop.service";
-import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import {
-  clearDb,
-  createNestAppInstance,
-  createTestMinio,
-  createTestPostgresDb,
-  createUser,
-  stopDb,
-} from "test/test.helper";
-import { faker } from "@faker-js/faker";
+import { eq } from "drizzle-orm";
 import { USER_ROLE } from "src/constants/global.constant";
-import { ShopRepository } from "src/repository/repositories/shop.repository";
-import { UserRepository } from "src/repository/repositories/user.repository";
+import { DATABASE } from "src/drizzle/constants";
+import { ShopTable, TempShopTable, UserTable } from "src/drizzle/schemas";
+import { Database, IUser } from "src/drizzle/types";
+import { S3Service } from "src/features/product/services/s3.service";
+import { ShopService } from "src/features/shop/shop.service";
+import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
+import {
+  createNestAppInstance,
+  createShop,
+  createUser,
+  truncateTables,
+} from "test/test.helper";
 
 describe("ShopService", () => {
   let nestModule: TestingModule;
-  let service: ShopService;
-  let pgContainer: StartedPostgreSqlContainer;
-  let minioContainer: StartedMinioContainer;
+  let shopService: ShopService;
   let db: Database;
-  let shopRepository: ShopRepository;
-  let userRepository: UserRepository;
-
-  beforeEach(async () => {
-    await clearDb();
-  });
+  let tempShopRepository: TempShopRepository;
+  let s3Service: S3Service;
 
   beforeAll(async () => {
-    [pgContainer, minioContainer] = await Promise.all([
-      createTestPostgresDb(),
-      createTestMinio(),
-    ]);
-    await migration();
-
     nestModule = await createNestAppInstance();
-    service = nestModule.get(ShopService);
+    shopService = nestModule.get(ShopService);
     db = nestModule.get(DATABASE);
-    shopRepository = nestModule.get(ShopRepository);
-    userRepository = nestModule.get(UserRepository);
-  }, 1000 * 15);
+    tempShopRepository = nestModule.get(TempShopRepository);
+    s3Service = nestModule.get(S3Service);
+  });
+
+  beforeEach(async () => {
+    await truncateTables(db, UserTable, ShopTable, TempShopTable);
+  });
 
   describe(".createShop", () => {
     let user: IUser;
-    let result: IShop;
 
     beforeEach(async () => {
-      user = await createUser(nestModule);
-      result = await service.createShop(user);
-    });
-
-    it("should not create a shop for a user that already has one", async () => {
-      const shop = service.createShop(user);
-      await expect(shop).rejects.toThrow(
-        new KalamcheError(KalamcheErrorType.ShopAlreadyExists),
-      );
+      user = await createUser(db, {});
     });
 
     it("should create a temp shop", async () => {
-      expect(result.isTemp).toBe(true);
+      const result = await shopService.createShop(user.id);
+      expect(result).toBeDefined();
 
-      const shop = shopRepository.findById(result.id);
-      await expect(shop).resolves.toEqual(result);
+      // Create temp shop adds a temporary seller role to the user for shop creation
+      const [currentUser] = await db
+        .select()
+        .from(UserTable)
+        .where(eq(UserTable.id, user.id));
+      expect(currentUser.roles).toContain(USER_ROLE.PENDING_SELLER);
+    });
 
-      const user2 = await userRepository.findById(user.id);
-      expect(user2?.roles).toEqual([USER_ROLE.USER, USER_ROLE.SELLER]);
+    it("should rollback database transaction on any failure", async () => {
+      const spyTempShopRepo = jest
+        .spyOn(tempShopRepository, "insert")
+        .mockRejectedValue(new Error("failed to insert shop"));
+
+      await expect(shopService.createShop(user.id)).rejects.toThrow();
+      // making sure that error comes from insert method
+      expect(spyTempShopRepo).toHaveBeenCalled();
+
+      const [currentUser] = await db
+        .select()
+        .from(UserTable)
+        .where(eq(UserTable.id, user.id));
+      expect(currentUser.roles).not.toContain(USER_ROLE.PENDING_SELLER);
+
+      spyTempShopRepo.mockRestore();
     });
   });
 
-  describe(".updateShopCreation", () => {
-    const payload = {
-      name: faker.company.name(),
-      email: faker.internet.email(),
-      phone: faker.phone.number(),
-      city: faker.location.city(),
-      country: faker.location.country(),
-      state: faker.location.state(),
-      description: faker.lorem.paragraph(),
-      streetAddress: faker.location.streetAddress(),
-      website: faker.internet.url(),
-      zipCode: faker.location.zipCode(),
-    };
-    let result: IShop;
+  describe(".uploadImage", () => {
     let user: IUser;
+    let imageBuffer: Buffer;
+
+    beforeAll(async () => {
+      // download a fake image and get image buffer
+      const result = await fetch(faker.image.avatar());
+      imageBuffer = Buffer.from(await result.arrayBuffer());
+    });
 
     beforeEach(async () => {
-      user = await createUser(nestModule);
-
-      const shop = await service.createShop(user);
-      result = await service.updateShopCreation(user.id, shop.id, payload);
+      user = await createUser(db, {});
     });
 
-    it("should update and complete the shop creation", async () => {
-      expect(result.isTemp).toBe(false);
+    it("should upload a new image for pending shop", async () => {
+      const tempShop = await shopService.createShop(user.id);
+      await shopService.uploadImage(
+        user.id,
+        {
+          isTempShop: true,
+          shopId: tempShop.id,
+        },
+        imageBuffer,
+      );
 
-      const shop = shopRepository.findById(result.id);
-      await expect(shop).resolves.toEqual(result);
+      const [updatedTempShop] = await db
+        .select()
+        .from(TempShopTable)
+        .where(eq(TempShopTable.id, tempShop.id));
+      expect(updatedTempShop.imageUrl).not.toBe(tempShop.imageUrl);
     });
 
-    it("should not update the shop creation", async () => {
-      const result2 = service.updateShopCreation(user.id, result.id, payload);
-      await expect(result2).rejects.toThrow(
-        new KalamcheError(KalamcheErrorType.ShopAlreadyExists),
+    it("should upload/update a new image for shop", async () => {
+      const shop = await createShop(db, {
+        userId: user.id,
+      });
+
+      await shopService.uploadImage(
+        user.id,
+        {
+          isTempShop: false,
+          shopId: shop.id,
+        },
+        imageBuffer,
       );
 
-      const newUser = await createUser(nestModule);
-      const result4 = service.updateShopCreation(
-        newUser.id,
-        result.id,
-        payload,
-      );
-      await expect(result4).rejects.toThrow(
-        new KalamcheError(KalamcheErrorType.PermissionDenied),
-      );
+      const [updatedShop] = await db
+        .select()
+        .from(ShopTable)
+        .where(eq(ShopTable.id, shop.id));
+
+      expect(updatedShop.imageUrl).not.toBe(shop.imageUrl);
+    });
+
+    it("should rollback database transaction on any failure", async () => {
+      const s3ServiceSpy = jest
+        .spyOn(s3Service, "delete")
+        .mockRejectedValue(new Error("failed to update shop"));
+
+      // Create a temporary shop for the user
+      const tempShop = await shopService.createShop(user.id);
+      // Set a placeholder image URL for the new temp shop to allow image upload and replace old image
+      const imageUrl = faker.image.avatar();
+      await db
+        .update(TempShopTable)
+        .set({ imageUrl })
+        .where(eq(TempShopTable.id, tempShop.id))
+        .execute();
+
+      await expect(
+        shopService.uploadImage(
+          user.id,
+          {
+            isTempShop: true,
+            shopId: tempShop.id,
+          },
+          imageBuffer,
+        ),
+      ).rejects.toThrow();
+      // making sure that error comes from insert method
+      expect(s3ServiceSpy).toHaveBeenCalled();
+
+      const [updatedTempShop] = await db
+        .select()
+        .from(TempShopTable)
+        .where(eq(TempShopTable.id, tempShop.id));
+
+      // Verify that the image URL has been rolled back to the original
+      expect(updatedTempShop.imageUrl).toBe(imageUrl);
+
+      s3ServiceSpy.mockRestore();
     });
   });
 
-  // describe(".deleteShop", () => {
-  //   let user: IUser;
-  //   let shop: IShop;
-
-  //   beforeEach(async () => {
-  //     user = await createUser(nestModule);
-
-  //     shop = await service.createShop(user);
-  //     await service.deleteShop(user.id, shop.id);
-  //   });
-
-  //   // TODO: this requires a product offer to be created first
-  //   // TODO: check for image is deleting or not
-  //   // TODO: check for permission error
-  //   it("should delete existing shop and product offer without deleting shop product", async () => {});
-  // });
-
   afterAll(async () => {
+    await db.$client?.end();
     await nestModule.close();
-    await stopDb(db);
-    await Promise.all([pgContainer.stop(), minioContainer.stop()]);
-  }, 1000 * 15);
+  });
 });

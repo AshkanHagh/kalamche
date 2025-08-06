@@ -27,7 +27,7 @@ export class OAuthService implements IOAuthService {
   ) {}
 
   async initiateOAuth(providerName: string) {
-    const provider = this.#getProvider(providerName);
+    const provider = this.getProvider(providerName);
     const state = provider.generateState();
 
     await this.oauthStateRepository.insert({
@@ -43,7 +43,7 @@ export class OAuthService implements IOAuthService {
     res: Response,
     payload: handleCallbackDto,
   ) {
-    const provider = this.#getProvider(payload.provider);
+    const provider = this.getProvider(payload.provider);
 
     const accountState = await this.oauthStateRepository.findByState(
       payload.provider,
@@ -67,7 +67,7 @@ export class OAuthService implements IOAuthService {
       const userOAuthAccount = await this.oauthAccountRepository.findByProvider(
         tx,
         payload.provider,
-        oauthUser.id,
+        oauthUser.providerId,
       );
 
       let user: IUser;
@@ -94,7 +94,7 @@ export class OAuthService implements IOAuthService {
 
       await this.oauthAccountRepository.insert(tx, {
         provider: payload.provider,
-        providerId: oauthUser.id,
+        providerId: oauthUser.providerId,
         userId: user.id,
       });
 
@@ -111,7 +111,7 @@ export class OAuthService implements IOAuthService {
     });
   }
 
-  #getProvider(provider: string) {
+  getProvider(provider: string) {
     switch (provider) {
       case "github":
         return this.githubOAuthService;
