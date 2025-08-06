@@ -27,7 +27,7 @@ export class FrTokenService implements IFrTokenService {
   ): Promise<string> {
     const plan = await this.frTokenPlanRepository.findById(params.planId);
 
-    const provider = this.#getProvider(params.paymentMethod);
+    const provider = this.getProvider(params.paymentMethod);
     const result = await provider.createPayment(user.email, plan.totalPrice);
 
     await this.transactionRepository.insert({
@@ -46,7 +46,7 @@ export class FrTokenService implements IFrTokenService {
     userId: string,
     payload: VerifyPaymentDto,
   ): Promise<ITransactionRecord> {
-    const provider = this.#getProvider(payload.paymentMethod);
+    const provider = this.getProvider(payload.paymentMethod);
 
     if (payload.status && payload.status !== "OK") {
       throw new KalamcheError(KalamcheErrorType.PaymentVerificationFailed);
@@ -97,7 +97,7 @@ export class FrTokenService implements IFrTokenService {
     });
   }
 
-  #getProvider(paymentMethod: (typeof PAYMENT_METHODS)[number]) {
+  private getProvider(paymentMethod: (typeof PAYMENT_METHODS)[number]) {
     switch (paymentMethod) {
       case "stripe": {
         throw new Error("not implemented");
