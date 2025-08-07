@@ -21,6 +21,7 @@ describe("RateLimitService", () => {
     db = nestModule.get(DATABASE);
     rateLimitService = new RateLimitService(
       nestModule.get(RateLimitBucketRepository),
+      db,
       {
         bucketSize: 10,
         // set to live to retrieve errors
@@ -120,6 +121,7 @@ describe("RateLimitService", () => {
       beforeEach(() => {
         rateLimitService = new RateLimitService(
           nestModule.get(RateLimitBucketRepository),
+          db,
           {
             bucketSize: 10,
             // set to live to retrieve errors
@@ -172,6 +174,7 @@ describe("RateLimitService", () => {
       beforeEach(() => {
         rateLimitService = new RateLimitService(
           nestModule.get(RateLimitBucketRepository),
+          db,
           {
             bucketSize: 10,
             // set to live to retrieve errors
@@ -199,6 +202,7 @@ describe("RateLimitService", () => {
       beforeEach(() => {
         rateLimitService = new RateLimitService(
           nestModule.get(RateLimitBucketRepository),
+          db,
           {
             bucketSize: 10,
             // set to live to retrieve errors

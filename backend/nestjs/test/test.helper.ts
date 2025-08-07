@@ -29,7 +29,9 @@ export async function truncateTables(db: Database, ...tables: any[]) {
       return sql.raw(`TRUNCATE ${tableName} CASCADE`);
     });
 
-    await Promise.all(queries.map((q) => tx.execute(q)));
+    for (const query of queries) {
+      await tx.execute(query);
+    }
   });
 }
 
