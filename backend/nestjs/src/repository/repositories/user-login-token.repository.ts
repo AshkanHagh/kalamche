@@ -31,12 +31,10 @@ export class UserLoginTokenRepository implements IUserLoginTokenRepo {
   // TODO: check for others ways like adding another row of data for new user login token
   // this can be helpful for tracking user stolen tokens
   async insertOrUpdate(
+    tx: Database,
     form: IUserLoginTokenInsertForm,
-    tx?: Database,
   ): Promise<IUserLoginToken> {
-    const db = tx || this.db;
-
-    const [token] = await db
+    const [token] = await tx
       .insert(UserLoginTokenTable)
       .values(form)
       .onConflictDoUpdate({

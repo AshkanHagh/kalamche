@@ -1,10 +1,17 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  Injectable,
+} from "@nestjs/common";
 import { Request } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { AuthUtilService } from "../util.service";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { Reflector } from "@nestjs/core";
+import { DATABASE } from "src/drizzle/constants";
+import { Database } from "src/drizzle/types";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
@@ -13,6 +20,7 @@ export class AuthorizationGuard implements CanActivate {
     private authUtilService: AuthUtilService,
     @AuthConfig() private config: IAuthConfig,
     private reflector: Reflector,
+    @Inject(DATABASE) private db: Database,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -36,7 +44,7 @@ export class AuthorizationGuard implements CanActivate {
       accessToken,
       this.config.accessToken.secret!,
     );
-    const user = await this.userRepository.findById(payload.userId);
+    const user = await this.userRepository.findById(this.db, payload.userId);
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }

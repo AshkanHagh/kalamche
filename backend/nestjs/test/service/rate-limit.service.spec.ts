@@ -101,17 +101,17 @@ describe("RateLimitService", () => {
   describe(".extractIdentifier", () => {
     let rateLimitService: RateLimitService;
     let mockReq: {
-      ip: string | undefined;
       headers: Record<string, string | undefined>;
       socket: { remoteAddress: string | undefined };
+      connection: { remoteAddress: string | undefined };
       user: { id: string } | undefined;
     };
 
     beforeEach(() => {
       mockReq = {
-        ip: undefined,
         headers: {},
         socket: { remoteAddress: undefined },
+        connection: { remoteAddress: undefined },
         user: undefined,
       };
     });
@@ -132,40 +132,39 @@ describe("RateLimitService", () => {
         );
       });
 
-      it("should return req.ip if defined", () => {
-        const userIp = faker.internet.ip();
-        mockReq.ip = userIp;
+      it("should return x-forwarded-for", () => {
+        const ip = `${faker.internet.ipv4()}, ${faker.internet.ipv4()}`;
+        mockReq.headers["x-forwarded-for"] = ip;
 
         const result = rateLimitService.extractIdentifier(
           mockReq as unknown as Request,
         );
-
-        expect(result).toBe(userIp);
+        expect(result).toBe(ip.split(",")[0].trim());
       });
 
-      it("should fallback to x-forwarded-for if req.ip is undefined", () => {
-        const userIp = faker.internet.ip();
+      it("should fallback to socket.remoteAddress if x-forwarded-for is undefined", () => {
+        const ip = faker.internet.ipv4();
 
-        mockReq.ip = undefined;
-        mockReq.headers["x-forwarded-for"] = userIp;
-
-        const result = rateLimitService.extractIdentifier(
-          mockReq as unknown as Request,
-        );
-        expect(result).toBe(userIp);
-      });
-
-      it("should fallback to socket.remoteAddress if both req.ip and x-forwarded-for are undefined", () => {
-        const userIp = faker.internet.ip();
-
-        mockReq.ip = undefined;
         mockReq.headers["x-forwarded-for"] = undefined;
-        mockReq.socket.remoteAddress = userIp;
+        mockReq.socket.remoteAddress = ip;
 
         const result = rateLimitService.extractIdentifier(
           mockReq as unknown as Request,
         );
-        expect(result).toBe(userIp);
+        expect(result).toBe(ip);
+      });
+
+      it("should fallback to connection.remoteAddress if both req.socket and x-forwarded-for are undefined", () => {
+        const ip = faker.internet.ipv4();
+
+        mockReq.headers["x-forwarded-for"] = undefined;
+        mockReq.socket.remoteAddress = undefined;
+        mockReq.connection.remoteAddress = ip;
+
+        const result = rateLimitService.extractIdentifier(
+          mockReq as unknown as Request,
+        );
+        expect(result).toBe(ip);
       });
     });
 

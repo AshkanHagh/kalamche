@@ -65,7 +65,7 @@ export class ProductOfferRepository implements IProductOfferRepo {
       return false;
     } else {
       // remove the by box winner from any offer with that product id
-      await this.db
+      await tx
         .update(ProductOfferTable)
         .set({ byboxWinner: false })
         .where(eq(ProductOfferTable.productId, productId));

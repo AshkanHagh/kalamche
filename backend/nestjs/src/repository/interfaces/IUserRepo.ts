@@ -7,9 +7,9 @@ import {
 
 export interface IUserRepo {
   emailExists(email: string): Promise<boolean>;
-  findByEmail(email: string, tx?: Database): Promise<IUser | undefined>;
-  insert(form: IUserInsertForm, tx?: Database): Promise<IUser>;
-  findById(id: string, tx?: Database): Promise<IUser | undefined>;
+  findByEmail(tx: Database, email: string): Promise<IUser | undefined>;
+  insert(tx: Database, form: IUserInsertForm): Promise<IUser>;
+  findById(tx: Database, id: string): Promise<IUser | undefined>;
   update(id: string, form: IUserUpdateForm): Promise<IUser>;
   updateRole(tx: Database, id: string, role: string): Promise<void>;
 }

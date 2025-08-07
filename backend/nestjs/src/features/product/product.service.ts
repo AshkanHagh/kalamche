@@ -278,19 +278,11 @@ export class ProductService implements IProductService {
     req: Request,
     params: RedirectToProductPageDto,
   ): Promise<string> {
-    let ip: string | undefined = req.headers["x-forwarded-for"] as string;
+    let ip = req.headers["x-forwarded-for"] as string | undefined;
     if (ip) {
       ip = ip.split(",")[0].trim();
     } else {
-      ip =
-        (req.headers["x-real-ip"] as string) ||
-        req.connection?.remoteAddress ||
-        req.socket?.remoteAddress ||
-        req.ip;
-    }
-
-    if (!ip) {
-      throw new KalamcheError(KalamcheErrorType.BadRequest);
+      ip = req.connection?.remoteAddress || req.socket?.remoteAddress || "";
     }
 
     const userAgent = req.headers["user-agent"] as string;

@@ -76,11 +76,10 @@ export class RateLimitService implements IRateLimitService {
   extractIdentifier(req: Request) {
     switch (this.config.keyExtractor) {
       case "ip": {
-        return (
-          req.ip ||
-          (req.headers["x-forwarded-for"] as string) ||
-          req.socket.remoteAddress
-        );
+        const ip = req.headers["x-forwarded-for"] as string | undefined;
+        return ip
+          ? ip.split(",")[0].trim()
+          : req.socket.remoteAddress || req.connection.remoteAddress;
       }
       case "authorization": {
         return req.headers.authorization;

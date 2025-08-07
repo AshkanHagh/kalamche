@@ -7,7 +7,7 @@ import {
 export interface IUserLoginTokenRepo {
   findByUserId(userId: string): Promise<IUserLoginToken>;
   insertOrUpdate(
+    tx: Database,
     form: IUserLoginTokenInsertForm,
-    tx?: Database,
   ): Promise<IUserLoginToken>;
 }

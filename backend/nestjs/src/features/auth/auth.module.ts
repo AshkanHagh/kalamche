@@ -7,7 +7,6 @@ import { EmailModule } from "../email/email.module";
 import { OauthController } from "./oauth/oauth.controller";
 import { OAuthService } from "./oauth/oauth.service";
 import { GithubOAuthService } from "./oauth/util-services/github-oauth.service";
-import { DrizzleModule } from "src/drizzle/drizzle.module";
 import { HttpModule } from "@nestjs/axios";
 import { DiscordOAuthService } from "./oauth/util-services/discrod-oauth.service";
 import { RateLimitModule } from "../rate-limit/rate-limit.module";
@@ -18,7 +17,6 @@ import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
   imports: [
     RepositoryModule,
     EmailModule,
-    DrizzleModule,
     HttpModule,
     RateLimitModule.forFeature({
       keyExtractor: "ip",
