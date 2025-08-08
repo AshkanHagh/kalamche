@@ -1,3 +1,4 @@
+import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 
 export const OAuthUserSchema = z.object({
@@ -8,12 +9,14 @@ export const OAuthUserSchema = z.object({
   provider: z.enum(["github", "discord"]),
 });
 
-export type OAuthUserDto = z.infer<typeof OAuthUserSchema>;
+export type OAuthUserPayload = z.infer<typeof OAuthUserSchema>;
+export class OAuthUserDto extends createZodDto(OAuthUserSchema) {}
 
-export const handleCallbackSchema = z.object({
+export const HandleCallbackSchema = z.object({
   provider: z.string(),
   code: z.string(),
   state: z.string(),
 });
 
-export type handleCallbackDto = z.infer<typeof handleCallbackSchema>;
+export type HandleCallbackPayload = z.infer<typeof HandleCallbackSchema>;
+export class HandleCallbackDto extends createZodDto(HandleCallbackSchema) {}

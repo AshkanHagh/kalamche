@@ -4,11 +4,11 @@ import { Database, IShop, IShopRecord } from "src/drizzle/types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";
 import {
-  GetProductDto,
-  PaginationDto,
-  UpdateShopCreationDto,
-  UpdateShopDto,
-  UploadImageDto,
+  GetProductPayload,
+  PaginationPayload,
+  UpdateShopCreationPayload,
+  UpdateShopPayload,
+  UploadImagePayload,
 } from "./dto";
 import { USER_ROLE } from "src/constants/global.constant";
 import { UserRepository } from "src/repository/repositories/user.repository";
@@ -53,7 +53,7 @@ export class ShopService implements IShopService {
 
   async uploadImage(
     userId: string,
-    params: UploadImageDto,
+    params: UploadImagePayload,
     imageBuffer: Buffer,
   ): Promise<void> {
     const repository = params.isTempShop
@@ -100,7 +100,7 @@ export class ShopService implements IShopService {
   async completeShopCreation(
     userId: string,
     tempShopId: string,
-    payload: UpdateShopCreationDto,
+    payload: UpdateShopCreationPayload,
   ): Promise<IShop> {
     const tempShop = await this.tempShopRepository.findById(tempShopId);
     if (tempShop.userId !== userId) {
@@ -170,7 +170,7 @@ export class ShopService implements IShopService {
   async updateShop(
     userId: string,
     shopId: string,
-    payload: UpdateShopDto,
+    payload: UpdateShopPayload,
   ): Promise<IShopRecord> {
     const shop = await this.shopRepository.findById(shopId);
     if (shop.userId !== userId) {
@@ -191,7 +191,7 @@ export class ShopService implements IShopService {
   async getProducts(
     userId: string,
     shopId: string,
-    params: PaginationDto,
+    params: PaginationPayload,
   ): Promise<IProductRecord[]> {
     const shop = await this.shopRepository.findById(shopId);
     if (shop.userId !== userId) {
@@ -222,7 +222,7 @@ export class ShopService implements IShopService {
     return shop;
   }
 
-  async getProduct(userId: string, params: GetProductDto) {
+  async getProduct(userId: string, params: GetProductPayload) {
     const shop = await this.shopRepository.findById(params.shopId);
     if (shop.userId !== userId) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);

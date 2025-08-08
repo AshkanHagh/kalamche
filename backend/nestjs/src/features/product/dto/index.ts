@@ -1,10 +1,12 @@
 import { z } from "zod";
+import { createZodDto } from "nestjs-zod";
 
 export const CreateProductSchema = z.object({
   upc: z.string(),
 });
 
-export type CreateProductDto = z.infer<typeof CreateProductSchema>;
+export type CreateProductPayload = z.infer<typeof CreateProductSchema>;
+export class CreateProductDto extends createZodDto(CreateProductSchema) {}
 
 export const CompleteProductCreationSchema = z.object({
   title: z.string(),
@@ -18,9 +20,12 @@ export const CompleteProductCreationSchema = z.object({
   modelNumber: z.string(),
 });
 
-export type CompleteProductCreationDto = z.infer<
+export type CompleteProductCreationPayload = z.infer<
   typeof CompleteProductCreationSchema
 >;
+export class CompleteProductCreationDto extends createZodDto(
+  CompleteProductCreationSchema,
+) {}
 
 export const CreateOfferSchema = z.object({
   title: z.string().max(255),
@@ -28,7 +33,8 @@ export const CreateOfferSchema = z.object({
   pageUrl: z.string().url(),
 });
 
-export type CreateOfferDto = z.infer<typeof CreateOfferSchema>;
+export type CreateOfferPayload = z.infer<typeof CreateOfferSchema>;
+export class CreateOfferDto extends createZodDto(CreateOfferSchema) {}
 
 const sort = z.enum(["cheapest", "view", "newest", "expensive", "popular"]);
 
@@ -42,20 +48,25 @@ export const SearchSchema = z.object({
   limit: z.coerce.number().default(10),
 });
 
-export type SearchDto = z.infer<typeof SearchSchema>;
+export type SearchPayload = z.infer<typeof SearchSchema>;
+export class SearchDto extends createZodDto(SearchSchema) {}
 
 export const RedirectToProductPageSchema = z.object({
   shopId: z.string().uuid(),
   productId: z.string().uuid(),
 });
 
-export type RedirectToProductPageDto = z.infer<
+export type RedirectToProductPagePayload = z.infer<
   typeof RedirectToProductPageSchema
 >;
+export class RedirectToProductPageDto extends createZodDto(
+  RedirectToProductPageSchema,
+) {}
 
 export const PaginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
   offset: z.coerce.number().min(0).default(0),
 });
 
-export type PaginationDto = z.infer<typeof PaginationSchema>;
+export type PaginationPayload = z.infer<typeof PaginationSchema>;
+export class PaginationDto extends createZodDto(PaginationSchema) {}

@@ -16,17 +16,11 @@ import {
 } from "@nestjs/common";
 import {
   CompleteProductCreationDto,
-  CompleteProductCreationSchema,
   CreateOfferDto,
-  CreateOfferSchema,
   CreateProductDto,
-  CreateProductSchema,
   PaginationDto,
-  PaginationSchema,
   RedirectToProductPageDto,
-  RedirectToProductPageSchema,
 } from "./dto";
-import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { ProductService } from "./product.service";
 import { IProductController } from "./interfaces/IController";
 import { User } from "../auth/decorators/user.decorator";
@@ -42,6 +36,7 @@ import { Request } from "express";
 import { SkipAuth } from "../auth/decorators/skip-auth.decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
 import { IProductRecord, IProductView } from "src/drizzle/schemas";
+import { ApiParams, ApiQuery } from "src/utils/swagger-decorator";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -53,7 +48,7 @@ export class ProductController implements IProductController {
   async createProduct(
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
-    @Body(new ZodValidationPipe(CreateProductSchema)) payload: CreateProductDto,
+    @Body() payload: CreateProductDto,
   ) {
     return this.productService.createProduct(userId, shopId, payload);
   }
@@ -63,8 +58,7 @@ export class ProductController implements IProductController {
   async completeProductCreation(
     @User("id") userId: string,
     @Param("product_id", new ParseUUIDPipe()) productId: string,
-    @Body(new ZodValidationPipe(CompleteProductCreationSchema))
-    payload: CompleteProductCreationDto,
+    @Body() payload: CompleteProductCreationDto,
   ) {
     return this.productService.completeProductCreation(
       userId,
@@ -78,8 +72,7 @@ export class ProductController implements IProductController {
   createOffer(
     @User("id") userId: string,
     @Param("product_id", new ParseUUIDPipe()) productId: string,
-    @Body(new ZodValidationPipe(CreateOfferSchema))
-    payload: CreateOfferDto,
+    @Body() payload: CreateOfferDto,
   ) {
     return this.productService.createOffer(userId, productId, payload);
   }
@@ -118,14 +111,14 @@ export class ProductController implements IProductController {
     });
   }
 
+  @ApiParams({ type: RedirectToProductPageDto })
   @Get("/redirect-offer-page/:shopId/:productId")
   @SkipAuth()
   @SkipPermission()
   @Redirect()
   async redirectToProductPage(
     @Req() req: Request,
-    @Param(new ZodValidationPipe(RedirectToProductPageSchema))
-    params: RedirectToProductPageDto,
+    @Param() params: RedirectToProductPageDto,
   ): Promise<{ url: string; statusCode: number }> {
     const url = await this.productService.redirectToProductPage(req, params);
     return { url, statusCode: 302 };
@@ -140,12 +133,13 @@ export class ProductController implements IProductController {
     return await this.productService.getProduct(productId);
   }
 
+  @ApiQuery({ type: PaginationDto })
   @Get("/similar/:product_id")
   @SkipAuth()
   @SkipPermission()
   async getSimilarProduct(
     @Param("product_id", new ParseUUIDPipe()) productId: string,
-    @Query(new ZodValidationPipe(PaginationSchema)) params: PaginationDto,
+    @Query() params: PaginationDto,
   ): Promise<IProductRecord[]> {
     return await this.productService.getSimilarProduct(productId, params);
   }

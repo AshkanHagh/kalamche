@@ -1,3 +1,4 @@
+import { createZodDto } from "nestjs-zod";
 import { z } from "zod";
 
 export const UpdateShopCreationSchema = z.object({
@@ -13,14 +14,20 @@ export const UpdateShopCreationSchema = z.object({
   zipCode: z.string().min(5).max(10),
 });
 
-export type UpdateShopCreationDto = z.infer<typeof UpdateShopCreationSchema>;
+export type UpdateShopCreationPayload = z.infer<
+  typeof UpdateShopCreationSchema
+>;
+export class UpdateShopCreationDto extends createZodDto(
+  UpdateShopCreationSchema,
+) {}
 
 export const UploadImageSchema = z.object({
   shopId: z.string().uuid(),
   isTempShop: z.boolean(),
 });
 
-export type UploadImageDto = z.infer<typeof UploadImageSchema>;
+export type UploadImagePayload = z.infer<typeof UploadImageSchema>;
+export class UploadImageDto extends createZodDto(UploadImageSchema) {}
 
 export const UpdateShopSchema = z.object({
   name: z.string().max(255).optional(),
@@ -33,18 +40,21 @@ export const UpdateShopSchema = z.object({
   zipCode: z.string().min(5).max(10).optional(),
 });
 
-export type UpdateShopDto = z.infer<typeof UpdateShopSchema>;
+export type UpdateShopPayload = z.infer<typeof UpdateShopSchema>;
+export class UpdateShopDto extends createZodDto(UpdateShopSchema) {}
 
 export const PaginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
   offset: z.coerce.number().min(0).default(0),
 });
 
-export type PaginationDto = z.infer<typeof PaginationSchema>;
+export type PaginationPayload = z.infer<typeof PaginationSchema>;
+export class PaginationDto extends createZodDto(PaginationSchema) {}
 
 export const GetProductSchema = z.object({
   shopId: z.string().uuid(),
   productId: z.string().uuid(),
 });
 
-export type GetProductDto = z.infer<typeof GetProductSchema>;
+export type GetProductPayload = z.infer<typeof GetProductSchema>;
+export class GetProductDto extends createZodDto(GetProductSchema) {}

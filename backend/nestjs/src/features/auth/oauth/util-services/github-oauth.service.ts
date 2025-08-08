@@ -5,7 +5,7 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { Injectable } from "@nestjs/common";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom, map } from "rxjs";
-import { OAuthUserDto } from "../dto";
+import { OAuthUserPayload } from "../dto";
 
 @Injectable()
 export class GithubOAuthService extends BaseOAuthService {
@@ -25,7 +25,7 @@ export class GithubOAuthService extends BaseOAuthService {
     });
   }
 
-  async getUserInfo(accessToken: string): Promise<OAuthUserDto> {
+  async getUserInfo(accessToken: string): Promise<OAuthUserPayload> {
     try {
       const [user, userEmails] = await Promise.all([
         firstValueFrom(
