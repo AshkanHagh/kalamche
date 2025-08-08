@@ -1,9 +1,9 @@
 import {
-  CompleteProductCreationDto,
-  CreateOfferDto,
-  CreateProductDto,
-  PaginationDto,
-  RedirectToProductPageDto,
+  CompleteProductCreationPayload,
+  CreateOfferPayload,
+  CreateProductPayload,
+  PaginationPayload,
+  RedirectToProductPagePayload,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
@@ -18,19 +18,19 @@ export interface IProductService {
   createProduct(
     userId: string,
     shopId: string,
-    payload: CreateProductDto,
+    payload: CreateProductPayload,
   ): Promise<ITempProduct>;
 
   completeProductCreation(
     userId: string,
     productId: string,
-    payload: CompleteProductCreationDto,
+    payload: CompleteProductCreationPayload,
   ): Promise<IProduct>;
 
   createOffer(
     userId: string,
     productId: string,
-    payload: CreateOfferDto,
+    payload: CreateOfferPayload,
   ): Promise<IProductOffer>;
 
   uploadImages(
@@ -45,15 +45,15 @@ export interface IProductService {
 
   redirectToProductPage(
     req: Request,
-    params: RedirectToProductPageDto,
+    params: RedirectToProductPagePayload,
   ): Promise<string>;
 
   getProduct(productId: string): Promise<IProductView>;
   getSimilarProduct(
     productId: string,
-    params: PaginationDto,
+    params: PaginationPayload,
   ): Promise<IProductRecord[]>;
   toggleLike(userId: string, productId: string): Promise<void>;
 
-  // search(query: SearchDto): Promise<SearchResponse>;
+  // search(query: SearchPayload): Promise<SearchResponse>;
 }

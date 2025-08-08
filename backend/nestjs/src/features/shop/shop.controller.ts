@@ -20,7 +20,6 @@ import { IShop, IShopRecord } from "src/drizzle/types";
 import { ShopService } from "./shop.service";
 import { User } from "../auth/decorators/user.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
 import { Permission } from "../auth/decorators/permission.decorators";
 import {
   ResourceType,
@@ -29,18 +28,14 @@ import {
 import { PermissionGuard } from "../auth/guards/permission.guard";
 import {
   GetProductDto,
-  GetProductSchema,
   PaginationDto,
-  PaginationSchema,
   UpdateShopCreationDto,
-  UpdateShopCreationSchema,
   UpdateShopDto,
-  UpdateShopSchema,
   UploadImageDto,
-  UploadImageSchema,
 } from "./dto";
 import { IShopController } from "./interfaces/IController";
 import { IProductRecord, ITempShop } from "src/drizzle/schemas";
+import { ApiParams, ApiQuery } from "src/utils/swagger-decorator";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -54,13 +49,14 @@ export class ShopController implements IShopController {
     return result;
   }
 
+  @ApiParams({ type: UploadImageDto })
   @Post("/images/:shopId/:isTempShop")
   @UseInterceptors(FileInterceptor("image"))
   @HttpCode(HttpStatus.NO_CONTENT)
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.UPDATE)
   async uploadImage(
     @User("id") userId: string,
-    @Param(new ZodValidationPipe(UploadImageSchema)) params: UploadImageDto,
+    @Param() params: UploadImageDto,
     @UploadedFile(
       new ParseFilePipeBuilder()
         .addMaxSizeValidator({
@@ -79,8 +75,7 @@ export class ShopController implements IShopController {
   async completeShopCreation(
     @User("id") userId: string,
     @Param("temp_shop_id", new ParseUUIDPipe()) tempShopId: string,
-    @Body(new ZodValidationPipe(UpdateShopCreationSchema))
-    payload: UpdateShopCreationDto,
+    @Body() payload: UpdateShopCreationDto,
   ): Promise<IShop> {
     return await this.shopService.completeShopCreation(
       userId,
@@ -114,17 +109,18 @@ export class ShopController implements IShopController {
   async updateShop(
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
-    @Body(new ZodValidationPipe(UpdateShopSchema)) payload: UpdateShopDto,
+    @Body() payload: UpdateShopDto,
   ): Promise<IShopRecord> {
     return await this.shopService.updateShop(userId, shopId, payload);
   }
 
+  @ApiQuery({ type: PaginationDto })
   @Get("/products/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
   async getProducts(
     @User("id") userId: string,
     @Param("shop_id", new ParseUUIDPipe()) shopId: string,
-    @Query(new ZodValidationPipe(PaginationSchema)) params: PaginationDto,
+    @Query() params: PaginationDto,
   ): Promise<IProductRecord[]> {
     return await this.shopService.getProducts(userId, shopId, params);
   }
@@ -135,12 +131,10 @@ export class ShopController implements IShopController {
     return await this.shopService.getMyShop(userId);
   }
 
+  @ApiParams({ type: GetProductDto })
   @Get("/products/:shopId/:productId")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
-  async getProduct(
-    @User("id") userId: string,
-    @Param(new ZodValidationPipe(GetProductSchema)) params: GetProductDto,
-  ) {
+  async getProduct(@User("id") userId: string, @Param() params: GetProductDto) {
     return await this.shopService.getProduct(userId, params);
   }
 }

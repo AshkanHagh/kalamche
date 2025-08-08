@@ -2,8 +2,8 @@ import { Controller, Get, Query, Req, Res } from "@nestjs/common";
 import { OAuthService } from "./oauth.service";
 import { IOAuthController } from "./interfaces/IOAuthController";
 import { Request, Response } from "express";
-import { ZodValidationPipe } from "src/utils/zod-validation.pipe";
-import { handleCallbackDto, handleCallbackSchema } from "./dto";
+import { HandleCallbackDto } from "./dto";
+import { ApiQuery } from "src/utils/swagger-decorator";
 
 @Controller("oauth")
 export class OauthController implements IOAuthController {
@@ -15,12 +15,12 @@ export class OauthController implements IOAuthController {
     return { url };
   }
 
+  @ApiQuery({ type: HandleCallbackDto })
   @Get("/callback")
   async handleCallback(
     @Req() req: Request,
     @Res() res: Response,
-    @Query(new ZodValidationPipe(handleCallbackSchema))
-    payload: handleCallbackDto,
+    @Query() payload: HandleCallbackDto,
   ) {
     const result = await this.oauthService.handleCallback(req, res, payload);
     return res.status(201).json(result);

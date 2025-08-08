@@ -10,7 +10,7 @@ import {
   UserTable,
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { OAuthUserDto } from "src/features/auth/oauth/dto";
+import { OAuthUserPayload } from "src/features/auth/oauth/dto";
 import { OAuthService } from "src/features/auth/oauth/oauth.service";
 import { DiscordOAuthService } from "src/features/auth/oauth/util-services/discrod-oauth.service";
 import { GithubOAuthService } from "src/features/auth/oauth/util-services/github-oauth.service";
@@ -79,7 +79,7 @@ describe("OAuthService", () => {
   describe(".handleCallback", () => {
     let exchangeCodeForTokensSpy: jest.SpyInstance;
     let getUserInfoSpy: jest.SpyInstance;
-    const mockGetUserInfo: OAuthUserDto = {
+    const mockGetUserInfo: OAuthUserPayload = {
       email: faker.internet.email(),
       provider: "github",
       name: faker.person.firstName(),

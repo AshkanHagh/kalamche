@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { handleCallbackDto } from "../dto";
+import { HandleCallbackPayload } from "../dto";
 import { IUserRecord } from "src/drizzle/types";
 
 export interface IOAuthService {
@@ -7,6 +7,6 @@ export interface IOAuthService {
   handleCallback(
     req: Request,
     res: Response,
-    payload: handleCallbackDto,
+    payload: HandleCallbackPayload,
   ): Promise<{ user: IUserRecord; accessToken: string }>;
 }

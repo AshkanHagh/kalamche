@@ -1,12 +1,14 @@
 import { z } from "zod";
 import { PAYMENT_METHODS } from "../constants";
+import { createZodDto } from "nestjs-zod";
 
 export const CreateCheckoutSchema = z.object({
   paymentMethod: z.enum(PAYMENT_METHODS),
   planId: z.string().uuid(),
 });
 
-export type CreateCheckoutDto = z.infer<typeof CreateCheckoutSchema>;
+export type CreateCheckoutPayload = z.infer<typeof CreateCheckoutSchema>;
+export class CreateCheckoutDto extends createZodDto(CreateCheckoutSchema) {}
 
 export const VerifyPaymentSchema = z.object({
   paymentMethod: z.enum(PAYMENT_METHODS),
@@ -14,4 +16,5 @@ export const VerifyPaymentSchema = z.object({
   referenceId: z.string(),
 });
 
-export type VerifyPaymentDto = z.infer<typeof VerifyPaymentSchema>;
+export type VerifyPaymentPayload = z.infer<typeof VerifyPaymentSchema>;
+export class VerifyPaymentDto extends createZodDto(VerifyPaymentSchema) {}

@@ -1,11 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IProductService } from "./interfaces/IService";
 import {
-  CompleteProductCreationDto,
-  CreateOfferDto,
-  CreateProductDto,
-  PaginationDto,
-  RedirectToProductPageDto,
+  CompleteProductCreationPayload,
+  CreateOfferPayload,
+  CreateProductPayload,
+  PaginationPayload,
+  RedirectToProductPagePayload,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -47,7 +47,7 @@ export class ProductService implements IProductService {
   async createProduct(
     userId: string,
     shopId: string,
-    payload: CreateProductDto,
+    payload: CreateProductPayload,
   ) {
     const product = await this.productRepository.findByUpc(payload.upc);
     if (product) {
@@ -87,7 +87,7 @@ export class ProductService implements IProductService {
   async completeProductCreation(
     userId: string,
     productId: string,
-    payload: CompleteProductCreationDto,
+    payload: CompleteProductCreationPayload,
   ) {
     const tempProduct = await this.tempProductRepository.findById(productId);
     await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
@@ -167,7 +167,7 @@ export class ProductService implements IProductService {
   async createOffer(
     userId: string,
     productId: string,
-    payload: CreateOfferDto,
+    payload: CreateOfferPayload,
   ) {
     await this.productRepository.exists(productId);
 
@@ -277,7 +277,7 @@ export class ProductService implements IProductService {
 
   async redirectToProductPage(
     req: Request,
-    params: RedirectToProductPageDto,
+    params: RedirectToProductPagePayload,
   ): Promise<string> {
     let ip = req.headers["x-forwarded-for"] as string | undefined;
     if (ip) {
@@ -325,7 +325,7 @@ export class ProductService implements IProductService {
 
   async getSimilarProduct(
     productId: string,
-    params: PaginationDto,
+    params: PaginationPayload,
   ): Promise<IProductRecord[]> {
     const product = await this.productRepository.findById(productId);
     const result = await this.productRepository.findSimilarProducts(
@@ -359,7 +359,7 @@ export class ProductService implements IProductService {
   }
 
   // TODO: add filter for same products(only the cheapest most be on serach resutl)
-  // async search(query: SearchDto): Promise<SearchResponse> {
+  // async search(query: SearchPayload): Promise<SearchResponse> {
   //   const result = await this.productRepository.findProductsByFilter(
   //     query.sort,
   //     query.brand,

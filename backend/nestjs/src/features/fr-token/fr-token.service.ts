@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IFrTokenService } from "./interfaces/IService";
-import { CreateCheckoutDto, VerifyPaymentDto } from "./dto";
+import { CreateCheckoutDto, VerifyPaymentPayload } from "./dto";
 import { FrTokenPlanRepository } from "src/repository/repositories/fr-token-plan.repository";
 import { PAYMENT_METHODS } from "./constants";
 import { ZarinpalPaymentService } from "./util-services/zarinpal-payment.service";
@@ -44,7 +44,7 @@ export class FrTokenService implements IFrTokenService {
 
   async verifyPayment(
     userId: string,
-    payload: VerifyPaymentDto,
+    payload: VerifyPaymentPayload,
   ): Promise<ITransactionRecord> {
     const provider = this.getProvider(payload.paymentMethod);
 

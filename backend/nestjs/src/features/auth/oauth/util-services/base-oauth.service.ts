@@ -2,7 +2,7 @@ import { AuthorizationCode } from "simple-oauth2";
 import { IOAuthConfig } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { OAuthUserDto } from "../dto";
+import { OAuthUserPayload } from "../dto";
 
 export abstract class BaseOAuthService {
   private client: AuthorizationCode;
@@ -24,7 +24,7 @@ export abstract class BaseOAuthService {
     });
   }
 
-  abstract getUserInfo(accessToken: string): Promise<OAuthUserDto>;
+  abstract getUserInfo(accessToken: string): Promise<OAuthUserPayload>;
 
   generateAuthUrl(state: string, codeVerifier?: string) {
     const params = {
