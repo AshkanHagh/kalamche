@@ -30,12 +30,14 @@ export class OAuthService implements IOAuthService {
     const provider = this.getProvider(providerName);
     const state = provider.generateState();
 
-    await this.oauthStateRepository.insert({
-      provider: providerName,
-      state,
-    });
+    return await this.db.transaction(async (tx) => {
+      await this.oauthStateRepository.insert(tx, {
+        provider: providerName,
+        state,
+      });
 
-    return provider.generateAuthUrl(state);
+      return provider.generateAuthUrl(state);
+    });
   }
 
   async handleCallback(
@@ -73,8 +75,8 @@ export class OAuthService implements IOAuthService {
       let user: IUser;
       if (userOAuthAccount) {
         const existingUser = await this.userRepository.findById(
-          userOAuthAccount.userId,
           tx,
+          userOAuthAccount.userId,
         );
         if (!existingUser) {
           throw new KalamcheError(KalamcheErrorType.NotFound);
@@ -82,14 +84,11 @@ export class OAuthService implements IOAuthService {
 
         user = existingUser;
       } else {
-        user = await this.authUtilService.findOrCreateUser(
-          {
-            email: oauthUser.email,
-            name: oauthUser.name,
-            roles: [USER_ROLE.USER],
-          },
-          tx,
-        );
+        user = await this.authUtilService.findOrCreateUser(tx, {
+          email: oauthUser.email,
+          name: oauthUser.name,
+          roles: [USER_ROLE.USER],
+        });
       }
 
       await this.oauthAccountRepository.insert(tx, {
@@ -99,10 +98,10 @@ export class OAuthService implements IOAuthService {
       });
 
       const response = await this.authUtilService.generateLoginRes(
+        tx,
         res,
         req,
         user,
-        tx,
       );
       return {
         accessToken: response.tokens.accessToken,

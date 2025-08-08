@@ -14,7 +14,7 @@ export class WalletRepository implements IWalletRepo {
     userId: string,
     tokens: number,
   ): Promise<void> {
-    await this.db
+    await tx
       .update(WalletTable)
       .set({
         tokens: sql`${WalletTable.tokens} + ${tokens}`,
@@ -22,9 +22,8 @@ export class WalletRepository implements IWalletRepo {
       .where(eq(WalletTable.userId, userId));
   }
 
-  async insert(form: IWalletInsertForm, tx?: Database): Promise<void> {
-    const db = tx || this.db;
-    await db.insert(WalletTable).values(form).execute();
+  async insert(tx: Database, form: IWalletInsertForm): Promise<void> {
+    await tx.insert(WalletTable).values(form).execute();
   }
 
   async findByUserId(userId: string): Promise<IWallet> {

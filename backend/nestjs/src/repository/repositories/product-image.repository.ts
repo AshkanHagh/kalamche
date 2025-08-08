@@ -26,18 +26,18 @@ export class ProductImageRepository implements IProductImageRepo {
       .returning();
   }
 
-  async countTotal(tx: Database, productId: string, isTemp: boolean) {
+  async countTotal(productId: string, isTemp: boolean) {
     const query = this.#buildProductImageQuery(productId, isTemp);
-    const [images] = await tx
+    const [images] = await this.db
       .select({ count: count() })
       .from(ProductImageTable)
       .where(and(query, eq(ProductImageTable.isThumbnail, false)));
     return images.count;
   }
 
-  async isThumbnailExists(tx: Database, productId: string, isTemp: boolean) {
+  async isThumbnailExists(productId: string, isTemp: boolean) {
     const query = this.#buildProductImageQuery(productId, isTemp);
-    const result = await tx.query.ProductImageTable.findFirst({
+    const result = await this.db.query.ProductImageTable.findFirst({
       where: and(query, eq(ProductImageTable.isThumbnail, true)),
       columns: {
         id: true,

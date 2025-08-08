@@ -24,10 +24,11 @@ export class PendingUserRepository implements IPendingUserRepo {
   }
 
   async update(
+    tx: Database,
     id: string,
     form?: IPendingUserUpdateForm,
   ): Promise<IPendingUser> {
-    const [user] = await this.db
+    const [user] = await tx
       .update(PendingUserTable)
       .set(form || { createdAt: new Date() })
       .where(eq(PendingUserTable.id, id))
@@ -36,11 +37,11 @@ export class PendingUserRepository implements IPendingUserRepo {
     return user;
   }
 
-  async insert(form: IPendingUserInsertForm): Promise<IPendingUser> {
-    const [user] = await this.db
-      .insert(PendingUserTable)
-      .values(form)
-      .returning();
+  async insert(
+    tx: Database,
+    form: IPendingUserInsertForm,
+  ): Promise<IPendingUser> {
+    const [user] = await tx.insert(PendingUserTable).values(form).returning();
 
     return user;
   }
@@ -54,7 +55,21 @@ export class PendingUserRepository implements IPendingUserRepo {
     return user;
   }
 
-  async deleteById(id: string): Promise<void> {
-    await this.db.delete(PendingUserTable).where(eq(PendingUserTable.id, id));
+  async deleteByEmail(tx: Database, email: string): Promise<IPendingUser> {
+    const [user] = await tx
+      .delete(PendingUserTable)
+      .where(eq(PendingUserTable.email, email))
+      .returning();
+
+    return user;
+  }
+
+  async delete(tx: Database, id: string): Promise<IPendingUser> {
+    const [user] = await tx
+      .delete(PendingUserTable)
+      .where(eq(PendingUserTable.id, id))
+      .returning();
+
+    return user;
   }
 }

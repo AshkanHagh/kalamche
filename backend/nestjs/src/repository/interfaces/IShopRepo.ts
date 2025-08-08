@@ -11,6 +11,6 @@ export interface IShopRepo {
   insert(tx: Database, form: IShopInsertForm): Promise<IShop>;
   findById(id: string): Promise<IShopRecord>;
   userHasShop(userId: string): Promise<boolean>;
-  update(id: string, form: IShopUpdateForm): Promise<IShopRecord>;
+  update(tx: Database, id: string, form: IShopUpdateForm): Promise<IShopRecord>;
   delete(tx: Database, id: string): Promise<void>;
 }

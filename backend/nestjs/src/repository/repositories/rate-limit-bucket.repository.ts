@@ -13,16 +13,16 @@ import { IRateLimitBucketRepo } from "../interfaces/IRateLimitBucketRepo";
 export class RateLimitBucketRepository implements IRateLimitBucketRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
-  async insert(form: IRateLimitBucketInsertForm) {
-    const [bucket] = await this.db
+  async insert(tx: Database, form: IRateLimitBucketInsertForm) {
+    const [bucket] = await tx
       .insert(RateLimitBucketTable)
       .values(form)
       .returning();
     return bucket;
   }
 
-  async update(id: string, form: IRateLimitBucketUpdateForm) {
-    const [bucket] = await this.db
+  async update(tx: Database, id: string, form: IRateLimitBucketUpdateForm) {
+    const [bucket] = await tx
       .update(RateLimitBucketTable)
       .set(form)
       .where(eq(RateLimitBucketTable.id, id))

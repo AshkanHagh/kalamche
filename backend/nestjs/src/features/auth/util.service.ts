@@ -23,24 +23,24 @@ export class AuthUtilService {
   // generate verification token, update pending user token,
   // send verification code to user email
   async initiateAccountVerification(
+    tx: Database,
     userId: string,
     email: string,
   ): Promise<string> {
     const verificationCode = randomInt(100_000, 999_999);
 
-    const tokenExp = Math.floor(
-      (Date.now() / 1000) * this.authConfig.verificationToken.exp,
-    );
     const verificationToken: string = jwt.sign(
       {
-        exp: tokenExp,
+        exp: Math.floor(
+          (Date.now() / 1000) * this.authConfig.verificationToken.exp,
+        ),
         userId,
         code: verificationCode,
       },
       this.authConfig.verificationToken.secret!,
     );
 
-    await this.pendingUserRepository.update(userId, {
+    await this.pendingUserRepository.update(tx, userId, {
       token: verificationToken,
     });
 
@@ -51,7 +51,7 @@ export class AuthUtilService {
     return verificationToken;
   }
 
-  async refreshToken(req: Request, userId: string, tx?: Database) {
+  async refreshToken(tx: Database, req: Request, userId: string) {
     const now = Math.floor(Date.now() / 1000);
 
     const accessToken = jwt.sign(
@@ -71,21 +71,20 @@ export class AuthUtilService {
       this.authConfig.refreshToken.secret!,
     );
 
-    const clientIp =
-      process.env.NODE_ENV !== "production"
-        ? req.connection.remoteAddress
-        : req.ip;
+    let userIp = req.headers["x-forwarded-for"] as string | undefined;
+    if (userIp) {
+      userIp = userIp.split(",")[0].trim();
+    } else {
+      userIp = req.connection.remoteAddress || req.socket.remoteAddress;
+    }
     const userAgent = req.headers["user-agent"];
 
-    await this.userLoginTokenRepository.insertOrUpdate(
-      {
-        token: refreshToken,
-        userId,
-        userAgent,
-        ip: clientIp,
-      },
-      tx,
-    );
+    await this.userLoginTokenRepository.insertOrUpdate(tx, {
+      token: refreshToken,
+      userId,
+      userAgent,
+      ip: userIp,
+    });
 
     return {
       accessToken,
@@ -103,18 +102,15 @@ export class AuthUtilService {
   }
 
   // NOT COMPLETED YET
-  async findOrCreateUser(userForm: IUserInsertForm, tx?: Database) {
-    let user = await this.userRepository.findByEmail(userForm.email, tx);
+  async findOrCreateUser(tx: Database, userForm: IUserInsertForm) {
+    let user = await this.userRepository.findByEmail(tx, userForm.email);
     if (!user) {
-      user = await this.userRepository.insert(userForm, tx);
+      user = await this.userRepository.insert(tx, userForm);
       // initiate default user free trial wallet
-      await this.walletRepository.insert(
-        {
-          tokens: 50,
-          userId: user.id,
-        },
-        tx,
-      );
+      await this.walletRepository.insert(tx, {
+        tokens: 50,
+        userId: user.id,
+      });
     }
 
     return user;
@@ -140,13 +136,13 @@ export class AuthUtilService {
   }
 
   async generateLoginRes(
+    tx: Database,
     res: Response,
     req: Request,
     user: IUser,
-    tx?: Database,
   ) {
     const { passwordHash, updatedAt, ...result } = user;
-    const tokens = await this.refreshToken(req, user.id, tx);
+    const tokens = await this.refreshToken(tx, req, user.id);
 
     this.setCookies(res, tokens.accessToken, tokens.refreshToken);
 

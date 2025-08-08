@@ -10,8 +10,8 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 export class OAuthStateRepository implements IOAuthStateRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
-  async insert(form: IOAuthStateInsertForm) {
-    await this.db.insert(OAuthStateTable).values(form).execute();
+  async insert(tx: Database, form: IOAuthStateInsertForm) {
+    await tx.insert(OAuthStateTable).values(form).execute();
   }
 
   async findByState(providerName: string, state: string) {

@@ -38,7 +38,7 @@ export class TransactionRepository implements ITransactionRepo {
   ): Promise<ITransactionRecord> {
     const { error, updatedAt, ...rest } = getTableColumns(TransactionTable);
 
-    const [transaction] = await this.db
+    const [transaction] = await tx
       .update(TransactionTable)
       .set(form)
       .where(eq(TransactionTable.id, id))

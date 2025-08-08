@@ -67,6 +67,7 @@ export class ProductUtilService {
 
     let imageUrl: string;
     try {
+      // TODO: Move image resizing to a separate thread and retrieve result
       const fileBuffer = await sharp(file.buffer)
         .resize({
           height: 800,

@@ -5,6 +5,8 @@ import { IRateLimitBucket } from "src/drizzle/schemas";
 import { RateLimitBucketRepository } from "src/repository/repositories/rate-limit-bucket.repository";
 import { IRateLimitService } from "./interfaces/IService";
 import { RATE_LIMIT_CONFIG } from "./constants";
+import { DATABASE } from "src/drizzle/constants";
+import { Database } from "src/drizzle/types";
 
 @Injectable()
 export class RateLimitService implements IRateLimitService {
@@ -12,42 +14,46 @@ export class RateLimitService implements IRateLimitService {
 
   constructor(
     private rateLimitBucketRepository: RateLimitBucketRepository,
+    @Inject(DATABASE) private db: Database,
     @Inject(RATE_LIMIT_CONFIG) private config: IRateLimitConfig,
   ) {}
 
   async checkRateLimit(identifier: string) {
     let bucket =
       await this.rateLimitBucketRepository.findByIdentifier(identifier);
-    if (!bucket) {
-      bucket = await this.rateLimitBucketRepository.insert({
-        identifier,
-        tokens: this.config.bucketSize,
-      });
-    }
 
-    const tokens = this.#calculateTokenRefil(bucket);
+    return await this.db.transaction(async (tx) => {
+      if (!bucket) {
+        bucket = await this.rateLimitBucketRepository.insert(tx, {
+          identifier,
+          tokens: this.config.bucketSize,
+        });
+      }
 
-    const allowed = tokens > 0;
-    const finalTokens = allowed ? tokens - 1 : tokens;
-    if (finalTokens !== tokens) {
-      await this.rateLimitBucketRepository.update(bucket.id, {
-        tokens: finalTokens,
-        lastRefil: new Date(),
-      });
-    }
+      const tokens = this.#calculateTokenRefil(bucket);
 
-    const resetTime = new Date(
-      Date.now() + this.#calculateResetTime(finalTokens),
-    );
+      const allowed = tokens > 0;
+      const finalTokens = allowed ? tokens - 1 : tokens;
+      if (finalTokens !== tokens) {
+        await this.rateLimitBucketRepository.update(tx, bucket.id, {
+          tokens: finalTokens,
+          lastRefil: new Date(),
+        });
+      }
 
-    if (this.config.mode === "DRY_MODE") {
-      this.logger.warn(
-        `[DRY_MODE] Rate limit check for ${identifier}: allowed=${allowed}, remaining=${finalTokens}`,
+      const resetTime = new Date(
+        Date.now() + this.#calculateResetTime(finalTokens),
       );
-      return { allowed: true, remainingTokens: finalTokens, resetTime };
-    }
 
-    return { allowed, remainingTokens: finalTokens, resetTime };
+      if (this.config.mode === "DRY_MODE") {
+        this.logger.warn(
+          `[DRY_MODE] Rate limit check for ${identifier}: allowed=${allowed}, remaining=${finalTokens}`,
+        );
+        return { allowed: true, remainingTokens: finalTokens, resetTime };
+      }
+
+      return { allowed, remainingTokens: finalTokens, resetTime };
+    });
   }
 
   #calculateTokenRefil(bucket: IRateLimitBucket) {
@@ -76,11 +82,10 @@ export class RateLimitService implements IRateLimitService {
   extractIdentifier(req: Request) {
     switch (this.config.keyExtractor) {
       case "ip": {
-        return (
-          req.ip ||
-          (req.headers["x-forwarded-for"] as string) ||
-          req.socket.remoteAddress
-        );
+        const ip = req.headers["x-forwarded-for"] as string | undefined;
+        return ip
+          ? ip.split(",")[0].trim()
+          : req.socket.remoteAddress || req.connection.remoteAddress;
       }
       case "authorization": {
         return req.headers.authorization;

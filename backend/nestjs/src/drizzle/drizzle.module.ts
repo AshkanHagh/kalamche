@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { DATABASE } from "./constants";
 import { ConfigService } from "@nestjs/config";
 import { DB_CONFIG } from "src/config/constants";
@@ -7,6 +7,7 @@ import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
 import * as schema from "./schemas";
 
+@Global()
 @Module({
   providers: [
     {

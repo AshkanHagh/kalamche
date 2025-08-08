@@ -2,7 +2,6 @@ import { faker } from "@faker-js/faker/.";
 import { TestingModule } from "@nestjs/testing";
 import { DATABASE } from "src/drizzle/constants";
 import {
-  ProductImageTable,
   ProductTable,
   TempProductTable,
   UserTable,
@@ -30,13 +29,7 @@ describe("ProductService", () => {
   });
 
   beforeEach(async () => {
-    await truncateTables(
-      db,
-      UserTable,
-      ProductTable,
-      TempProductTable,
-      ProductImageTable,
-    );
+    await truncateTables(db, UserTable, ProductTable, TempProductTable);
   });
 
   describe(".createProduct", () => {

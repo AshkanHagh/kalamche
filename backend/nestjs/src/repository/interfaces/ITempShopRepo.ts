@@ -10,5 +10,9 @@ export interface ITempShopRepo {
   existsByUserId(userId: string): Promise<boolean>;
   insert(tx: Database, form: ITempShopInsertForm): Promise<ITempShop>;
   delete(tx: Database, id: string): Promise<void>;
-  update(id: string, form: ITempShopUpdateForm): Promise<ITempShop>;
+  update(
+    tx: Database,
+    id: string,
+    form: ITempShopUpdateForm,
+  ): Promise<ITempShop>;
 }

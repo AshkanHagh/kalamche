@@ -52,10 +52,14 @@ export class ShopRepository implements IShopRepo {
     return !!shop;
   }
 
-  async update(id: string, form: IShopUpdateForm): Promise<IShopRecord> {
+  async update(
+    tx: Database,
+    id: string,
+    form: IShopUpdateForm,
+  ): Promise<IShopRecord> {
     const { emailVerifiedAt, updatedAt, ...rest } = getTableColumns(ShopTable);
 
-    const [shop] = await this.db
+    const [shop] = await tx
       .update(ShopTable)
       .set(form)
       .where(eq(ShopTable.id, id))

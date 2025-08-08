@@ -23,9 +23,8 @@ export class UserRepository implements IUserRepo {
     return user !== undefined;
   }
 
-  async findByEmail(email: string, tx?: Database): Promise<IUser | undefined> {
-    const db = tx || this.db;
-    const [user] = await db
+  async findByEmail(tx: Database, email: string): Promise<IUser | undefined> {
+    const [user] = await tx
       .select()
       .from(UserTable)
       .where(eq(UserTable.email, email));
@@ -33,16 +32,13 @@ export class UserRepository implements IUserRepo {
     return user;
   }
 
-  async insert(form: IUserInsertForm, tx?: Database): Promise<IUser> {
-    const db = tx || this.db;
-
-    const [user] = await db.insert(UserTable).values(form).returning();
+  async insert(tx: Database, form: IUserInsertForm): Promise<IUser> {
+    const [user] = await tx.insert(UserTable).values(form).returning();
     return user;
   }
 
-  async findById(id: string, tx?: Database): Promise<IUser | undefined> {
-    const db = tx || this.db;
-    const [user] = await db
+  async findById(tx: Database, id: string): Promise<IUser | undefined> {
+    const [user] = await tx
       .select()
       .from(UserTable)
       .where(eq(UserTable.id, id));

@@ -17,17 +17,18 @@ import {
   createUser,
   truncateTables,
 } from "test/test.helper";
-import { anything, instance, mock, when } from "ts-mockito";
 
 describe("FrTokenService", () => {
   let nestModule: TestingModule;
   let frTokenService: FrTokenService;
   let db: Database;
+  let zarinpalService: ZarinpalPaymentService;
 
   beforeAll(async () => {
     nestModule = await createNestAppInstance();
     frTokenService = nestModule.get(FrTokenService);
     db = nestModule.get(DATABASE);
+    zarinpalService = nestModule.get(ZarinpalPaymentService);
   });
 
   beforeEach(async () => {
@@ -47,18 +48,12 @@ describe("FrTokenService", () => {
     });
 
     it("should create a zarinpal checkout", async () => {
-      const mockZarinpalService = mock(ZarinpalPaymentService);
-
-      when(
-        mockZarinpalService.createPayment(anything(), anything()),
-      ).thenResolve({
-        referenceId: randomUUID(),
-        url: faker.internet.url(),
-      });
-
-      const getProviderSpy = jest
-        .spyOn(frTokenService as any, "getProvider")
-        .mockReturnValue(instance(mockZarinpalService));
+      const createPaymentSpy = jest
+        .spyOn(zarinpalService, "createPayment")
+        .mockResolvedValue({
+          referenceId: randomUUID(),
+          url: faker.internet.url(),
+        });
 
       await expect(
         frTokenService.createCheckout(user, {
@@ -67,7 +62,7 @@ describe("FrTokenService", () => {
         }),
       ).resolves.toBeDefined();
 
-      getProviderSpy.mockRestore();
+      createPaymentSpy.mockRestore();
     });
   });
 
