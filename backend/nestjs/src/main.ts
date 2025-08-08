@@ -26,10 +26,24 @@ async function bootstrap() {
       .setTitle("Kalamche api")
       .setDescription("API with auto-generated documentation from Zod schemas")
       .setVersion("1.0.0")
+      .addBearerAuth(
+        {
+          type: "http",
+          bearerFormat: "JWT",
+          scheme: "bearer",
+          in: "header",
+        },
+        "access-token",
+      )
+      .addSecurityRequirements("access-token")
       .build();
 
     const documentFactory = () => SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("/docs", app, documentFactory);
+    SwaggerModule.setup("/docs", app, documentFactory, {
+      swaggerOptions: {
+        persistAuthorization: true,
+      },
+    });
   }
 
   await app.listen(process.env.PORT ?? 8399);
