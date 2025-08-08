@@ -45,7 +45,7 @@ export class ProductOfferRepository implements IProductOfferRepo {
     return offers;
   }
 
-  async byboxWinner(
+  async isByboxWinner(
     tx: Database,
     productId: string,
     finalPrice: number,

@@ -66,6 +66,7 @@ export class ShopService implements IShopService {
 
     let imageUrl: string;
     try {
+      // TODO: Move image resizing to a separate thread and retrieve result
       const fileBuffer = await sharp(imageBuffer)
         .resize({
           height: 800,
@@ -86,12 +87,14 @@ export class ShopService implements IShopService {
       throw new KalamcheError(KalamcheErrorType.ImageProcessingFailed, error);
     }
 
-    await repository.update(params.shopId, { imageUrl });
+    return this.db.transaction(async (tx) => {
+      await repository.update(tx, params.shopId, { imageUrl });
 
-    if (shop.imageUrl) {
-      const imageId = shop.imageUrl.split("/").at(-1)!;
-      await this.s3Service.delete(imageId);
-    }
+      if (shop.imageUrl) {
+        const imageId = shop.imageUrl.split("/").at(-1)!;
+        await this.s3Service.delete(imageId);
+      }
+    });
   }
 
   async completeShopCreation(
@@ -133,14 +136,14 @@ export class ShopService implements IShopService {
     }
 
     await this.db.transaction(async (tx) => {
+      await Promise.all([
+        this.userRepository.removeRoles(tx, userId, [USER_ROLE.PENDING_SELLER]),
+        this.tempShopRepository.delete(tx, tempShopId),
+      ]);
+
       if (tempShop.imageUrl) {
         await this.s3Service.delete(tempShop.imageUrl.split("/").at(-1)!);
       }
-
-      await this.userRepository.removeRoles(tx, userId, [
-        USER_ROLE.PENDING_SELLER,
-      ]);
-      await this.tempShopRepository.delete(tx, tempShopId);
     });
   }
 
@@ -151,14 +154,16 @@ export class ShopService implements IShopService {
     }
 
     await this.db.transaction(async (tx) => {
+      // Deleting a shop removes its associated product offer.
+      // Users, including the product creator, will lose access and editing rights to the product.
+      await Promise.all([
+        this.shopRepository.delete(tx, shopId),
+        this.userRepository.removeRoles(tx, userId, [USER_ROLE.SELLER]),
+      ]);
+
       if (shop.imageUrl) {
         await this.s3Service.delete(shop.imageUrl.split("/").at(-1)!);
       }
-      await this.userRepository.removeRoles(tx, userId, [USER_ROLE.SELLER]);
-
-      // Deleting a shop removes its associated product offer.
-      // Users, including the product creator, will lose access and editing rights to the product.
-      await this.shopRepository.delete(tx, shopId);
     });
   }
 
@@ -175,7 +180,11 @@ export class ShopService implements IShopService {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
 
-    const updatedShop = await this.shopRepository.update(shopId, payload);
+    const updatedShop = await this.shopRepository.update(
+      this.db,
+      shopId,
+      payload,
+    );
     return updatedShop;
   }
 

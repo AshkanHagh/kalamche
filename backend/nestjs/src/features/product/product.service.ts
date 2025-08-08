@@ -103,7 +103,7 @@ export class ProductService implements IProductService {
       asin += characters.charAt(Math.floor(Math.random() * characters.length));
     }
 
-    const updateTasks: Promise<void>[] = [];
+    const imageUpdateTasks: Promise<void>[] = [];
     const result = await this.db.transaction(async (tx) => {
       await this.walletRepository.consumeTokens(
         tx,
@@ -126,13 +126,13 @@ export class ProductService implements IProductService {
           tempProduct.id,
         );
       uploadedImages.map((image) => {
-        updateTasks.push(
+        imageUpdateTasks.push(
           this.s3Service.updateObjectTag(image.id, "temp", "false"),
         );
       });
 
       const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
-      const byboxWinner = await this.productOfferRepository.byboxWinner(
+      const byboxWinner = await this.productOfferRepository.isByboxWinner(
         tx,
         productId,
         payload.finalPrice,
@@ -160,7 +160,7 @@ export class ProductService implements IProductService {
       return product;
     });
 
-    await Promise.all(updateTasks);
+    await Promise.all(imageUpdateTasks);
     return result;
   }
 
@@ -197,7 +197,7 @@ export class ProductService implements IProductService {
       );
 
       const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
-      const byboxWinner = await this.productOfferRepository.byboxWinner(
+      const byboxWinner = await this.productOfferRepository.isByboxWinner(
         tx,
         productId,
         payload.finalPrice,
@@ -223,27 +223,28 @@ export class ProductService implements IProductService {
       images: Express.Multer.File[];
     },
   ) {
-    const MAX_IMAGES = 5; // Regular images limit
+    // Regular images limit
+    const MAX_IMAGES = 5;
+    // Check for user uploaded images limit
+    const [existingThumbnail, totalExistingImages] = await Promise.all([
+      this.productImageRepository.isThumbnailExists(productId, isTemp),
+      this.productImageRepository.countTotal(productId, isTemp),
+    ]);
+    if (existingThumbnail && files.thumbnailImage) {
+      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
+    }
+    if (totalExistingImages + files.images.length > MAX_IMAGES) {
+      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
+    }
+
+    const repository = isTemp
+      ? this.tempProductRepository
+      : this.productRepository;
+    const product = await repository.findById(productId);
+
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
     return this.db.transaction(async (tx) => {
-      // Check for user uploaded images limit
-      const [existingThumbnail, totalExistingImages] = await Promise.all([
-        this.productImageRepository.isThumbnailExists(tx, productId, isTemp),
-        this.productImageRepository.countTotal(tx, productId, isTemp),
-      ]);
-      if (existingThumbnail && files.thumbnailImage) {
-        throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
-      }
-      if (totalExistingImages + files.images.length > MAX_IMAGES) {
-        throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
-      }
-
-      const repository = isTemp
-        ? this.tempProductRepository
-        : this.productRepository;
-      const product = await repository.findById(productId);
-
-      await this.productUtilService.userHasPermission(userId, product.shopId);
-
       const uploadTasks: Promise<void>[] = [];
 
       if (files.thumbnailImage) {

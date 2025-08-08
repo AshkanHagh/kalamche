@@ -48,8 +48,12 @@ export class TempShopRepository implements ITempShopRepo {
       .execute();
   }
 
-  async update(id: string, form: ITempShopUpdateForm): Promise<ITempShop> {
-    const [shop] = await this.db
+  async update(
+    tx: Database,
+    id: string,
+    form: ITempShopUpdateForm,
+  ): Promise<ITempShop> {
+    const [shop] = await tx
       .update(TempShopTable)
       .set(form)
       .where(eq(TempShopTable.id, id))
