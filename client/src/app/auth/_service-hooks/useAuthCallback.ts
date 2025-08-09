@@ -27,7 +27,8 @@ const useAuthCallback = () => {
     setIsLoading(true)
     try {
       const { data } = await axios.get<Login>(
-        `${API_ENDPOINTS.auth.oauth.callback}?code=${code}&state=${state}&provider=${provider}`
+        `${API_ENDPOINTS.api.auth.oauth.callback}?code=${code}&state=${state}&provider=${provider}`,
+        { baseURL: "/" }
       )
       setData(data)
       if (onSuccess) onSuccess(data)
