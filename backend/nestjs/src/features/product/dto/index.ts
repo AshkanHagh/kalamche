@@ -36,16 +36,23 @@ export const CreateOfferSchema = z.object({
 export type CreateOfferPayload = z.infer<typeof CreateOfferSchema>;
 export class CreateOfferDto extends createZodDto(CreateOfferSchema) {}
 
-const sort = z.enum(["cheapest", "view", "newest", "expensive", "popular"]);
+const sort = z.enum([
+  "cheapest",
+  "view",
+  "newest",
+  "expensive",
+  "popular",
+  "related",
+]);
 
 export const SearchSchema = z.object({
   sort,
-  brand: z.string().max(255),
+  brand: z.string().max(255).optional(),
   q: z.string().max(255),
-  prMax: z.coerce.number(),
-  prMin: z.coerce.number(),
-  offset: z.coerce.number().default(0),
-  limit: z.coerce.number().default(10),
+  prMax: z.coerce.number().optional(),
+  prMin: z.coerce.number().optional(),
+  offset: z.coerce.number(),
+  limit: z.coerce.number(),
 });
 
 export type SearchPayload = z.infer<typeof SearchSchema>;

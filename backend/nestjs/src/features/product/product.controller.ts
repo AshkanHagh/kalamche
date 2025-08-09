@@ -20,6 +20,7 @@ import {
   CreateProductDto,
   PaginationDto,
   RedirectToProductPageDto,
+  SearchDto,
 } from "./dto";
 import { ProductService } from "./product.service";
 import { IProductController } from "./interfaces/IController";
@@ -153,13 +154,11 @@ export class ProductController implements IProductController {
     await this.productService.toggleLike(userId, productId);
   }
 
-  // @Get("/")
-  // @SkipAuth()
-  // @SkipPermission()
-  // async search(
-  //   @Query(new ZodValidationPipe(SearchSchema)) query: SearchDto,
-  // ): Promise<SearchResponse> {
-  //   const result = await this.productService.search(query);
-  //   return result;
-  // }
+  @ApiQuery({ type: SearchDto })
+  @Get("/")
+  @SkipAuth()
+  @SkipPermission()
+  async search(@Query() params: SearchDto) {
+    return await this.productService.search(params);
+  }
 }

@@ -1,14 +1,20 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import { asc, eq, ne, sql } from "drizzle-orm";
+import { asc, eq, ne, SQL, sql } from "drizzle-orm";
 import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   IProduct,
   IProductInsertForm,
+  ProductImageTable,
+  ProductLikeTable,
+  ProductOfferTable,
   ProductTable,
+  ShopTable,
+  ShopViewTable,
 } from "src/drizzle/schemas";
+import { SearchPayload } from "src/features/product/dto";
 
 export class ProductRepository implements IProductRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
@@ -111,11 +117,7 @@ export class ProductRepository implements IProductRepo {
           where: (table, funcs) => funcs.eq(table.isThumbnail, true),
         },
         offers: {
-          where: (table, funcs) =>
-            funcs.and(
-              funcs.eq(table.status, "active"),
-              funcs.eq(table.byboxWinner, true),
-            ),
+          where: (table, funcs) => funcs.eq(table.byboxWinner, true),
         },
       },
       columns: {
@@ -165,80 +167,90 @@ export class ProductRepository implements IProductRepo {
     });
   }
 
-  // async findProductsByFilter(
-  //   sort: "cheapest" | "view" | "newest" | "expensive" | "popular",
-  //   brand: string,
-  //   search: string,
-  //   prMax: number,
-  //   prMin: number,
-  //   limit: number,
-  //   offset: number,
-  // ) {
-  //   // TODO: the expensive most return the expensive products not the highest price of the product
-  //   // TODO: for popular check on 0 like result
-  //   // TODO: min max is wrong it dose not update on filters
-  //   const sortOptions: Record<typeof sort, SQL> = {
-  //     cheapest: asc(ProductOfferTable.finalPrice),
-  //     expensive: desc(ProductOfferTable.finalPrice),
-  //     newest: desc(ProductTable.createdAt),
-  //     view: desc(ProductTable.views),
-  //     popular: desc(sql`like_count`),
-  //   };
-  //   // default shop offers sort set to cheapest for other sort options
-  //   const sortBy =
-  //     sort !== "cheapest" ? sortOptions[sort] : sortOptions["cheapest"];
+  async findByAdvanceFilter(params: SearchPayload) {
+    const sortOptions: Record<typeof params.sort, SQL> = {
+      cheapest: sql`p.initial_price ASC`,
+      expensive: sql`p.initial_price DESC`,
+      newest: sql`p.created_at DESC`,
+      popular: sql`like_count DESC, ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
+      view: sql`view_count DESC, ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
+      related: sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
+    };
+    const sortQuery = sortOptions[params.sort];
 
-  //   const searchQuery = sql`
-  //     ${ProductTable.vector} @@ to_tsquery('english', ${search})
-  //   `;
-  //   const rankSort = sql`
-  //     ts_rank(${ProductTable.vector}, to_tsquery('english', ${search})) DESC
-  //   `;
-  //   const minPriceQuery = sql<number>`
-  //     MIN(${ProductOfferTable.price}) OVER (PARTITION BY ${ProductTable.id})
-  //   `.as("minPrice");
-  //   const maxPriceQuery = sql<number>`
-  //     MAX(${ProductOfferTable.price}) OVER (PARTITION BY ${ProductTable.id})
-  //   `.as("maxPrice");
-  //   const likeCountQuery = sql<number>`
-  //     (SELECT COUNT(*) FROM ${ProductLikeTable} WHERE ${ProductLikeTable.productId} = ${ProductTable.id})
-  //   `.as("like_count");
+    let priceRangeQuery = sql``;
+    if (params.prMax && params.prMin) {
+      priceRangeQuery = sql`AND (
+        SELECT po.final_price
+        FROM ${ProductOfferTable} po
+        WHERE po.product_id = p.id AND po.bybox_winner = true
+        LIMIT 1
+      ) BETWEEN ${params.prMin} AND ${params.prMax}`;
+    }
 
-  //   const { vector: _, ...productTable } = getTableColumns(ProductTable);
-  //   return await this.db
-  //     .selectDistinctOn([ProductTable.id], {
-  //       product: productTable,
-  //       shop: ShopTable,
-  //       offer: ProductOfferTable,
-  //       image: ProductImageTable,
-  //       minPrice: minPriceQuery,
-  //       maxPrice: maxPriceQuery,
-  //       likeCount: likeCountQuery,
-  //     })
-  //     .from(ProductTable)
-  //     .leftJoin(
-  //       ProductOfferTable,
-  //       eq(ProductTable.id, ProductOfferTable.productId),
-  //     )
-  //     .leftJoin(ShopTable, eq(ProductTable.shopId, ShopTable.id))
-  //     .leftJoin(
-  //       ProductImageTable,
-  //       and(
-  //         eq(ProductTable.id, ProductImageTable.productId),
-  //         eq(ProductImageTable.primary, true),
-  //       ),
-  //     )
-  //     .where(
-  //       and(
-  //         searchQuery,
-  //         and(
-  //           eq(ProductTable.status, "public"),
-  //           between(ProductOfferTable.price, prMin, prMax),
-  //         ),
-  //       ),
-  //     )
-  //     .orderBy(ProductTable.id, sortBy, rankSort)
-  //     .limit(limit + 1)
-  //     .offset(offset);
-  // }
+    const query = sql`
+      SELECT
+        p.*,
+        -- Winning offer with shop details
+        (
+          SELECT JSON_BUILD_OBJECT(
+            'offer', row_to_json(po.*),
+            'shop', row_to_json(s.*)
+          )
+          FROM ${ProductOfferTable} po
+          LEFT JOIN ${ShopTable} s ON s.id = po.shop_id
+          WHERE po.product_id = p.id AND po.bybox_winner = true
+          LIMIT 1
+        ) as winning_offer,
+
+        -- thumbnail image
+        (
+          SELECT pi.url
+          FROM ${ProductImageTable} pi
+          WHERE pi.product_id = p.id AND pi.is_thumbnail = true
+          LIMIT 1
+        ) as thumbnail,
+
+        -- View count
+        (SELECT COUNT(*) FROM ${ShopViewTable} sv WHERE sv.product_id = p.id) as view_count,
+        -- Like count
+        (SELECT COUNT(*) FROM ${ProductLikeTable} pl WHERE pl.product_id = p.id) as like_count
+
+      FROM ${ProductTable} p
+      WHERE
+        p.status = 'public'
+        AND p.vector @@ plainto_tsquery('english', ${params.q})
+        ${params.brand ? sql`AND LOWER(p.brand) = LOWER(${params.brand})` : sql``}
+        ${priceRangeQuery}
+
+      GROUP BY p.id
+      ORDER BY ${sortQuery}
+      -- Fetch one extra product to check for more results
+      LIMIT ${params.limit + 1}
+      OFFSET ${params.offset}
+    `;
+
+    const result = await this.db.execute(query);
+    return result.rows;
+  }
+
+  async findPriceRange(q: string) {
+    const query = sql`
+      SELECT
+        MIN(winning_price.final_price) as min_price,
+        MAX(winning_price.final_price) as max_price
+      FROM ${ProductTable} p
+      INNER JOIN (
+        SELECT po.product_id, po.final_price
+        FROM ${ProductOfferTable} po
+        WHERE po.bybox_winner = true
+      ) winning_price ON winning_price.product_id = p.id
+      WHERE
+        p.status = 'public'
+        AND p.vector @@ plainto_tsquery('english', ${q})
+    `;
+
+    const result = await this.db.execute(query);
+    return result.rows;
+  }
 }

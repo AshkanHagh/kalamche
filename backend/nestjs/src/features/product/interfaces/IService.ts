@@ -4,6 +4,7 @@ import {
   CreateProductPayload,
   PaginationPayload,
   RedirectToProductPagePayload,
+  SearchPayload,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
@@ -54,6 +55,5 @@ export interface IProductService {
     params: PaginationPayload,
   ): Promise<IProductRecord[]>;
   toggleLike(userId: string, productId: string): Promise<void>;
-
-  // search(query: SearchPayload): Promise<SearchResponse>;
+  search(params: SearchPayload): Promise<any>;
 }

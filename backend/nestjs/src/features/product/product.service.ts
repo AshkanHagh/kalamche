@@ -6,6 +6,7 @@ import {
   CreateProductPayload,
   PaginationPayload,
   RedirectToProductPagePayload,
+  SearchPayload,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -18,10 +19,7 @@ import { ProductImageRepository } from "src/repository/repositories/product-imag
 import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import {
-  MIN_TOKEN_FOR_PRODUCT_CREATION,
-  OFFER_REDIRECT_PAGE_BASE_URL,
-} from "./constants";
+import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
@@ -30,6 +28,8 @@ import { ProductLikeRepository } from "src/repository/repositories/product-like.
 
 @Injectable()
 export class ProductService implements IProductService {
+  private OFFER_REDIRECT_PAGE_BASE_URL = `${process.env.BASE_URL}/products/redirect-offer-page`;
+
   constructor(
     @Inject(DATABASE) private db: Database,
     private productRepository: ProductRepository,
@@ -131,7 +131,7 @@ export class ProductService implements IProductService {
         );
       });
 
-      const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
+      const redirectPageUrl = `${this.OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
       const byboxWinner = await this.productOfferRepository.isByboxWinner(
         tx,
         productId,
@@ -196,7 +196,7 @@ export class ProductService implements IProductService {
         MIN_TOKEN_FOR_PRODUCT_CREATION,
       );
 
-      const redirectPageUrl = `${OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
+      const redirectPageUrl = `${this.OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
       const byboxWinner = await this.productOfferRepository.isByboxWinner(
         tx,
         productId,
@@ -358,54 +358,34 @@ export class ProductService implements IProductService {
     }
   }
 
-  // TODO: add filter for same products(only the cheapest most be on serach resutl)
-  // async search(query: SearchPayload): Promise<SearchResponse> {
-  //   const result = await this.productRepository.findProductsByFilter(
-  //     query.sort,
-  //     query.brand,
-  //     query.q,
-  //     query.prMax,
-  //     query.prMin,
-  //     query.limit,
-  //     query.offset,
-  //   );
+  async search(params: SearchPayload) {
+    const [result, priceRangeResult] = await Promise.all([
+      await this.productRepository.findByAdvanceFilter(params),
+      await this.productRepository.findPriceRange(params.q),
+    ]);
 
-  //   const hasNext = result.length > query.limit;
-  //   result.pop();
+    // Both queries use the same logic; if one returns no results, the other will too
+    if (result.length === 0) {
+      return {
+        products: [],
+        hasNext: false,
+      };
+    }
 
-  //   if (result.length === 0) {
-  //     return {
-  //       products: [],
-  //       hasNext: false,
-  //     };
-  //   }
+    const priceRange = {
+      min: priceRangeResult[0].min_price,
+      max: priceRangeResult[0].max_price,
+    };
 
-  //   // we use most matched product to query brand name to find related brands
-  //   // NOTE: for the example dataset of products thet the brands might not match to
-  //   // kalamche default brands in production remove the ? : []
-  //   // const brand = BrandsDataset.find((brand) => brand.key === result[0].brand);
-  //   // const relatedBrands = brand
-  //   //   ? BrandsDataset.filter((b) => b.type === brand.type)
-  //   //   : [];
-  //   const relatedBrands = [];
+    // Check for next page by fetching one extra product beyond the limit
+    const hasNext = result.length > params.limit;
+    // Remove the extra product
+    result.pop();
 
-  //   const priceRange = {
-  //     min: result[0].minPrice,
-  //     max: result[0].maxPrice,
-  //   };
-  //   const products = result.map((p) => ({
-  //     id: p.product.id,
-  //     name: p.product.title,
-  //     price: p.offer!.price,
-  //     sellerName: p.shop!.name,
-  //     imageUrl: p.image?.url || "",
-  //   }));
-
-  //   return {
-  //     brands: relatedBrands,
-  //     priceRange,
-  //     products: [],
-  //     hasNext,
-  //   };
-  // }
+    return {
+      products: result,
+      priceRange,
+      hasNext,
+    };
+  }
 }
