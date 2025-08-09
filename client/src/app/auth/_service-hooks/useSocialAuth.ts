@@ -19,7 +19,7 @@ const useSocialAuth = () => {
     setIsLoading(true)
     try {
       const { data } = await axios.get<SocialAuthResponse>(
-        `${API_ENDPOINTS.auth.oauth}?provider=${provider}`
+        `${API_ENDPOINTS.oauth.authorize}?provider=${provider}`
       )
       if (onSuccess) onSuccess(data)
     } catch (e) {

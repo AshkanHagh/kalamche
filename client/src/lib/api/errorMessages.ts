@@ -9,8 +9,16 @@ export const errorMessages: Record<ServerStatusCode, Record<string, string>> = {
   500: {}
 }
 
-export const getErrorMessage = (status: ServerStatusCode, endpoint: string) => {
-  const errorMessage: string | undefined = errorMessages[status][endpoint]
+export const getErrorMessage = (
+  status: ServerStatusCode | undefined,
+  endpoint: string
+) => {
+  if (!status) return "Unexpected error"
+
+  const statusErrors = errorMessages[status]
+  if (!statusErrors) return "Unexpected error"
+
+  const errorMessage: string | undefined = statusErrors[endpoint]
   if (!errorMessage) return "Unexpected error"
 
   return errorMessage

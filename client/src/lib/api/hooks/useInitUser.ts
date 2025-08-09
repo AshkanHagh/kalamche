@@ -1,23 +1,23 @@
 import { useEffect, useState } from "react"
 import useRefreshToken from "./useRefreshToken"
-import useAxiosPrivate from "./useAxiosPrivate"
-import { UserDataResponse } from "@/types"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks/useRedux"
 import { logout, setCredentials } from "@/lib/redux/slices/authSlice"
-import { AxiosError } from "axios"
 import { toast } from "sonner"
+import useUserData from "@/_service-hooks/useUserData"
 
 const useInitUser = () => {
   const user = useAppSelector((state) => state.auth.user)
+  const { getUserData } = useUserData()
   const needsUserInit = user === undefined
 
   const dispatch = useAppDispatch()
   const refresh = useRefreshToken()
-  const privateAxios = useAxiosPrivate()
   const [isLoading, setIsLoading] = useState<boolean>(needsUserInit)
 
   const fetchData = async () => {
     setIsLoading(true)
+
+    // Get New Access Token
     const newAccessToken = await refresh({
       redirectOnFail: false,
       silent: true
@@ -28,21 +28,20 @@ const useInitUser = () => {
       return
     }
 
-    try {
-      const { data } = await privateAxios.get<UserDataResponse>("user/me", {
-        headers: { Authorization: `Bearer ${newAccessToken}` }
-      })
-
-      dispatch(setCredentials({ user: data.user, accessToken: newAccessToken }))
-    } catch (e) {
-      const error = e as AxiosError
-      toast.error(
-        `failed to load your data! - status ${error.response?.status}`
-      )
-      dispatch(logout())
-    } finally {
-      setIsLoading(false)
-    }
+    // Get User Data With New Access Token
+    await getUserData(
+      newAccessToken,
+      (data) => {
+        dispatch(setCredentials({ user: data, accessToken: newAccessToken }))
+      },
+      (error) => {
+        toast.error(
+          `Failed to load your data! - status ${error.response?.status}`
+        )
+        dispatch(logout())
+      }
+    )
+    setIsLoading(false)
   }
 
   useEffect(() => {

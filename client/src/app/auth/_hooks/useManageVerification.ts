@@ -53,7 +53,7 @@ const useManageVerification = () => {
 
   const onResend = async (email: string) => {
     const handleResendCodeSuccess = (data: VerificationResponse) => {
-      const newToken = data.verificationToken
+      const newToken = data.token
       setNewVerificationToken(newToken)
       toast.success(`New verification code has been sent to ${email}`)
     }

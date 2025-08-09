@@ -15,8 +15,9 @@ const useVerifyCode = () => {
   ) => {
     try {
       const { data } = await axios.post<Login>(
-        API_ENDPOINTS.auth.verify.verifyCode,
-        verifyCodeBody
+        API_ENDPOINTS.api.auth.verify,
+        verifyCodeBody,
+        { baseURL: "/" }
       )
       if (onSuccess) onSuccess(data)
     } catch (e) {

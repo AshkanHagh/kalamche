@@ -15,8 +15,9 @@ const useLogin = () => {
   ) => {
     try {
       const { data } = await axios.post<LoginResponse>(
-        API_ENDPOINTS.auth.login,
-        form
+        API_ENDPOINTS.api.auth.login,
+        form,
+        { baseURL: "/" }
       )
       if (onSuccess) onSuccess(data)
     } catch (e) {
