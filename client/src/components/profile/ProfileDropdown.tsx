@@ -17,16 +17,13 @@ import { Button } from "@/components/ui/button"
 import UserAvatar from "./UserAvatar"
 import EditProfile from "./EditProfile"
 import Link from "next/link"
-import WalletInfo from "./WalletInfo"
 import { useAppSelector } from "@/lib/redux/hooks/useRedux"
-import { User } from "@/types"
 
 export function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const { avatarUrl, email, name, wallet } = useAppSelector(
-    (state) => state.auth.user
-  ) as User
+  const user = useAppSelector((state) => state.auth.user)
+  const initLoading = user === undefined
 
   const handleLogout = () => {
     setIsOpen(false)
@@ -36,34 +33,39 @@ export function ProfileDropdown() {
     setIsEditing(false)
   }
 
-  const onSave = (editName: string, editAvatar: string) => {
-    console.log(editName, editAvatar)
+  const onSave = (editName: string) => {
+    console.log(editName)
   }
+
+  if (initLoading) {
+    return <div className="animate-pulse rounded-md bg-muted h-9 w-40" />
+  }
+
+  if (user === null) return
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative size-8 rounded-full">
-          <UserAvatar name={name} src={avatarUrl} />
+          <UserAvatar name={user.name} />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-80" align="end" forceMount>
         {isEditing ? (
           <EditProfile
-            avatarUrl={avatarUrl}
-            email={email}
-            name={name}
+            email={user.email}
+            name={user.name}
             onCancel={onCancel}
             onSave={onSave}
           />
         ) : (
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center space-x-3">
-              <UserAvatar name={name} src={avatarUrl} />
+              <UserAvatar name={user.name} />
 
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold">{name}</h4>
-                <p className="text-xs text-muted-foreground">{email}</p>
+                <h4 className="text-sm font-semibold">{user.name}</h4>
+                <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
             </div>
             <Button
@@ -77,14 +79,6 @@ export function ProfileDropdown() {
             </Button>
           </div>
         )}
-
-        <DropdownMenuSeparator />
-        <WalletInfo
-          frTokens={wallet.frTokens}
-          lastTransaction={wallet.lastTransaction}
-        />
-        <DropdownMenuSeparator />
-
         <DropdownMenuGroup>
           <DropdownMenuItem>
             <Link href="/help" className="flex items-center">
