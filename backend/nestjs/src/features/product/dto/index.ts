@@ -11,8 +11,8 @@ export class CreateProductDto extends createZodDto(CreateProductSchema) {}
 export const CompleteProductCreationSchema = z.object({
   title: z.string(),
   description: z.string(),
-  categories: z.array(z.string()),
-  brand: z.string(),
+  categoryId: z.string().uuid(),
+  brandId: z.string().uuid(),
   specifications: z.array(z.object({ key: z.string(), value: z.string() })),
   websiteUrl: z.string().url(),
   initialPrice: z.number(),
@@ -42,7 +42,7 @@ const sort = z.enum([
   "newest",
   "expensive",
   "popular",
-  "related",
+  "relevent",
 ]);
 
 export const SearchSchema = z.object({

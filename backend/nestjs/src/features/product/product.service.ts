@@ -25,6 +25,8 @@ import { firstValueFrom } from "rxjs";
 import { Request } from "express";
 import { IProductRecord, IProductView } from "src/drizzle/schemas";
 import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
+import { CategoryRepository } from "src/repository/repositories/category.repository";
+import { BrandRepository } from "src/repository/repositories/brand.repository";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -40,6 +42,8 @@ export class ProductService implements IProductService {
     private productImageRepository: ProductImageRepository,
     private walletRepository: WalletRepository,
     private productLikeRepository: ProductLikeRepository,
+    private categoryRepository: CategoryRepository,
+    private brandRepository: BrandRepository,
     private s3Service: S3Service,
     private httpService: HttpService,
   ) {}
@@ -91,6 +95,12 @@ export class ProductService implements IProductService {
   ) {
     const tempProduct = await this.tempProductRepository.findById(productId);
     await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
+
+    // Check if brand and category exist; throw error if either is not found
+    await Promise.all([
+      this.brandRepository.exists(payload.brandId),
+      this.categoryRepository.exists(payload.categoryId),
+    ]);
 
     const wallet = await this.walletRepository.findByUserId(userId);
     if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {

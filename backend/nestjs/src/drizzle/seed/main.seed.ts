@@ -16,6 +16,15 @@ import {
 import { faker } from "@faker-js/faker";
 import { USER_ROLE } from "src/constants/global.constant";
 import { FrTokenPlanDatasets } from "src/assets/datasets/fr-token-plans";
+import { BrandTable, IBrand, IBrandInsertForm } from "../schemas/brand.schema";
+import { BrandDatasets } from "src/assets/datasets/brands";
+import {
+  CategoryTable,
+  ICategory,
+  ICategoryInsertForm,
+} from "../schemas/category.schema";
+import { CategoryDataset } from "src/assets/datasets/categories";
+import { randomUUID } from "node:crypto";
 
 async function main() {
   console.log("Start seeding");
@@ -35,6 +44,62 @@ async function main() {
   console.log("Seeding completed");
   await pool.end();
   process.exit(0);
+}
+
+async function seedBrands(tx: Database) {
+  console.log("Seeding brands");
+
+  const form: IBrandInsertForm[] = BrandDatasets.map((brand) => ({
+    name: brand,
+  }));
+  const brands = await tx.insert(BrandTable).values(form).returning();
+
+  const brandMap = new Map<string, IBrand>();
+  brands.forEach((brand) => brandMap.set(brand.name, brand));
+
+  return brandMap;
+}
+
+async function seedCategories(tx: Database) {
+  console.log("Seeding categories");
+
+  const categoryMap = new Map<string, ICategory>();
+  const insertForm: ICategoryInsertForm[] = [];
+
+  for (const arr of CategoryDataset) {
+    let parentId: string | null = null;
+    let path = "";
+
+    for (let level = 0; level < arr.length; level++) {
+      const name = arr[level];
+      const currentPath = path ? `${path}.${name}` : name;
+
+      if (!categoryMap.has(currentPath)) {
+        const id = randomUUID();
+        const form = {
+          id,
+          level,
+          name,
+          parentId,
+          path: currentPath,
+        };
+
+        insertForm.push(form);
+        categoryMap.set(currentPath, form);
+      }
+
+      parentId = categoryMap.get(currentPath)!.id;
+      path = currentPath;
+    }
+  }
+
+  const batchSize = 50;
+  for (let i = 0; i < insertForm.length; i += batchSize) {
+    const batch = insertForm.slice(i, i + batchSize);
+    await tx.insert(CategoryTable).values(batch);
+  }
+
+  return categoryMap;
 }
 
 async function seedUsers(db: Database) {
@@ -94,6 +159,9 @@ async function seedShops(db: Database, users: IUser[]) {
 async function seedProducts(db: Database, shops: IShop[]) {
   console.log("Seeding products");
 
+  const brandMap = await seedBrands(db);
+  const categoryMap = await seedCategories(db);
+
   const productsInsertForm: IProductInsertForm[] = [];
   const productOffersForm: IProductOfferInsertForm[] = [];
 
@@ -115,14 +183,20 @@ async function seedProducts(db: Database, shops: IShop[]) {
 
         const randomShop =
           shops[faker.number.int({ min: 0, max: shops.length - 1 })];
+
+        // Parse categories and find the deepest category
+        const categories = JSON.parse(record.categories) as string[];
+        const deepestCategoryPath = categories.join(".");
+        const deepestCategory = categoryMap.get(deepestCategoryPath)!;
+
         const insertForm: IProductInsertForm = {
           id: crypto.randomUUID(),
           shopId: randomShop.id,
-          categories: JSON.parse(record.categories) as string[],
           description: record.description,
           title: record.title,
           specifications: productSpecification,
-          brand: record.brand,
+          categoryId: deepestCategory.id,
+          brandId: brandMap.get(record.brand)!.id,
           asin: record.asin,
           modelNumber: record.model_number,
           upc: faker.string.numeric({ length: 12 }),

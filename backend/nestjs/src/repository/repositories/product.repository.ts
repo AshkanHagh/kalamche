@@ -55,6 +55,7 @@ export class ProductRepository implements IProductRepo {
     }
   }
 
+  // TODO: Make relations optional in function params so users can choose which to include
   async findProductView(id: string) {
     const sixMountsAgo = new Date();
     sixMountsAgo.setMonth(sixMountsAgo.getMonth() - 6);
@@ -78,6 +79,8 @@ export class ProductRepository implements IProductRepo {
           where: (table, funcs) => funcs.gte(table.createdAt, sixMountsAgo),
           limit: 6,
         },
+        category: true,
+        brand: true,
       },
       columns: {
         vector: false,
@@ -87,12 +90,7 @@ export class ProductRepository implements IProductRepo {
   }
 
   async findSimilarProducts(product: IProduct, limit: number, offset: number) {
-    const searchTerms = [
-      product.title,
-      product.brand,
-      ...product.categories,
-      product.modelNumber,
-    ]
+    const searchTerms = [product.title, product.description]
       .filter(Boolean) // remove empty values
       .join(" ")
       .replace(/[^\w\s]/g, " ") // remove special characters
@@ -174,7 +172,7 @@ export class ProductRepository implements IProductRepo {
       newest: sql`p.created_at DESC`,
       popular: sql`like_count DESC, ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
       view: sql`view_count DESC, ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
-      related: sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
+      relevent: sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
     };
     const sortQuery = sortOptions[params.sort];
 

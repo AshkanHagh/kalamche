@@ -4,6 +4,7 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { resolve } from "node:path";
 import { Pool } from "pg";
 
+// TODO: add categories to setweight
 export async function migration() {
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -38,7 +39,6 @@ export async function migration() {
         NEW.vector :=
           setweight(to_tsvector('english', NEW.title), 'A') ||
           setweight(to_tsvector('english', NEW.description), 'B') ||
-          setweight(to_tsvector('english', array_to_string(NEW.categories, ' ')), 'C') ||
           setweight(to_tsvector('english', fn_extract_specification_text(NEW.specifications)), 'D');
         RETURN NEW;
       END;

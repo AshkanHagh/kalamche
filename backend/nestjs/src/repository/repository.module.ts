@@ -16,6 +16,8 @@ import { FrTokenPlanRepository } from "./repositories/fr-token-plan.repository";
 import { WalletRepository } from "./repositories/wallet.repository";
 import { TempShopRepository } from "./repositories/temp-shop.repository";
 import { ProductLikeRepository } from "./repositories/product-like.repository";
+import { CategoryRepository } from "./repositories/category.repository";
+import { BrandRepository } from "./repositories/brand.repository";
 
 const repositories = [
   UserRepository,
@@ -34,6 +36,8 @@ const repositories = [
   WalletRepository,
   TempShopRepository,
   ProductLikeRepository,
+  CategoryRepository,
+  BrandRepository,
 ];
 
 @Module({
