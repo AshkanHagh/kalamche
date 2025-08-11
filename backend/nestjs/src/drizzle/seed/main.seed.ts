@@ -23,7 +23,7 @@ import {
   ICategory,
   ICategoryInsertForm,
 } from "../schemas/category.schema";
-import { CategoryDataset } from "src/assets/datasets/categories";
+import { CategoryDatasets } from "src/assets/datasets/categories";
 import { randomUUID } from "node:crypto";
 
 async function main() {
@@ -50,7 +50,7 @@ async function seedBrands(tx: Database) {
   console.log("Seeding brands");
 
   const form: IBrandInsertForm[] = BrandDatasets.map((brand) => ({
-    name: brand,
+    name: brand.key,
   }));
   const brands = await tx.insert(BrandTable).values(form).returning();
 
@@ -66,12 +66,12 @@ async function seedCategories(tx: Database) {
   const categoryMap = new Map<string, ICategory>();
   const insertForm: ICategoryInsertForm[] = [];
 
-  for (const arr of CategoryDataset) {
+  for (const arr of CategoryDatasets) {
     let parentId: string | null = null;
     let path = "";
 
     for (let level = 0; level < arr.length; level++) {
-      const name = arr[level];
+      const name = arr[level].key;
       const currentPath = path ? `${path}.${name}` : name;
 
       if (!categoryMap.has(currentPath)) {

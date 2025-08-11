@@ -5,6 +5,7 @@ import { asc, eq, ne, SQL, sql } from "drizzle-orm";
 import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
+  BrandTable,
   IProduct,
   IProductInsertForm,
   ProductImageTable,
@@ -166,13 +167,22 @@ export class ProductRepository implements IProductRepo {
   }
 
   async findByAdvanceFilter(params: SearchPayload) {
+    let brandCondition = sql``;
+    let brandBoost = sql`0`;
+    if (params.brand) {
+      brandCondition = sql`AND LOWER(b.name) = LOWER(${params.brand})`;
+      brandBoost = sql`0.5`;
+    }
+
+    const finalRank = sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) + ${brandBoost}`;
+
     const sortOptions: Record<typeof params.sort, SQL> = {
       cheapest: sql`p.initial_price ASC`,
       expensive: sql`p.initial_price DESC`,
       newest: sql`p.created_at DESC`,
-      popular: sql`like_count DESC, ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
-      view: sql`view_count DESC, ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
-      relevent: sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) DESC`,
+      popular: sql`like_count DESC, ${finalRank} DESC`,
+      view: sql`view_count DESC, ${finalRank} DESC`,
+      relevent: sql`${finalRank} DESC`,
     };
     const sortQuery = sortOptions[params.sort];
 
@@ -215,10 +225,12 @@ export class ProductRepository implements IProductRepo {
         (SELECT COUNT(*) FROM ${ProductLikeTable} pl WHERE pl.product_id = p.id) as like_count
 
       FROM ${ProductTable} p
+      INNER JOIN ${BrandTable} b ON b.id = p.brand_id
+
       WHERE
         p.status = 'public'
         AND p.vector @@ plainto_tsquery('english', ${params.q})
-        ${params.brand ? sql`AND LOWER(p.brand) = LOWER(${params.brand})` : sql``}
+        ${brandCondition}
         ${priceRangeQuery}
 
       GROUP BY p.id

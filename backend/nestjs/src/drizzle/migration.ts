@@ -3,6 +3,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { resolve } from "node:path";
 import { Pool } from "pg";
+import { BrandTable } from "./schemas";
 
 // TODO: add categories to setweight
 export async function migration() {
@@ -35,10 +36,17 @@ export async function migration() {
     $$ LANGUAGE plpgsql IMMUTABLE;
 
     CREATE OR REPLACE FUNCTION fn_update_search_vector() RETURNS TRIGGER AS $$
+      DECLARE
+        brand_name TEXT := '';
       BEGIN
+        SELECT b.name INTO brand_name
+        FROM ${BrandTable} b
+        WHERE b.id = NEW.brand_id;
+
         NEW.vector :=
           setweight(to_tsvector('english', NEW.title), 'A') ||
           setweight(to_tsvector('english', NEW.description), 'B') ||
+          setweight(to_tsvector('english', COALESCE(brand_name, '')), 'B') ||
           setweight(to_tsvector('english', fn_extract_specification_text(NEW.specifications)), 'D');
         RETURN NEW;
       END;
@@ -53,7 +61,9 @@ export async function migration() {
     CREATE INDEX products_vector_idx ON products USING GIN(vector);
   `;
 
-  await db.execute(query);
+  await db.transaction(async (tx) => {
+    await tx.execute(query);
+  });
   await pool.end();
 }
 

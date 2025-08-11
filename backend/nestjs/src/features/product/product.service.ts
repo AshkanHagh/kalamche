@@ -368,6 +368,7 @@ export class ProductService implements IProductService {
     }
   }
 
+  // TODO: get related brand and category
   async search(params: SearchPayload) {
     const [result, priceRangeResult] = await Promise.all([
       await this.productRepository.findByAdvanceFilter(params),
@@ -390,7 +391,9 @@ export class ProductService implements IProductService {
     // Check for next page by fetching one extra product beyond the limit
     const hasNext = result.length > params.limit;
     // Remove the extra product
-    result.pop();
+    if (hasNext) {
+      result.pop();
+    }
 
     return {
       products: result,

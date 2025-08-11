@@ -15,7 +15,7 @@ import {
 import { faker } from "@faker-js/faker/.";
 import { USER_ROLE } from "src/constants/global.constant";
 import { BrandDatasets } from "src/assets/datasets/brands";
-import { CategoryDataset } from "src/assets/datasets/categories";
+import { CategoryDatasets } from "src/assets/datasets/categories";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   process.env.NODE_ENV = "test";
@@ -70,6 +70,7 @@ export async function createProduct(
   db: Database,
   form: Partial<IProductInsertForm>,
 ) {
+  // Add brand and category to reference in the product table
   const brandId = form.categoryId || (await createBrand(db)).id;
   const categoryId = form.brandId || (await createCategory(db)).id;
 
@@ -99,8 +100,7 @@ export async function createCategory(
   db: Database,
   form?: Partial<ICategoryInsertForm>,
 ) {
-  // Add brand and category to reference in the product table
-  const categoryName = CategoryDataset[0][0];
+  const categoryName = CategoryDatasets[0][0].key;
   const [category] = await db
     .insert(CategoryTable)
     .values({
@@ -119,7 +119,7 @@ export async function createBrand(
   db: Database,
   form?: Partial<IBrandInsertForm>,
 ) {
-  const brandName = BrandDatasets[0];
+  const brandName = BrandDatasets[0].key;
   const [brand] = await db
     .insert(BrandTable)
     .values({
