@@ -5,6 +5,7 @@ import { KalamcheExceptionFilter } from "./filters/exception-filter";
 import cookieParser from "cookie-parser";
 import { patchNestJsSwagger } from "nestjs-zod";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import compression from "compression";
 
 async function bootstrap() {
   patchNestJsSwagger();
@@ -18,6 +19,7 @@ async function bootstrap() {
   app.useGlobalFilters(new KalamcheExceptionFilter());
   app.setGlobalPrefix("/api/v1");
   app.use(cookieParser());
+  app.use(compression());
   // enable on production(if you are using proxy)
   // app.use("trust proxy", true);
 
