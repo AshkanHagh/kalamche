@@ -45,15 +45,22 @@ const sort = z.enum([
   "relevent",
 ]);
 
-export const SearchSchema = z.object({
+const FilterSchema = z.object({
   sort,
-  brand: z.string().max(255).optional(),
-  q: z.string().max(255),
   prMax: z.coerce.number().optional(),
   prMin: z.coerce.number().optional(),
+  brand: z.string().max(255).optional(),
   offset: z.coerce.number(),
   limit: z.coerce.number(),
 });
+
+export type FilterOptions = z.infer<typeof FilterSchema>;
+
+export const SearchSchema = z
+  .object({
+    q: z.string().max(255),
+  })
+  .merge(FilterSchema);
 
 export type SearchPayload = z.infer<typeof SearchSchema>;
 export class SearchDto extends createZodDto(SearchSchema) {}
@@ -77,3 +84,16 @@ export const PaginationSchema = z.object({
 
 export type PaginationPayload = z.infer<typeof PaginationSchema>;
 export class PaginationDto extends createZodDto(PaginationSchema) {}
+
+export const GetProductsByCategorySchema = z
+  .object({
+    category: z.string().max(255),
+  })
+  .merge(FilterSchema);
+
+export type GetproductsByCategoryPayload = z.infer<
+  typeof GetProductsByCategorySchema
+>;
+export class GetProductsByCategoryDto extends createZodDto(
+  GetProductsByCategorySchema,
+) {}

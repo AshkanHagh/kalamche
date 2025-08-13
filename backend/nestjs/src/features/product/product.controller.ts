@@ -18,6 +18,7 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  GetProductsByCategoryDto,
   PaginationDto,
   RedirectToProductPageDto,
   SearchDto,
@@ -125,15 +126,6 @@ export class ProductController implements IProductController {
     return { url, statusCode: 302 };
   }
 
-  @Get("/:product_id")
-  @SkipAuth()
-  @SkipPermission()
-  async getProduct(
-    @Param("product_id", new ParseUUIDPipe()) productId: string,
-  ): Promise<IProductView> {
-    return await this.productService.getProduct(productId);
-  }
-
   @ApiQuery({ type: PaginationDto })
   @Get("/similar/:product_id")
   @SkipAuth()
@@ -160,5 +152,24 @@ export class ProductController implements IProductController {
   @SkipPermission()
   async search(@Query() params: SearchDto) {
     return await this.productService.search(params);
+  }
+
+  @ApiQuery({ type: GetProductsByCategoryDto })
+  @Get("/category")
+  @SkipAuth()
+  @SkipPermission()
+  async getProductsByCategory(
+    @Query() params: GetProductsByCategoryDto,
+  ): Promise<any> {
+    return await this.productService.getProductsByCategory(params);
+  }
+
+  @Get("/:product_id")
+  @SkipAuth()
+  @SkipPermission()
+  async getProduct(
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+  ): Promise<IProductView> {
+    return await this.productService.getProduct(productId);
   }
 }

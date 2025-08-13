@@ -4,6 +4,7 @@ import {
   CompleteProductCreationPayload,
   CreateOfferPayload,
   CreateProductPayload,
+  GetproductsByCategoryPayload,
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
@@ -369,7 +370,10 @@ export class ProductService implements IProductService {
   }
 
   async search(params: SearchPayload) {
-    const result = await this.productRepository.findByAdvanceFilter(params);
+    const result = await this.productRepository.findByFilters(
+      { q: params.q },
+      params,
+    );
     if (result.length === 0) {
       return {
         products: [],
@@ -377,29 +381,69 @@ export class ProductService implements IProductService {
       };
     }
 
-    const [priceRangeResult, similarCategories, similarBrands] =
+    const [priceRangeResult, similarBrands] = await Promise.all([
+      this.productRepository.findPriceRange(params.q),
+      this.brandRepository.findSimilarBrands({ q: params.q }, 5),
+    ]);
+
+    // Check for next page by fetching one extra product beyond the limit
+    const hasNext = result.length > params.limit;
+    if (hasNext) {
+      // Remove the extra product
+      result.pop();
+    }
+
+    return {
+      products: result,
+      priceRange: {
+        min: priceRangeResult.minPrice,
+        max: priceRangeResult.maxPrice,
+      },
+      similarBrands,
+      hasNext,
+    };
+  }
+
+  async getProductsByCategory(params: GetproductsByCategoryPayload) {
+    const notFoundResult = {
+      products: [],
+      hasNext: false,
+    };
+
+    const category = await this.categoryRepository.findBySlug(params.category);
+    if (!category) {
+      return notFoundResult;
+    }
+    const result = await this.productRepository.findByFilters(
+      { categoryId: category.id },
+      params,
+    );
+    if (result.length === 0) {
+      return notFoundResult;
+    }
+
+    const [priceRangeResult, similarBrands, similarCategories] =
       await Promise.all([
-        this.productRepository.findPriceRange(params.q),
-        this.productRepository.findSimilarCategories(params.q, 5),
-        this.productRepository.findSimilarBrands(params.q, 5),
+        this.productRepository.findPriceRange(params.category),
+        this.brandRepository.findSimilarBrands({ categoryId: category.id }, 5),
+        this.categoryRepository.findHierarchy(category.path),
       ]);
 
     // Check for next page by fetching one extra product beyond the limit
     const hasNext = result.length > params.limit;
-    // Remove the extra product
     if (hasNext) {
+      // Remove the extra product
       result.pop();
     }
 
-    const priceRange = {
-      min: priceRangeResult[0].min_price,
-      max: priceRangeResult[0].max_price,
-    };
     return {
       products: result,
-      priceRange,
-      similarCategories,
+      priceRange: {
+        min: priceRangeResult.minPrice,
+        max: priceRangeResult.maxPrice,
+      },
       similarBrands,
+      similarCategories,
       hasNext,
     };
   }

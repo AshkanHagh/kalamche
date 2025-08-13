@@ -1,12 +1,11 @@
 import { Inject } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import { asc, eq, ne, SQL, sql } from "drizzle-orm";
+import { and, asc, eq, max, min, ne, SQL, sql } from "drizzle-orm";
 import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   BrandTable,
-  CategoryTable,
   IProduct,
   IProductInsertForm,
   ProductImageTable,
@@ -16,7 +15,7 @@ import {
   ShopTable,
   ShopViewTable,
 } from "src/drizzle/schemas";
-import { SearchPayload } from "src/features/product/dto";
+import { FilterOptions } from "src/features/product/dto";
 
 export class ProductRepository implements IProductRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
@@ -167,41 +166,52 @@ export class ProductRepository implements IProductRepo {
     });
   }
 
-  async findByAdvanceFilter(params: SearchPayload) {
+  // TODO: the query in both category and search are the same
+  async findByFilters(
+    query: Partial<{ categoryId: string; q: string }>,
+    filters: FilterOptions,
+  ) {
     // brand filter and ranking boost if brand is provided
-    let brandCondition = sql``;
-    let brandBoost = sql`0`;
-    if (params.brand) {
-      // match brand name (case-insensitive) and increase ranking score
-      brandCondition = sql`AND LOWER(b.name) = LOWER(${params.brand})`;
-      brandBoost = sql`0.5`;
-    }
-    // Calculate search ranking based on text match and brand boost
-    const finalRank = sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) + ${brandBoost}`;
+    const brandCondition = filters.brand
+      ? sql`AND LOWER(b.name) = LOWER(${filters.brand})`
+      : sql``;
+    // match brand name (case-insensitive) and increase ranking score
+    const brandBoost = filters.brand ? sql`0.5` : sql`0`;
 
-    const sortOptions: Record<typeof params.sort, SQL> = {
-      cheapest: sql`p.initial_price ASC`, // sort by lowest initial price
-      expensive: sql`p.initial_price DESC`, // sort by highest initial price
-      newest: sql`p.created_at DESC`, // sort by created at
-      popular: sql`like_count DESC, ${finalRank} DESC`, // sort by like count and relevance
-      view: sql`view_count DESC, ${finalRank} DESC`, // sort by view count and relevance
-      relevent: sql`${finalRank} DESC`, // sort by search relevance
+    // Calculate search ranking based on text match and brand boost
+    const finalRank = query.categoryId
+      ? null
+      : sql`ts_rank(p.vector, plainto_tsquery('english', ${query.q})) + ${brandBoost}`;
+
+    const sortOptions: Record<typeof filters.sort, SQL | null> = {
+      cheapest: sql`p.initial_price ASC`,
+      expensive: sql`p.initial_price DESC`,
+      newest: sql`p.created_at DESC`,
+      popular: finalRank
+        ? sql`like_count DESC, ${finalRank} DESC`
+        : sql`like_count DESC`,
+      view: finalRank
+        ? sql`view_count DESC, ${finalRank} DESC`
+        : sql`view_count DESC`,
+      relevent: finalRank ? sql`${finalRank} DESC` : null,
     };
-    const sortQuery = sortOptions[params.sort];
+    const sortQuery = finalRank
+      ? sql`ORDER BY ${sortOptions[filters.sort]}`
+      : sql``;
 
     // Add price range filter if both min and max prices are provided
     let priceRangeQuery = sql``;
-    if (params.prMax && params.prMin) {
+    if (filters.prMax && filters.prMin) {
       // Filter products where the winning offer price is between min and max
       priceRangeQuery = sql`AND (
         SELECT po.final_price
         FROM ${ProductOfferTable} po
         WHERE po.product_id = p.id AND po.bybox_winner = true
         LIMIT 1
-      ) BETWEEN ${params.prMin} AND ${params.prMax}`;
+      ) BETWEEN ${filters.prMin} AND ${filters.prMax}`;
     }
 
-    const query = sql`
+    const sqlQuery = sql`
       SELECT
         p.*,
         (
@@ -230,78 +240,42 @@ export class ProductRepository implements IProductRepo {
 
       WHERE
         p.status = 'public'
-        AND p.vector @@ plainto_tsquery('english', ${params.q})
+        AND ${query.categoryId ? sql`p.category_id = ${query.categoryId}` : sql`p.vector @@ plainto_tsquery('english', ${query.q})`}
         ${brandCondition}
         ${priceRangeQuery}
 
       GROUP BY p.id
-      ORDER BY ${sortQuery}
+      ${sortQuery}
       -- Fetch one extra product to check for more results
-      LIMIT ${params.limit + 1}
-      OFFSET ${params.offset}
+      LIMIT ${filters.limit + 1}
+      OFFSET ${filters.offset}
     `;
 
-    const result = await this.db.execute(query);
+    const result = await this.db.execute(sqlQuery);
     return result.rows;
   }
 
   async findPriceRange(q: string) {
-    const query = sql`
-      SELECT
-        MIN(winning_price.final_price) as min_price,
-        MAX(winning_price.final_price) as max_price
-      FROM ${ProductTable} p
-      INNER JOIN (
-        SELECT po.product_id, po.final_price
-        FROM ${ProductOfferTable} po
-        WHERE po.bybox_winner = true
-      ) winning_price ON winning_price.product_id = p.id
-      WHERE
-        p.status = 'public'
-        AND p.vector @@ plainto_tsquery('english', ${q})
-    `;
+    const subquery = this.db
+      .select()
+      .from(ProductOfferTable)
+      .where(eq(ProductOfferTable.byboxWinner, true))
+      .as("po");
 
-    const result = await this.db.execute(query);
-    return result.rows;
-  }
+    const [range] = await this.db
+      .select({
+        minPrice: min(subquery.finalPrice),
+        maxPrice: max(subquery.finalPrice),
+      })
+      .from(ProductTable)
+      .innerJoinLateral(subquery, sql`po.product_id = ${ProductTable.id}`)
+      .where(
+        and(
+          eq(ProductTable.status, "public"),
+          sql`${ProductTable.vector} @@ plainto_tsquery('english', ${q})`,
+        ),
+      );
 
-  async findSimilarCategories(q: string, limit: number = 5) {
-    const query = sql`
-      SELECT
-        c.id,
-        c.name,
-        c.slug
-      FROM ${ProductTable} p
-      JOIN ${CategoryTable} c ON c.id = p.category_id
-      WHERE
-        p.status = 'public'
-        AND p.vector @@ plainto_tsquery('english', ${q})
-      GROUP BY c.id, c.name
-      ORDER BY COUNT(*) DESC
-      LIMIT ${limit}
-     `;
-
-    const result = await this.db.execute(query);
-    return result.rows;
-  }
-
-  async findSimilarBrands(q: string, limit: number = 5) {
-    const query = sql`
-      SELECT
-        b.id,
-        b.name,
-        b.slug
-      FROM ${ProductTable} p
-      JOIN ${BrandTable} b ON b.id = p.brand_id
-      WHERE
-        p.status = 'public'
-        AND p.vector @@ plainto_tsquery('english', ${q})
-      GROUP BY b.id, b.name
-      ORDER BY COUNT(*) DESC
-      LIMIT ${limit}
-    `;
-
-    const result = await this.db.execute(query);
-    return result.rows;
+    return range;
   }
 }

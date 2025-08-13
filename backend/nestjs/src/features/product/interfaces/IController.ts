@@ -2,6 +2,7 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  GetProductsByCategoryDto,
   PaginationDto,
   RedirectToProductPageDto,
   SearchDto,
@@ -56,4 +57,5 @@ export interface IProductController {
   ): Promise<IProductRecord[]>;
   toggleLike(userId: string, productId: string): Promise<void>;
   search(params: SearchDto): Promise<any>;
+  getProductsByCategory(params: GetProductsByCategoryDto): Promise<any>;
 }

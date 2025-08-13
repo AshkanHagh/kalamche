@@ -4,7 +4,6 @@ import * as schema from "../schemas";
 import { IProductInsertForm, IProductOfferInsertForm } from "../schemas";
 import csv from "csv-parser";
 import fs from "node:fs";
-import path from "node:path";
 import { AmazonProduct } from "./types";
 import {
   Database,
@@ -23,6 +22,7 @@ import {
   ICategoryInsertForm,
 } from "../schemas/category.schema";
 import { randomUUID } from "node:crypto";
+import { CSV_PATH } from "./constants";
 
 async function main() {
   console.log("Start seeding");
@@ -45,17 +45,10 @@ async function main() {
 }
 
 async function seedBrandAndCategories(tx: Database) {
-  const datasetPath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "assets/datasets/amazon-products.csv",
-  );
-
   const brands: { key: string; slug: string }[] = [];
   const categories: { key: string; slug: string }[][] = [];
   await new Promise<void>((resolve, reject) => {
-    fs.createReadStream(datasetPath)
+    fs.createReadStream(CSV_PATH)
       .pipe(csv({ separator: "," }))
       .on("data", (record: AmazonProduct) => {
         brands.push({
@@ -123,7 +116,7 @@ async function seedCategories(
 
     for (let level = 0; level < arr.length; level++) {
       const name = arr[level].key;
-      const currentPath = path ? `${path}.${name}` : name;
+      const currentPath = path ? `${path}/${name}` : name;
 
       if (!categoryMap.has(currentPath)) {
         const id = randomUUID();
@@ -216,15 +209,8 @@ async function seedProducts(db: Database, shops: IShop[]) {
   const productsInsertForm: IProductInsertForm[] = [];
   const productOffersForm: IProductOfferInsertForm[] = [];
 
-  const datasetPath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "assets/datasets/amazon-products.csv",
-  );
-
   await new Promise<void>((resolve, reject) => {
-    fs.createReadStream(datasetPath)
+    fs.createReadStream(CSV_PATH)
       .pipe(csv({ separator: "," }))
       .on("data", (record: AmazonProduct) => {
         const productSpecification = Array.from({ length: 5 }).map(() => ({
@@ -237,7 +223,7 @@ async function seedProducts(db: Database, shops: IShop[]) {
 
         // Parse categories and find the deepest category
         const categories = JSON.parse(record.categories) as string[];
-        const deepestCategoryPath = categories.join(".");
+        const deepestCategoryPath = categories.join("/");
         const deepestCategory = categoryMap.get(deepestCategoryPath)!;
 
         const insertForm: IProductInsertForm = {

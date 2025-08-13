@@ -2,6 +2,7 @@ import {
   CompleteProductCreationPayload,
   CreateOfferPayload,
   CreateProductPayload,
+  GetproductsByCategoryPayload,
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
@@ -56,4 +57,5 @@ export interface IProductService {
   ): Promise<IProductRecord[]>;
   toggleLike(userId: string, productId: string): Promise<void>;
   search(params: SearchPayload): Promise<any>;
+  getProductsByCategory(params: GetproductsByCategoryPayload): Promise<any>;
 }

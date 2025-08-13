@@ -1,6 +1,6 @@
 import { IProduct, IProductInsertForm } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { SearchPayload } from "src/features/product/dto";
+import { FilterOptions } from "src/features/product/dto";
 
 export interface IProductRepo {
   findByUpc(upc: string): Promise<IProduct | undefined>;
@@ -15,5 +15,8 @@ export interface IProductRepo {
   ): Promise<any>;
   findByShopId(shopId: string, limit: number, offset: number): Promise<any>;
   findWithShop(shopId: string, id: string): Promise<any>;
-  findByAdvanceFilter(params: SearchPayload): Promise<any>;
+  findByFilters(
+    query: Partial<{ categoryId: string; q: string }>,
+    filters: FilterOptions,
+  ): Promise<any>;
 }
