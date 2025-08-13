@@ -6,6 +6,7 @@ import { IProductRepo } from "../interfaces/IProductRepo";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   BrandTable,
+  CategoryTable,
   IProduct,
   IProductInsertForm,
   ProductImageTable,
@@ -167,27 +168,31 @@ export class ProductRepository implements IProductRepo {
   }
 
   async findByAdvanceFilter(params: SearchPayload) {
+    // brand filter and ranking boost if brand is provided
     let brandCondition = sql``;
     let brandBoost = sql`0`;
     if (params.brand) {
+      // match brand name (case-insensitive) and increase ranking score
       brandCondition = sql`AND LOWER(b.name) = LOWER(${params.brand})`;
       brandBoost = sql`0.5`;
     }
-
+    // Calculate search ranking based on text match and brand boost
     const finalRank = sql`ts_rank(p.vector, plainto_tsquery('english', ${params.q})) + ${brandBoost}`;
 
     const sortOptions: Record<typeof params.sort, SQL> = {
-      cheapest: sql`p.initial_price ASC`,
-      expensive: sql`p.initial_price DESC`,
-      newest: sql`p.created_at DESC`,
-      popular: sql`like_count DESC, ${finalRank} DESC`,
-      view: sql`view_count DESC, ${finalRank} DESC`,
-      relevent: sql`${finalRank} DESC`,
+      cheapest: sql`p.initial_price ASC`, // sort by lowest initial price
+      expensive: sql`p.initial_price DESC`, // sort by highest initial price
+      newest: sql`p.created_at DESC`, // sort by created at
+      popular: sql`like_count DESC, ${finalRank} DESC`, // sort by like count and relevance
+      view: sql`view_count DESC, ${finalRank} DESC`, // sort by view count and relevance
+      relevent: sql`${finalRank} DESC`, // sort by search relevance
     };
     const sortQuery = sortOptions[params.sort];
 
+    // Add price range filter if both min and max prices are provided
     let priceRangeQuery = sql``;
     if (params.prMax && params.prMin) {
+      // Filter products where the winning offer price is between min and max
       priceRangeQuery = sql`AND (
         SELECT po.final_price
         FROM ${ProductOfferTable} po
@@ -199,7 +204,6 @@ export class ProductRepository implements IProductRepo {
     const query = sql`
       SELECT
         p.*,
-        -- Winning offer with shop details
         (
           SELECT JSON_BUILD_OBJECT(
             'offer', row_to_json(po.*),
@@ -211,7 +215,6 @@ export class ProductRepository implements IProductRepo {
           LIMIT 1
         ) as winning_offer,
 
-        -- thumbnail image
         (
           SELECT pi.url
           FROM ${ProductImageTable} pi
@@ -219,9 +222,7 @@ export class ProductRepository implements IProductRepo {
           LIMIT 1
         ) as thumbnail,
 
-        -- View count
         (SELECT COUNT(*) FROM ${ShopViewTable} sv WHERE sv.product_id = p.id) as view_count,
-        -- Like count
         (SELECT COUNT(*) FROM ${ProductLikeTable} pl WHERE pl.product_id = p.id) as like_count
 
       FROM ${ProductTable} p
@@ -258,6 +259,46 @@ export class ProductRepository implements IProductRepo {
       WHERE
         p.status = 'public'
         AND p.vector @@ plainto_tsquery('english', ${q})
+    `;
+
+    const result = await this.db.execute(query);
+    return result.rows;
+  }
+
+  async findSimilarCategories(q: string, limit: number = 5) {
+    const query = sql`
+      SELECT
+        c.id,
+        c.name,
+        c.slug
+      FROM ${ProductTable} p
+      JOIN ${CategoryTable} c ON c.id = p.category_id
+      WHERE
+        p.status = 'public'
+        AND p.vector @@ plainto_tsquery('english', ${q})
+      GROUP BY c.id, c.name
+      ORDER BY COUNT(*) DESC
+      LIMIT ${limit}
+     `;
+
+    const result = await this.db.execute(query);
+    return result.rows;
+  }
+
+  async findSimilarBrands(q: string, limit: number = 5) {
+    const query = sql`
+      SELECT
+        b.id,
+        b.name,
+        b.slug
+      FROM ${ProductTable} p
+      JOIN ${BrandTable} b ON b.id = p.brand_id
+      WHERE
+        p.status = 'public'
+        AND p.vector @@ plainto_tsquery('english', ${q})
+      GROUP BY b.id, b.name
+      ORDER BY COUNT(*) DESC
+      LIMIT ${limit}
     `;
 
     const result = await this.db.execute(query);

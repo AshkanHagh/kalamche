@@ -51,6 +51,7 @@ async function seedBrands(tx: Database) {
 
   const form: IBrandInsertForm[] = BrandDatasets.map((brand) => ({
     name: brand.key,
+    slug: brand.slug,
   }));
   const brands = await tx.insert(BrandTable).values(form).returning();
 
@@ -82,6 +83,7 @@ async function seedCategories(tx: Database) {
           name,
           parentId,
           path: currentPath,
+          slug: arr[level].slug,
         };
 
         insertForm.push(form);

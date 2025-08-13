@@ -9,6 +9,7 @@ export const CategoryTable = pgTable(
     return {
       id,
       name: table.varchar({ length: 120 }).notNull(),
+      slug: table.varchar({ length: 120 }).notNull(),
       parentId: table.uuid().references((): AnyPgColumn => CategoryTable.id),
       level: table.smallint().default(0),
       path: table.text().notNull(),

@@ -368,14 +368,8 @@ export class ProductService implements IProductService {
     }
   }
 
-  // TODO: get related brand and category
   async search(params: SearchPayload) {
-    const [result, priceRangeResult] = await Promise.all([
-      await this.productRepository.findByAdvanceFilter(params),
-      await this.productRepository.findPriceRange(params.q),
-    ]);
-
-    // Both queries use the same logic; if one returns no results, the other will too
+    const result = await this.productRepository.findByAdvanceFilter(params);
     if (result.length === 0) {
       return {
         products: [],
@@ -383,10 +377,12 @@ export class ProductService implements IProductService {
       };
     }
 
-    const priceRange = {
-      min: priceRangeResult[0].min_price,
-      max: priceRangeResult[0].max_price,
-    };
+    const [priceRangeResult, similarCategories, similarBrands] =
+      await Promise.all([
+        this.productRepository.findPriceRange(params.q),
+        this.productRepository.findSimilarCategories(params.q, 5),
+        this.productRepository.findSimilarBrands(params.q, 5),
+      ]);
 
     // Check for next page by fetching one extra product beyond the limit
     const hasNext = result.length > params.limit;
@@ -395,9 +391,15 @@ export class ProductService implements IProductService {
       result.pop();
     }
 
+    const priceRange = {
+      min: priceRangeResult[0].min_price,
+      max: priceRangeResult[0].max_price,
+    };
     return {
       products: result,
       priceRange,
+      similarCategories,
+      similarBrands,
       hasNext,
     };
   }

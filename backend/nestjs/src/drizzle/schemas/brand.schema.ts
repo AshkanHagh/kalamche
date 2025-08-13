@@ -7,6 +7,7 @@ export const BrandTable = pgTable("brands", (table) => {
   return {
     id,
     name: table.varchar({ length: 120 }).notNull(),
+    slug: table.varchar({ length: 120 }).notNull(),
   };
 });
 
