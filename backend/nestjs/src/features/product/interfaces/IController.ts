@@ -2,8 +2,10 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  GetProductsByCategoryDto,
   PaginationDto,
   RedirectToProductPageDto,
+  SearchDto,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
@@ -54,6 +56,6 @@ export interface IProductController {
     params: PaginationDto,
   ): Promise<IProductRecord[]>;
   toggleLike(userId: string, productId: string): Promise<void>;
-
-  // search(query: SearchDto): Promise<SearchResponse>;
+  search(params: SearchDto): Promise<any>;
+  getProductsByCategory(params: GetProductsByCategoryDto): Promise<any>;
 }

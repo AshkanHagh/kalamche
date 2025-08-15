@@ -16,3 +16,5 @@ export * from "./wallet.schema";
 export * from "./transaction.schema";
 export * from "./temp-shop.schema";
 export * from "./shop-view.schema";
+export * from "./category.schema";
+export * from "./brand.schema";

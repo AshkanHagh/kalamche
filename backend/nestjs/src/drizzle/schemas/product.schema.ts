@@ -10,6 +10,8 @@ import { ProductLikeTable } from "./product-like-schema";
 import { IProductOfferView, ProductOfferTable } from "./product-offer.schema";
 import { ShopTable } from "./shop.schema";
 import { ShopViewTable } from "./shop-view.schema";
+import { CategoryTable, ICategory } from "./category.schema";
+import { BrandTable, IBrand } from "./brand.schema";
 
 export const ProductStatusEnum = pgEnum("product_status_enum", [
   "draft",
@@ -27,8 +29,14 @@ export const ProductTable = pgTable("products", (table) => {
     title: table.varchar({ length: 500 }).notNull(),
     description: table.text().notNull(),
     status: ProductStatusEnum().notNull().default("draft"),
-    categories: table.text().array().notNull(),
-    brand: table.text().notNull(),
+    categoryId: table
+      .uuid()
+      .notNull()
+      .references(() => CategoryTable.id),
+    brandId: table
+      .uuid()
+      .notNull()
+      .references(() => BrandTable.id),
     specifications: table
       .jsonb()
       .array()
@@ -57,6 +65,8 @@ export type IProductView = Omit<IProduct, "vector" | "initialPrice"> & {
   priceHistory: IProductPriceHistory[];
   views: number;
   likes: number;
+  brand: IBrand;
+  category: ICategory;
 };
 
 export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
@@ -69,4 +79,12 @@ export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   likes: many(ProductLikeTable),
   offers: many(ProductOfferTable),
   views: many(ShopViewTable),
+  category: one(CategoryTable, {
+    fields: [ProductTable.categoryId],
+    references: [CategoryTable.id],
+  }),
+  brand: one(BrandTable, {
+    fields: [ProductTable.brandId],
+    references: [BrandTable.id],
+  }),
 }));

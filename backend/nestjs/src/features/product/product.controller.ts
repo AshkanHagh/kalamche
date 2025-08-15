@@ -18,8 +18,10 @@ import {
   CompleteProductCreationDto,
   CreateOfferDto,
   CreateProductDto,
+  GetProductsByCategoryDto,
   PaginationDto,
   RedirectToProductPageDto,
+  SearchDto,
 } from "./dto";
 import { ProductService } from "./product.service";
 import { IProductController } from "./interfaces/IController";
@@ -124,15 +126,6 @@ export class ProductController implements IProductController {
     return { url, statusCode: 302 };
   }
 
-  @Get("/:product_id")
-  @SkipAuth()
-  @SkipPermission()
-  async getProduct(
-    @Param("product_id", new ParseUUIDPipe()) productId: string,
-  ): Promise<IProductView> {
-    return await this.productService.getProduct(productId);
-  }
-
   @ApiQuery({ type: PaginationDto })
   @Get("/similar/:product_id")
   @SkipAuth()
@@ -153,13 +146,30 @@ export class ProductController implements IProductController {
     await this.productService.toggleLike(userId, productId);
   }
 
-  // @Get("/")
-  // @SkipAuth()
-  // @SkipPermission()
-  // async search(
-  //   @Query(new ZodValidationPipe(SearchSchema)) query: SearchDto,
-  // ): Promise<SearchResponse> {
-  //   const result = await this.productService.search(query);
-  //   return result;
-  // }
+  @ApiQuery({ type: SearchDto })
+  @Get("/")
+  @SkipAuth()
+  @SkipPermission()
+  async search(@Query() params: SearchDto) {
+    return await this.productService.search(params);
+  }
+
+  @ApiQuery({ type: GetProductsByCategoryDto })
+  @Get("/category")
+  @SkipAuth()
+  @SkipPermission()
+  async getProductsByCategory(
+    @Query() params: GetProductsByCategoryDto,
+  ): Promise<any> {
+    return await this.productService.getProductsByCategory(params);
+  }
+
+  @Get("/:product_id")
+  @SkipAuth()
+  @SkipPermission()
+  async getProduct(
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+  ): Promise<IProductView> {
+    return await this.productService.getProduct(productId);
+  }
 }

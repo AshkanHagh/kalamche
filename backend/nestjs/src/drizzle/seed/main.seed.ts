@@ -4,7 +4,6 @@ import * as schema from "../schemas";
 import { IProductInsertForm, IProductOfferInsertForm } from "../schemas";
 import csv from "csv-parser";
 import fs from "node:fs";
-import path from "node:path";
 import { AmazonProduct } from "./types";
 import {
   Database,
@@ -16,6 +15,14 @@ import {
 import { faker } from "@faker-js/faker";
 import { USER_ROLE } from "src/constants/global.constant";
 import { FrTokenPlanDatasets } from "src/assets/datasets/fr-token-plans";
+import { BrandTable, IBrand, IBrandInsertForm } from "../schemas/brand.schema";
+import {
+  CategoryTable,
+  ICategory,
+  ICategoryInsertForm,
+} from "../schemas/category.schema";
+import { randomUUID } from "node:crypto";
+import { CSV_PATH } from "./constants";
 
 async function main() {
   console.log("Start seeding");
@@ -35,6 +42,109 @@ async function main() {
   console.log("Seeding completed");
   await pool.end();
   process.exit(0);
+}
+
+async function seedBrandAndCategories(tx: Database) {
+  const brands: { key: string; slug: string }[] = [];
+  const categories: { key: string; slug: string }[][] = [];
+  await new Promise<void>((resolve, reject) => {
+    fs.createReadStream(CSV_PATH)
+      .pipe(csv({ separator: "," }))
+      .on("data", (record: AmazonProduct) => {
+        brands.push({
+          key: record.brand,
+          slug: record.brand.toLowerCase().replace(/[ '&]+/g, "-"),
+        });
+
+        categories.push(
+          (JSON.parse(record.categories) as string[]).map((category) => ({
+            key: category,
+            slug: category.toLowerCase().replace(/[ '&]+/g, "-"),
+          })),
+        );
+      })
+      .on("end", () => {
+        console.log("Parsed CSV");
+        resolve();
+      })
+      .on("error", (err) => {
+        console.error("Error parsing CSV:", err.message);
+        reject(err);
+      });
+  });
+
+  const [brandMap, categoryMap] = await Promise.all([
+    seedBrands(tx, brands),
+    seedCategories(tx, categories),
+  ]);
+  return {
+    brandMap,
+    categoryMap,
+  };
+}
+
+async function seedBrands(
+  tx: Database,
+  brandDatasets: { key: string; slug: string }[],
+) {
+  console.log("Seeding brands");
+
+  const form: IBrandInsertForm[] = brandDatasets.map((brand) => ({
+    name: brand.key,
+    slug: brand.slug,
+  }));
+  const brands = await tx.insert(BrandTable).values(form).returning();
+
+  const brandMap = new Map<string, IBrand>();
+  brands.forEach((brand) => brandMap.set(brand.name, brand));
+
+  return brandMap;
+}
+
+async function seedCategories(
+  tx: Database,
+  categoryDatasets: { key: string; slug: string }[][],
+) {
+  console.log("Seeding categories");
+
+  const categoryMap = new Map<string, ICategory>();
+  const insertForm: ICategoryInsertForm[] = [];
+
+  for (const arr of categoryDatasets) {
+    let parentId: string | null = null;
+    let path = "";
+
+    for (let level = 0; level < arr.length; level++) {
+      const name = arr[level].key;
+      const currentPath = path ? `${path}/${name}` : name;
+
+      if (!categoryMap.has(currentPath)) {
+        const id = randomUUID();
+        const form = {
+          id,
+          level,
+          name,
+          parentId,
+          path: currentPath,
+          slug: arr[level].slug,
+        };
+
+        insertForm.push(form);
+        categoryMap.set(currentPath, form);
+      }
+
+      parentId = categoryMap.get(currentPath)!.id;
+      path = currentPath;
+    }
+  }
+
+  const batchSize = 50;
+  for (let i = 0; i < insertForm.length; i += batchSize) {
+    const batch = insertForm.slice(i, i + batchSize);
+    await tx.insert(CategoryTable).values(batch);
+  }
+
+  return categoryMap;
 }
 
 async function seedUsers(db: Database) {
@@ -94,18 +204,13 @@ async function seedShops(db: Database, users: IUser[]) {
 async function seedProducts(db: Database, shops: IShop[]) {
   console.log("Seeding products");
 
+  const { brandMap, categoryMap } = await seedBrandAndCategories(db);
+
   const productsInsertForm: IProductInsertForm[] = [];
   const productOffersForm: IProductOfferInsertForm[] = [];
 
-  const datasetPath = path.join(
-    __dirname,
-    "..",
-    "..",
-    "assets/datasets/amazon-products.csv",
-  );
-
   await new Promise<void>((resolve, reject) => {
-    fs.createReadStream(datasetPath)
+    fs.createReadStream(CSV_PATH)
       .pipe(csv({ separator: "," }))
       .on("data", (record: AmazonProduct) => {
         const productSpecification = Array.from({ length: 5 }).map(() => ({
@@ -115,14 +220,20 @@ async function seedProducts(db: Database, shops: IShop[]) {
 
         const randomShop =
           shops[faker.number.int({ min: 0, max: shops.length - 1 })];
+
+        // Parse categories and find the deepest category
+        const categories = JSON.parse(record.categories) as string[];
+        const deepestCategoryPath = categories.join("/");
+        const deepestCategory = categoryMap.get(deepestCategoryPath)!;
+
         const insertForm: IProductInsertForm = {
           id: crypto.randomUUID(),
           shopId: randomShop.id,
-          categories: JSON.parse(record.categories) as string[],
           description: record.description,
           title: record.title,
           specifications: productSpecification,
-          brand: record.brand,
+          categoryId: deepestCategory.id,
+          brandId: brandMap.get(record.brand)!.id,
           asin: record.asin,
           modelNumber: record.model_number,
           upc: faker.string.numeric({ length: 12 }),
