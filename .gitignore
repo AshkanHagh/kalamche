@@ -86,3 +86,4 @@ target/
 *.pdb
 
 migrations/
+TODO.txt
