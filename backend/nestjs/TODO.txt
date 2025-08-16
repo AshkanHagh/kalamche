@@ -1,7 +1,0 @@
-TODO: implements get product and unique view(a unique view last 12h) token consume
-TODO: implements price history
-TODO: implements simular product suggestion on product get
-TODO: move categories and brands to frontend
-TODO: implements my products and my shops route
-
-TODO: refactor auth util service this is a mess
