@@ -1,25 +1,42 @@
-import { Controller, Get, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  UseGuards,
+} from "@nestjs/common";
 import { UserService } from "./user.service";
 import { IUserController } from "./interfaces/IController";
-import { IUser, IUserRecord } from "src/drizzle/types";
 import { User } from "../auth/decorators/user.decorator";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
-import { PermissionGuard } from "../auth/guards/permission.guard";
-import { Permission } from "../auth/decorators/permission.decorators";
-import {
-  ResourceType,
-  USER_RESOURCE_ACTION,
-} from "src/constants/global.constant";
+import { UpdateUserDto } from "./dto";
 
 @Controller("users")
-@UseGuards(AuthorizationGuard, PermissionGuard)
+@UseGuards(AuthorizationGuard)
 export class UserController implements IUserController {
   constructor(private userService: UserService) {}
 
   @Get("/me")
-  @Permission(ResourceType.USER, USER_RESOURCE_ACTION.READ)
-  getCurrentUser(@User() user: IUser): IUserRecord {
-    const { passwordHash, updatedAt, ...rest } = user;
-    return rest;
+  async me(@User("id") userId: string) {
+    return await this.userService.me(userId);
+  }
+
+  @Get("/products/:product_id/like-status")
+  async likeStatus(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+  ): Promise<{ liked: boolean }> {
+    const result = await this.userService.likeStatus(userId, productId);
+    return { liked: result };
+  }
+
+  @Patch("/")
+  async updateUser(
+    @User("id") userId: string,
+    @Body() payload: UpdateUserDto,
+  ): Promise<any> {
+    return await this.userService.updateUser(userId, payload);
   }
 }

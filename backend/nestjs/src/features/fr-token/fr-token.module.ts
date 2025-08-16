@@ -3,7 +3,6 @@ import { FrTokenService } from "./fr-token.service";
 import { FrTokenController } from "./fr-token.controller";
 import { AuthModule } from "../auth/auth.module";
 import { RepositoryModule } from "src/repository/repository.module";
-import { DrizzleModule } from "src/drizzle/drizzle.module";
 import { ZarinpalPaymentService } from "./util-services/zarinpal-payment.service";
 import { RateLimitModule } from "../rate-limit/rate-limit.module";
 
@@ -17,7 +16,6 @@ import { RateLimitModule } from "../rate-limit/rate-limit.module";
     }),
     AuthModule,
     RepositoryModule,
-    DrizzleModule,
   ],
   controllers: [FrTokenController],
   providers: [FrTokenService, ZarinpalPaymentService],

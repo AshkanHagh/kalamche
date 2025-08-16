@@ -14,3 +14,7 @@ export const PendingUserTable = pgTable("pending_users", (table) => {
       .$onUpdateFn(() => new Date()),
   };
 });
+
+export type IPendingUser = typeof PendingUserTable.$inferSelect;
+export type IPendingUserInsertForm = typeof PendingUserTable.$inferInsert;
+export type IPendingUserUpdateForm = Partial<IPendingUserInsertForm>;

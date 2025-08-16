@@ -1,6 +1,6 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { IShopService } from "./interfaces/IService";
-import { Database, IShop, IShopRecord } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { S3Service } from "../product/services/s3.service";
 import {
@@ -13,7 +13,12 @@ import {
 import { USER_ROLE } from "src/constants/global.constant";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
-import { IProductRecord, ITempShop } from "src/drizzle/schemas";
+import {
+  IProductRecord,
+  IShop,
+  IShopRecord,
+  ITempShop,
+} from "src/drizzle/schemas";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
 import { DATABASE } from "src/drizzle/constants";
 import sharp from "sharp";

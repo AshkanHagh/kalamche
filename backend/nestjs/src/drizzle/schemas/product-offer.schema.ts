@@ -1,9 +1,8 @@
 import { pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "./schema.helper";
-import { ShopTable } from "./shop.schema";
+import { IShop, ShopTable } from "./shop.schema";
 import { ProductTable } from "./product.schema";
 import { relations } from "drizzle-orm";
-import { IShop } from "../types";
 
 export const ProductOfferStatusEnum = pgEnum("product_offer_status", [
   "active",

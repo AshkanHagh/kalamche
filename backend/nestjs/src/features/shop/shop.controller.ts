@@ -16,7 +16,6 @@ import {
   UseInterceptors,
 } from "@nestjs/common";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
-import { IShop, IShopRecord } from "src/drizzle/types";
 import { ShopService } from "./shop.service";
 import { User } from "../auth/decorators/user.decorator";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -34,7 +33,12 @@ import {
   UploadImageDto,
 } from "./dto";
 import { IShopController } from "./interfaces/IController";
-import { IProductRecord, ITempShop } from "src/drizzle/schemas";
+import {
+  IProductRecord,
+  IShop,
+  IShopRecord,
+  ITempShop,
+} from "src/drizzle/schemas";
 import { ApiParams, ApiQuery } from "src/utils/swagger-decorator";
 
 @Controller("shops")

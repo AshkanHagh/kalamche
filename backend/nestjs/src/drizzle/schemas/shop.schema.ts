@@ -40,6 +40,11 @@ export const ShopTable = pgTable("shops", (table) => {
   };
 });
 
+export type IShop = typeof ShopTable.$inferSelect;
+export type IShopInsertForm = typeof ShopTable.$inferInsert;
+export type IShopUpdateForm = Partial<IShop>;
+export type IShopRecord = Omit<IShop, "emailVerifiedAt" | "updatedAt">;
+
 export const ShopRelations = relations(ShopTable, ({ one, many }) => ({
   user: one(UserTable, {
     fields: [ShopTable.userId],

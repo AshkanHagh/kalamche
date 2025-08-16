@@ -1,10 +1,10 @@
 import {
-  Database,
   IShop,
   IShopInsertForm,
   IShopRecord,
   IShopUpdateForm,
-} from "src/drizzle/types";
+} from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 
 export interface IShopRepo {
   findByUserId(userId: string): Promise<IShop | undefined>;

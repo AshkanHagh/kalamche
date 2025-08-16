@@ -10,9 +10,8 @@ import {
   PRODUCT_RESOURCE_ACTION,
   ResourceType,
 } from "src/constants/global.constant";
-import { IUser } from "src/drizzle/types";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
-import { ITransactionRecord } from "src/drizzle/schemas";
+import { ITransactionRecord, IUser } from "src/drizzle/schemas";
 import { ApiParams } from "src/utils/swagger-decorator";
 
 @Controller("fr-token")

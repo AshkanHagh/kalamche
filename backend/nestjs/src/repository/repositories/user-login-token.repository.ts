@@ -1,11 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { DATABASE } from "src/drizzle/constants";
+import { Database } from "src/drizzle/types";
 import {
-  Database,
   IUserLoginToken,
   IUserLoginTokenInsertForm,
-} from "src/drizzle/types";
-import { UserLoginTokenTable } from "src/drizzle/schemas";
+  UserLoginTokenTable,
+} from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { IUserLoginTokenRepo } from "../interfaces/IUserLoginTokenRepo";

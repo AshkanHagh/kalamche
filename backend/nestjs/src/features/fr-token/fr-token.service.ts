@@ -5,9 +5,9 @@ import { FrTokenPlanRepository } from "src/repository/repositories/fr-token-plan
 import { PAYMENT_METHODS } from "./constants";
 import { ZarinpalPaymentService } from "./util-services/zarinpal-payment.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { Database, IUser } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { TransactionRepository } from "src/repository/repositories/transaction.repository";
-import { ITransactionRecord } from "src/drizzle/schemas";
+import { ITransactionRecord, IUser } from "src/drizzle/schemas";
 import { DATABASE } from "src/drizzle/constants";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
 

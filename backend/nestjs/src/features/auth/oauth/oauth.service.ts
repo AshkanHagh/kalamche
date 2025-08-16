@@ -6,13 +6,14 @@ import { OAuthStateRepository } from "src/repository/repositories/oauth-state.re
 import { Request, Response } from "express";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { DATABASE } from "src/drizzle/constants";
-import { Database, IUser } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { OAuthAccountRepository } from "src/repository/repositories/oauth-account.repository";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { AuthUtilService } from "../util.service";
 import { USER_ROLE } from "src/constants/global.constant";
 import { DiscordOAuthService } from "./util-services/discrod-oauth.service";
 import { HandleCallbackPayload } from "./dto";
+import { IUser } from "src/drizzle/schemas";
 
 @Injectable()
 export class OAuthService implements IOAuthService {

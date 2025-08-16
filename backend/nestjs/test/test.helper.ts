@@ -5,17 +5,13 @@ import { Database, IShopUpdateForm, IUserUpdateForm } from "src/drizzle/types";
 import {
   BrandTable,
   CategoryTable,
-  IBrandInsertForm,
-  ICategoryInsertForm,
   IProductInsertForm,
   ProductTable,
   ShopTable,
   UserTable,
 } from "src/drizzle/schemas";
-import { faker } from "@faker-js/faker/.";
+import { faker } from "@faker-js/faker";
 import { USER_ROLE } from "src/constants/global.constant";
-import { BrandDatasets } from "src/assets/datasets/brands";
-import { CategoryDatasets } from "src/assets/datasets/categories";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   process.env.NODE_ENV = "test";
@@ -71,15 +67,29 @@ export async function createProduct(
   form: Partial<IProductInsertForm>,
 ) {
   // Add brand and category to reference in the product table
-  const brandId = form.categoryId || (await createBrand(db)).id;
-  const categoryId = form.brandId || (await createCategory(db)).id;
+  const [brand] = await db
+    .insert(BrandTable)
+    .values({
+      name: faker.commerce.product(),
+      slug: faker.commerce.product().replace(/\s+/g, "-").toLowerCase(),
+    })
+    .returning();
+  const [category] = await db
+    .insert(CategoryTable)
+    .values({
+      name: faker.commerce.product(),
+      slug: faker.commerce.product().replace(/\s+/g, "-").toLowerCase(),
+      path: faker.commerce.product(),
+      level: 0,
+    })
+    .returning();
 
   const [product] = await db
     .insert(ProductTable)
     .values({
       asin: form.asin ?? "",
-      brandId,
-      categoryId,
+      brandId: brand.id,
+      categoryId: category.id,
       description: form.description ?? faker.commerce.productDescription(),
       initialPrice: form.initialPrice ?? +faker.commerce.price(),
       modelNumber: form.modelNumber ?? faker.commerce.isbn(),
@@ -96,41 +106,6 @@ export async function createProduct(
   return product;
 }
 
-export async function createCategory(
-  db: Database,
-  form?: Partial<ICategoryInsertForm>,
-) {
-  const categoryName = CategoryDatasets[0][0].key;
-  const [category] = await db
-    .insert(CategoryTable)
-    .values({
-      name: form?.name || categoryName,
-      path: form?.path || categoryName,
-      level: form?.level || 0,
-      id: form?.id || faker.string.uuid(),
-      parentId: form?.parentId || null,
-    })
-    .returning();
-
-  return category;
-}
-
-export async function createBrand(
-  db: Database,
-  form?: Partial<IBrandInsertForm>,
-) {
-  const brandName = BrandDatasets[0].key;
-  const [brand] = await db
-    .insert(BrandTable)
-    .values({
-      name: form?.name || brandName,
-      id: form?.id || brandName,
-    })
-    .returning();
-
-  return brand;
-}
-
 export async function createUser(db: Database, form: IUserUpdateForm) {
   const [newUser] = await db
     .insert(UserTable)
@@ -142,6 +117,5 @@ export async function createUser(db: Database, form: IUserUpdateForm) {
       passwordHash: form.passwordHash,
     })
     .returning();
-
   return newUser;
 }

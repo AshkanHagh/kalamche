@@ -1,4 +1,3 @@
-import { IShop, IShopRecord } from "src/drizzle/types";
 import {
   GetProductPayload,
   PaginationPayload,
@@ -6,7 +5,12 @@ import {
   UpdateShopPayload,
   UploadImagePayload,
 } from "../dto";
-import { IProductRecord, ITempShop } from "src/drizzle/schemas";
+import {
+  IProductRecord,
+  IShop,
+  IShopRecord,
+  ITempShop,
+} from "src/drizzle/schemas";
 
 export interface IShopService {
   createShop(userId: string): Promise<ITempShop>;

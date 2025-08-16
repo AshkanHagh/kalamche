@@ -1,5 +1,7 @@
-import { IUser, IUserRecord } from "src/drizzle/types";
+import { UpdateUserDto } from "../dto";
 
 export interface IUserController {
-  getCurrentUser(user: IUser): IUserRecord;
+  me(userId: string): Promise<any>;
+  likeStatus(userId: string, productId: string): Promise<{ liked: boolean }>;
+  updateUser(userId: string, payload: UpdateUserDto): Promise<any>;
 }

@@ -1,4 +1,4 @@
-import { IUserRecord } from "src/drizzle/types";
+import { IUserRecord } from "src/drizzle/schemas";
 
 export type LoginPendingResponse = {
   token: string;

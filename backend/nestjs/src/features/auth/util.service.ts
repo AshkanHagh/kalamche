@@ -4,11 +4,12 @@ import * as jwt from "jsonwebtoken";
 import { EmailService } from "../email/email.service";
 import { CookieOptions, Request, Response } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { Database, IUser, IUserInsertForm } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
+import { IUser, IUserInsertForm } from "src/drizzle/schemas";
 
 export class AuthUtilService {
   constructor(

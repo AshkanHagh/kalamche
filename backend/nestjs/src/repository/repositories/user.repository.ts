@@ -1,12 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { Database } from "src/drizzle/types";
+import { DATABASE } from "src/drizzle/constants";
 import {
-  Database,
   IUser,
   IUserInsertForm,
   IUserUpdateForm,
-} from "src/drizzle/types";
-import { DATABASE } from "src/drizzle/constants";
-import { UserTable } from "src/drizzle/schemas";
+  UserTable,
+} from "src/drizzle/schemas";
 import { eq, sql } from "drizzle-orm";
 import { IUserRepo } from "../interfaces/IUserRepo";
 

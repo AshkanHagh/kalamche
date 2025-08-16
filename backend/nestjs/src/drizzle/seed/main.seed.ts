@@ -1,17 +1,18 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "../schemas";
-import { IProductInsertForm, IProductOfferInsertForm } from "../schemas";
-import csv from "csv-parser";
-import fs from "node:fs";
-import { AmazonProduct } from "./types";
 import {
-  Database,
+  IProductInsertForm,
+  IProductOfferInsertForm,
   IShop,
   IShopInsertForm,
   IUser,
   IUserInsertForm,
-} from "../types";
+} from "../schemas";
+import csv from "csv-parser";
+import fs from "node:fs";
+import { AmazonProduct } from "./types";
+import { Database } from "../types";
 import { faker } from "@faker-js/faker";
 import { USER_ROLE } from "src/constants/global.constant";
 import { FrTokenPlanDatasets } from "src/assets/datasets/fr-token-plans";
