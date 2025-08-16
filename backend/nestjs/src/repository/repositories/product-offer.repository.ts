@@ -33,16 +33,21 @@ export class ProductOfferRepository implements IProductOfferRepo {
     return offer;
   }
 
-  async findByProductId(productId: string) {
-    const [offers] = await this.db
+  async findShopProductOffer(shopId: string, productId: string) {
+    const [offer] = await this.db
       .select()
       .from(ProductOfferTable)
-      .where(eq(ProductOfferTable.productId, productId));
-    if (!offers) {
+      .where(
+        and(
+          eq(ProductOfferTable.productId, productId),
+          eq(ProductOfferTable.shopId, shopId),
+        ),
+      );
+    if (!offer) {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    return offers;
+    return offer;
   }
 
   async isByboxWinner(
@@ -71,5 +76,20 @@ export class ProductOfferRepository implements IProductOfferRepo {
         .where(eq(ProductOfferTable.productId, productId));
       return true;
     }
+  }
+
+  async deleteByProductAndShopId(
+    tx: Database,
+    shopId: string,
+    productId: string,
+  ) {
+    await tx
+      .delete(ProductOfferTable)
+      .where(
+        and(
+          eq(ProductOfferTable.productId, productId),
+          eq(ProductOfferTable.shopId, shopId),
+        ),
+      );
   }
 }

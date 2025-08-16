@@ -4,10 +4,18 @@ import { Database } from "src/drizzle/types";
 export interface IProductOfferRepo {
   checkShopOfferExists(shopId: string, productId: string): Promise<boolean>;
   insert(tx: Database, form: IProductOfferInsertForm): Promise<IProductOffer>;
-  findByProductId(productId: string): Promise<IProductOffer>;
+  findShopProductOffer(
+    shopId: string,
+    productId: string,
+  ): Promise<IProductOffer>;
   isByboxWinner(
     tx: Database,
     productId: string,
     finalPrice: number,
   ): Promise<boolean>;
+  deleteByProductAndShopId(
+    tx: Database,
+    shopId: string,
+    productId: string,
+  ): Promise<void>;
 }

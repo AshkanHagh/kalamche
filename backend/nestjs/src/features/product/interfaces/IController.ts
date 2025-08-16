@@ -59,4 +59,5 @@ export interface IProductController {
   search(params: SearchDto): Promise<any>;
   getProductsByCategory(params: GetProductsByCategoryDto): Promise<any>;
   deleteTempProduct(userId: string, tempProductId: string): Promise<void>;
+  deleteProduct(userId: string, productId: string): Promise<void>;
 }

@@ -76,6 +76,13 @@ export class ProductImageRepository implements IProductImageRepo {
       .returning();
   }
 
+  async delete(tx: Database, productId: string) {
+    return await tx
+      .delete(ProductImageTable)
+      .where(eq(ProductImageTable.productId, productId))
+      .returning();
+  }
+
   #buildProductImageQuery(productId: string, isTemp: boolean) {
     let query: SQL = eq(ProductImageTable.id, productId);
     if (isTemp) {

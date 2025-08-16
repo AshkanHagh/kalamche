@@ -59,4 +59,5 @@ export interface IProductService {
   search(params: SearchPayload): Promise<any>;
   getProductsByCategory(params: GetproductsByCategoryPayload): Promise<any>;
   deleteTempProduct(userId: string, tempProductId: string): Promise<void>;
+  deleteProduct(userId: string, productId: string): Promise<void>;
 }

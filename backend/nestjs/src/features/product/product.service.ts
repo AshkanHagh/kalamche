@@ -108,6 +108,7 @@ export class ProductService implements IProductService {
       throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
     }
 
+    // TODO: move to utils
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let asin = characters.charAt(Math.floor(Math.random() * 26));
     for (let i = 0; i < 9; i++) {
@@ -301,7 +302,10 @@ export class ProductService implements IProductService {
 
     const [shop, offer] = await Promise.all([
       this.shopRepository.findById(params.shopId),
-      this.productOfferRepository.findByProductId(params.productId),
+      this.productOfferRepository.findShopProductOffer(
+        params.shopId,
+        params.productId,
+      ),
       this.productRepository.exists(params.productId),
     ]);
 
@@ -461,6 +465,34 @@ export class ProductService implements IProductService {
         tempProduct.id,
       );
 
+      await Promise.all(
+        deletedImages.map((image) => {
+          return this.s3Service.delete(image.id);
+        }),
+      );
+    });
+  }
+
+  async deleteProduct(userId: string, productId: string): Promise<void> {
+    const product = await this.productRepository.findById(productId);
+
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
+    await this.db.transaction(async (tx) => {
+      await this.productOfferRepository.deleteByProductAndShopId(
+        tx,
+        product.shopId!,
+        product.id,
+      );
+      // remove the access to product
+      await this.productRepository.update(tx, product.id, {
+        shopId: null,
+      });
+
+      const deletedImages = await this.productImageRepository.delete(
+        tx,
+        product.id,
+      );
       await Promise.all(
         deletedImages.map((image) => {
           return this.s3Service.delete(image.id);

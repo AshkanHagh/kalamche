@@ -182,4 +182,13 @@ export class ProductController implements IProductController {
   ): Promise<void> {
     await this.productService.deleteTempProduct(userId, tempProductId);
   }
+
+  @Delete("/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.DELETE)
+  async deleteProduct(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) tempProductId: string,
+  ): Promise<void> {
+    await this.productService.deleteProduct(userId, tempProductId);
+  }
 }
