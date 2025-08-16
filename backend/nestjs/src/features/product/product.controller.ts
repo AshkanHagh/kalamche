@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseBoolPipe,
@@ -171,5 +172,14 @@ export class ProductController implements IProductController {
     @Param("product_id", new ParseUUIDPipe()) productId: string,
   ): Promise<IProductView> {
     return await this.productService.getProduct(productId);
+  }
+
+  @Delete("/temp/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.DELETE)
+  async deleteTempProduct(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) tempProductId: string,
+  ): Promise<void> {
+    await this.productService.deleteTempProduct(userId, tempProductId);
   }
 }

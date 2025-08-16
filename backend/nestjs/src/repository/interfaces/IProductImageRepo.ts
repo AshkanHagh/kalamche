@@ -25,4 +25,5 @@ export interface IProductImageRepo {
     tempProductId: string,
     form: IProductImageUpdateForm,
   ): Promise<void>;
+  deleteTemp(tx: Database, productId: string): Promise<IProductImage[]>;
 }

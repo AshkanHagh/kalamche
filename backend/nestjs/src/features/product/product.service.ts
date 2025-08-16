@@ -447,4 +447,25 @@ export class ProductService implements IProductService {
       hasNext,
     };
   }
+
+  async deleteTempProduct(userId: string, tempProductId: string) {
+    const tempProduct =
+      await this.tempProductRepository.findById(tempProductId);
+
+    await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
+
+    await this.db.transaction(async (tx) => {
+      await this.tempProductRepository.delete(tx, tempProduct.id);
+      const deletedImages = await this.productImageRepository.deleteTemp(
+        tx,
+        tempProduct.id,
+      );
+
+      await Promise.all(
+        deletedImages.map((image) => {
+          return this.s3Service.delete(image.id);
+        }),
+      );
+    });
+  }
 }

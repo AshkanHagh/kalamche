@@ -58,4 +58,5 @@ export interface IProductService {
   toggleLike(userId: string, productId: string): Promise<void>;
   search(params: SearchPayload): Promise<any>;
   getProductsByCategory(params: GetproductsByCategoryPayload): Promise<any>;
+  deleteTempProduct(userId: string, tempProductId: string): Promise<void>;
 }
