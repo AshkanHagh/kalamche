@@ -31,6 +31,11 @@ export const UserTable = pgTable(
   (table) => [index("idx_user_email").on(table.email)],
 );
 
+export type IUser = typeof UserTable.$inferSelect;
+export type IUserInsertForm = typeof UserTable.$inferInsert;
+export type IUserUpdateForm = Partial<IUser>;
+export type IUserRecord = Omit<IUser, "passwordHash" | "updatedAt">;
+
 export const UserRelations = relations(UserTable, ({ one, many }) => ({
   oauthAccount: one(OAuthAccountTable),
   loginToken: one(UserLoginTokenTable),

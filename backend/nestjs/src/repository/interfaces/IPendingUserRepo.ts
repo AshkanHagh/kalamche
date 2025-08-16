@@ -1,9 +1,9 @@
+import { Database } from "src/drizzle/types";
 import {
-  Database,
   IPendingUser,
   IPendingUserInsertForm,
   IPendingUserUpdateForm,
-} from "src/drizzle/types";
+} from "src/drizzle/schemas";
 
 export interface IPendingUserRepo {
   findByEmail(email: string): Promise<IPendingUser | undefined>;

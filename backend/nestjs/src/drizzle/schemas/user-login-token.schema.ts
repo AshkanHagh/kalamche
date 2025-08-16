@@ -19,6 +19,9 @@ export const UserLoginTokenTable = pgTable("user_login_tokens", (table) => {
   };
 });
 
+export type IUserLoginToken = typeof UserLoginTokenTable.$inferSelect;
+export type IUserLoginTokenInsertForm = typeof UserLoginTokenTable.$inferInsert;
+
 export const UserLoginTokenRelations = relations(
   UserLoginTokenTable,
   ({ one }) => ({

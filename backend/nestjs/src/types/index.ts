@@ -1,4 +1,4 @@
-import { IUser } from "src/drizzle/types";
+import { IUser } from "src/drizzle/schemas";
 
 declare global {
   // eslint-disable-next-line

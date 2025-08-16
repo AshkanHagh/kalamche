@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 import { Request } from "express";
-import { IUser } from "src/drizzle/types";
+import { IUser } from "src/drizzle/schemas";
 
 export const User = createParamDecorator(
   (user: keyof IUser | undefined, ctx: ExecutionContext) => {

@@ -1,12 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { Database } from "src/drizzle/types";
+import { DATABASE } from "src/drizzle/constants";
 import {
-  Database,
   IPendingUser,
   IPendingUserInsertForm,
   IPendingUserUpdateForm,
-} from "src/drizzle/types";
-import { DATABASE } from "src/drizzle/constants";
-import { PendingUserTable } from "src/drizzle/schemas";
+  PendingUserTable,
+} from "src/drizzle/schemas";
 import { eq } from "drizzle-orm";
 import { IPendingUserRepo } from "../interfaces/IPendingUserRepo";
 

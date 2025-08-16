@@ -1,8 +1,8 @@
 import {
-  Database,
   IUserLoginToken,
   IUserLoginTokenInsertForm,
-} from "src/drizzle/types";
+} from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 
 export interface IUserLoginTokenRepo {
   findByUserId(userId: string): Promise<IUserLoginToken>;

@@ -1,14 +1,17 @@
 import {
+  Body,
   Controller,
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   UseGuards,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 import { IUserController } from "./interfaces/IController";
 import { User } from "../auth/decorators/user.decorator";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
+import { UpdateUserDto } from "./dto";
 
 @Controller("users")
 @UseGuards(AuthorizationGuard)
@@ -27,5 +30,13 @@ export class UserController implements IUserController {
   ): Promise<{ liked: boolean }> {
     const result = await this.userService.likeStatus(userId, productId);
     return { liked: result };
+  }
+
+  @Patch("/")
+  async updateUser(
+    @User("id") userId: string,
+    @Body() payload: UpdateUserDto,
+  ): Promise<any> {
+    return await this.userService.updateUser(userId, payload);
   }
 }

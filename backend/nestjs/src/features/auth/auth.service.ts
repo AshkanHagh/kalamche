@@ -7,7 +7,7 @@ import {
   VerifyEmailRegistrationDto,
 } from "./dto";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { Database, IPendingUser } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { AuthUtilService } from "./util.service";
 import {
@@ -24,6 +24,7 @@ import { UserRepository } from "src/repository/repositories/user.repository";
 import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 import { DATABASE } from "src/drizzle/constants";
+import { IPendingUser } from "src/drizzle/schemas";
 
 @Injectable()
 export class AuthService implements IAuthService {

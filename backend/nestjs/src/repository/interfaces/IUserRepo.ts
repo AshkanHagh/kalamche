@@ -1,9 +1,5 @@
-import {
-  Database,
-  IUser,
-  IUserInsertForm,
-  IUserUpdateForm,
-} from "src/drizzle/types";
+import { IUser, IUserInsertForm, IUserUpdateForm } from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 
 export interface IUserRepo {
   emailExists(email: string): Promise<boolean>;

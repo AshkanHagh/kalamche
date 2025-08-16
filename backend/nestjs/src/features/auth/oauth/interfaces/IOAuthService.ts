@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { HandleCallbackPayload } from "../dto";
-import { IUserRecord } from "src/drizzle/types";
+import { IUserRecord } from "src/drizzle/schemas";
 
 export interface IOAuthService {
   initiateOAuth(provider: string): Promise<string>;
