@@ -1,1 +1,3 @@
-export interface IUserService {}
+export interface IUserService {
+  me(userId: string): Promise<any>;
+}

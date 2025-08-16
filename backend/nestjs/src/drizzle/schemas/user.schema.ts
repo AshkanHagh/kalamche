@@ -7,18 +7,17 @@ import { ShopTable } from "./shop.schema";
 import { ProductLikeTable } from "./product-like-schema";
 import { OAuthAccountTable } from "./oauth-account.schema";
 import { TempShopTable } from "./temp-shop.schema";
+import { WalletTable } from "./wallet.schema";
 
 export const UserRoleEnum = pgEnum("user_roles_enum", USER_ROLE);
 
-// TODO: make email unique
 export const UserTable = pgTable(
   "users",
   (table) => {
     return {
       id,
       name: table.varchar({ length: 255 }).notNull(),
-      // not unique because user can have 2 account with one email(regular auth, oauth)
-      email: table.varchar({ length: 255 }).notNull(),
+      email: table.varchar({ length: 255 }).unique().notNull(),
       roles: UserRoleEnum().array().notNull(),
       passwordHash: table.text(),
       createdAt: table.timestamp().notNull().defaultNow(),
@@ -38,4 +37,5 @@ export const UserRelations = relations(UserTable, ({ one, many }) => ({
   shop: one(ShopTable),
   likedProducts: many(ProductLikeTable),
   tempShop: one(TempShopTable),
+  wallet: one(WalletTable),
 }));

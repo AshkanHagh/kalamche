@@ -6,29 +6,24 @@ import {
 } from "@nestjs/common";
 import { Request } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { AuthUtilService } from "../util.service";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
-import { UserRepository } from "src/repository/repositories/user.repository";
 import { Reflector } from "@nestjs/core";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
+import jwt from "jsonwebtoken";
+import { eq } from "drizzle-orm";
+import { UserTable } from "src/drizzle/schemas";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
-    private userRepository: UserRepository,
-    private authUtilService: AuthUtilService,
-    @AuthConfig() private config: IAuthConfig,
     private reflector: Reflector,
+    @AuthConfig() private config: IAuthConfig,
     @Inject(DATABASE) private db: Database,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const skipAuth = this.reflector.get<boolean>(
-      "skip-auth",
-      context.getHandler(),
-    );
-    if (skipAuth) {
+    if (this.reflector.get<boolean>("skip-auth", context.getHandler())) {
       return true;
     }
 
@@ -40,11 +35,20 @@ export class AuthorizationGuard implements CanActivate {
     }
 
     const accessToken = token.split("Bearer ")[1];
-    const payload = this.authUtilService.verifyToken(
-      accessToken,
-      this.config.accessToken.secret!,
-    );
-    const user = await this.userRepository.findById(this.db, payload.userId);
+    let tokenPayload: { userId: string };
+    try {
+      tokenPayload = jwt.verify(
+        accessToken,
+        this.config.accessToken.secret!,
+      ) as { userId: string };
+    } catch (error) {
+      throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
+    }
+
+    const [user] = await this.db
+      .select()
+      .from(UserTable)
+      .where(eq(UserTable.id, tokenPayload.userId));
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }

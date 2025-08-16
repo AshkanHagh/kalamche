@@ -12,6 +12,8 @@ import { DiscordOAuthService } from "./oauth/util-services/discrod-oauth.service
 import { RateLimitModule } from "../rate-limit/rate-limit.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
+import { AuthorizationGuard } from "./guards/authorization.guard";
+import { PermissionGuard } from "./guards/permission.guard";
 
 @Module({
   imports: [
@@ -28,6 +30,8 @@ import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
   providers: [
     AuthService,
     AuthUtilService,
+    PermissionGuard,
+    AuthorizationGuard,
     OAuthService,
     GithubOAuthService,
     DiscordOAuthService,
@@ -37,6 +41,6 @@ import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
     },
   ],
   controllers: [AuthController, OauthController],
-  exports: [AuthUtilService],
+  exports: [AuthorizationGuard, PermissionGuard],
 })
 export class AuthModule {}
