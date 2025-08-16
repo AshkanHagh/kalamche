@@ -2,10 +2,14 @@ import { Inject, Injectable } from "@nestjs/common";
 import { IUserService } from "./interfaces/IService";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
+import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 
 @Injectable()
 export class UserService implements IUserService {
-  constructor(@Inject(DATABASE) private db: Database) {}
+  constructor(
+    @Inject(DATABASE) private db: Database,
+    private productLikeRepository: ProductLikeRepository,
+  ) {}
 
   async me(userId: string) {
     const result = await this.db.query.UserTable.findFirst({
@@ -19,5 +23,9 @@ export class UserService implements IUserService {
     });
 
     return result;
+  }
+
+  async likeStatus(userId: string, productId: string): Promise<boolean> {
+    return await this.productLikeRepository.exists(userId, productId);
   }
 }
