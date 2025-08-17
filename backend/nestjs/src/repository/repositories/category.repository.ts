@@ -49,4 +49,8 @@ export class CategoryRepository implements ICategoryRepo {
       )
       .orderBy(asc(CategoryTable.level));
   }
+
+  async findAll(): Promise<ICategory[]> {
+    return await this.db.select().from(CategoryTable);
+  }
 }

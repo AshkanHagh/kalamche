@@ -44,9 +44,15 @@ import {
 import { Request } from "express";
 import { SkipAuth } from "../auth/decorators/skip-auth.decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
-import { IProduct, IProductRecord, IProductView } from "src/drizzle/schemas";
+import {
+  IBrand,
+  ICategory,
+  IProduct,
+  IProductRecord,
+  IProductView,
+} from "src/drizzle/schemas";
 import { ApiFile, ApiParams, ApiQuery } from "src/utils/swagger-decorator";
-import { MAX_IMAGE_SIZE } from "./constants";
+import { MAX_IMAGE_SIZE, MAX_IMAGES } from "./constants";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -89,16 +95,24 @@ export class ProductController implements IProductController {
 
   @Post("/images/:product_id")
   @UseInterceptors(
-    FileFieldsInterceptor([
+    FileFieldsInterceptor(
+      [
+        {
+          name: "thumbnailImage",
+          maxCount: 1,
+        },
+        {
+          name: "images",
+          maxCount: 5,
+        },
+      ],
       {
-        name: "thumbnailImage",
-        maxCount: 1,
+        limits: {
+          fileSize: MAX_IMAGE_SIZE,
+          fieldSize: MAX_IMAGE_SIZE * MAX_IMAGES,
+        },
       },
-      {
-        name: "images",
-        maxCount: 5,
-      },
-    ]),
+    ),
   )
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
   async uploadImages(
@@ -162,14 +176,29 @@ export class ProductController implements IProductController {
     return await this.productService.search(params);
   }
 
+  @Get("/brands")
+  @SkipAuth()
+  @SkipPermission()
+  async getBrands(): Promise<IBrand[]> {
+    return await this.productService.getBrands();
+  }
+
+  @Get("/categories")
+  @SkipAuth()
+  @SkipPermission()
+  async getCategories(): Promise<ICategory[]> {
+    return await this.productService.getCategories();
+  }
+
   @ApiQuery({ type: GetProductsByCategoryDto })
-  @Get("/category")
+  @Get("/categories/:slug")
   @SkipAuth()
   @SkipPermission()
   async getProductsByCategory(
+    @Param("slug") slug: string,
     @Query() params: GetProductsByCategoryDto,
   ): Promise<any> {
-    return await this.productService.getProductsByCategory(params);
+    return await this.productService.getProductsByCategory(slug, params);
   }
 
   @Get("/:product_id")

@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { IBrandRepo } from "../interfaces/IBrandRepo";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import { BrandTable, ProductTable } from "src/drizzle/schemas";
+import { BrandTable, IBrand, ProductTable } from "src/drizzle/schemas";
 import { and, count, desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 
@@ -42,5 +42,9 @@ export class BrandRepository implements IBrandRepo {
       .limit(limit);
 
     return brands;
+  }
+
+  async findAll(): Promise<IBrand[]> {
+    return await this.db.select().from(BrandTable);
   }
 }

@@ -6,4 +6,5 @@ export interface IBrandRepo {
     query: Partial<{ categoryId: string; q: string }>,
     limit: number,
   ): Promise<IBrand[]>;
+  findAll(): Promise<IBrand[]>;
 }

@@ -25,7 +25,12 @@ import { MAX_IMAGES, MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
-import { IProduct, IProductRecord, IProductView } from "src/drizzle/schemas";
+import {
+  IBrand,
+  IProduct,
+  IProductRecord,
+  IProductView,
+} from "src/drizzle/schemas";
 import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 import { CategoryRepository } from "src/repository/repositories/category.repository";
 import { BrandRepository } from "src/repository/repositories/brand.repository";
@@ -408,13 +413,16 @@ export class ProductService implements IProductService {
     };
   }
 
-  async getProductsByCategory(params: GetproductsByCategoryPayload) {
+  async getProductsByCategory(
+    slug: string,
+    params: GetproductsByCategoryPayload,
+  ) {
     const notFoundResult = {
       products: [],
       hasNext: false,
     };
 
-    const category = await this.categoryRepository.findBySlug(params.category);
+    const category = await this.categoryRepository.findBySlug(slug);
     if (!category) {
       return notFoundResult;
     }
@@ -428,7 +436,7 @@ export class ProductService implements IProductService {
 
     const [priceRangeResult, similarBrands, similarCategories] =
       await Promise.all([
-        this.productRepository.findPriceRange(params.category),
+        this.productRepository.findPriceRange(slug),
         this.brandRepository.findSimilarBrands({ categoryId: category.id }, 5),
         this.categoryRepository.findHierarchy(category.path),
       ]);
@@ -550,5 +558,13 @@ export class ProductService implements IProductService {
 
       await this.s3Service.delete(image.id);
     });
+  }
+
+  async getCategories() {
+    return await this.categoryRepository.findAll();
+  }
+
+  async getBrands(): Promise<IBrand[]> {
+    return await this.brandRepository.findAll();
   }
 }

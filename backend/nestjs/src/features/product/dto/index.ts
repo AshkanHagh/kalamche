@@ -85,18 +85,8 @@ export const PaginationSchema = z.object({
 export type PaginationPayload = z.infer<typeof PaginationSchema>;
 export class PaginationDto extends createZodDto(PaginationSchema) {}
 
-export const GetProductsByCategorySchema = z
-  .object({
-    category: z.string().max(255),
-  })
-  .merge(FilterSchema);
-
-export type GetproductsByCategoryPayload = z.infer<
-  typeof GetProductsByCategorySchema
->;
-export class GetProductsByCategoryDto extends createZodDto(
-  GetProductsByCategorySchema,
-) {}
+export type GetproductsByCategoryPayload = z.infer<typeof FilterSchema>;
+export class GetProductsByCategoryDto extends createZodDto(FilterSchema) {}
 
 export const UpdateProductSchema = z.object({
   title: z.string().max(500).optional(),
