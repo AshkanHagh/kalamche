@@ -1,4 +1,8 @@
+import { applyDecorators } from "@nestjs/common";
 import {
+  ApiBody as SwaggerApiBody,
+  ApiBodyOptions,
+  ApiConsumes,
   ApiParam,
   ApiParamOptions,
   ApiQueryOptions,
@@ -29,4 +33,17 @@ export function ApiQuery(options?: ApiQueryOptions) {
     required: true,
     ...options,
   });
+}
+
+/**
+ * Add Swagger decorator for file uploads (e.g., images) to display in Swagger UI
+ * Supports @UploadedFile decorator
+ */
+export function ApiFile(fieldname: string, options?: ApiBodyOptions) {
+  return applyDecorators(
+    ApiConsumes("multipart/form-data"),
+    SwaggerApiBody({
+      ...options,
+    }),
+  );
 }

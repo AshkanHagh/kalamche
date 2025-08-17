@@ -8,6 +8,7 @@ import {
   BrandTable,
   IProduct,
   IProductInsertForm,
+  IProductUpdateForm,
   ProductImageTable,
   ProductLikeTable,
   ProductOfferTable,
@@ -277,5 +278,15 @@ export class ProductRepository implements IProductRepo {
       );
 
     return range;
+  }
+
+  async update(tx: Database, id: string, form: IProductUpdateForm) {
+    return (
+      await tx
+        .update(ProductTable)
+        .set(form)
+        .where(eq(ProductTable.id, id))
+        .returning()
+    )[0];
   }
 }

@@ -33,6 +33,7 @@ export const ProductOfferTable = pgTable("product_offers", (table) => {
 
 export type IProductOffer = typeof ProductOfferTable.$inferSelect;
 export type IProductOfferInsertForm = typeof ProductOfferTable.$inferInsert;
+export type IProductOfferUpdateForm = Partial<IProductOffer>;
 export type IProductOfferView = Omit<IProductOffer, "pageUrl"> & {
   shop: IShop;
 };

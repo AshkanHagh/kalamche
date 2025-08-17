@@ -8,6 +8,8 @@ import {
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
+  UpdateOfferPayload,
+  UpdateProductPayload,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -20,11 +22,17 @@ import { ProductImageRepository } from "src/repository/repositories/product-imag
 import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
+import { MAX_IMAGES, MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
-import { IProductRecord, IProductView } from "src/drizzle/schemas";
+import {
+  IBrand,
+  IProduct,
+  IProductOffer,
+  IProductRecord,
+  IProductView,
+} from "src/drizzle/schemas";
 import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 import { CategoryRepository } from "src/repository/repositories/category.repository";
 import { BrandRepository } from "src/repository/repositories/brand.repository";
@@ -108,6 +116,7 @@ export class ProductService implements IProductService {
       throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
     }
 
+    // TODO: move to utils
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     let asin = characters.charAt(Math.floor(Math.random() * 26));
     for (let i = 0; i < 9; i++) {
@@ -132,9 +141,10 @@ export class ProductService implements IProductService {
       });
 
       const uploadedImages =
-        await this.productImageRepository.findManyByTempProductId(
+        await this.productImageRepository.findManyByProductId(
           tx,
           tempProduct.id,
+          true,
         );
       uploadedImages.map((image) => {
         imageUpdateTasks.push(
@@ -234,8 +244,6 @@ export class ProductService implements IProductService {
       images: Express.Multer.File[];
     },
   ) {
-    // Regular images limit
-    const MAX_IMAGES = 5;
     // Check for user uploaded images limit
     const [existingThumbnail, totalExistingImages] = await Promise.all([
       this.productImageRepository.isThumbnailExists(productId, isTemp),
@@ -301,7 +309,10 @@ export class ProductService implements IProductService {
 
     const [shop, offer] = await Promise.all([
       this.shopRepository.findById(params.shopId),
-      this.productOfferRepository.findByProductId(params.productId),
+      this.productOfferRepository.findShopProductOffer(
+        params.shopId,
+        params.productId,
+      ),
       this.productRepository.exists(params.productId),
     ]);
 
@@ -404,13 +415,16 @@ export class ProductService implements IProductService {
     };
   }
 
-  async getProductsByCategory(params: GetproductsByCategoryPayload) {
+  async getProductsByCategory(
+    slug: string,
+    params: GetproductsByCategoryPayload,
+  ) {
     const notFoundResult = {
       products: [],
       hasNext: false,
     };
 
-    const category = await this.categoryRepository.findBySlug(params.category);
+    const category = await this.categoryRepository.findBySlug(slug);
     if (!category) {
       return notFoundResult;
     }
@@ -424,7 +438,7 @@ export class ProductService implements IProductService {
 
     const [priceRangeResult, similarBrands, similarCategories] =
       await Promise.all([
-        this.productRepository.findPriceRange(params.category),
+        this.productRepository.findPriceRange(slug),
         this.brandRepository.findSimilarBrands({ categoryId: category.id }, 5),
         this.categoryRepository.findHierarchy(category.path),
       ]);
@@ -446,5 +460,127 @@ export class ProductService implements IProductService {
       similarCategories,
       hasNext,
     };
+  }
+
+  async deleteTempProduct(userId: string, tempProductId: string) {
+    const tempProduct =
+      await this.tempProductRepository.findById(tempProductId);
+
+    await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
+
+    await this.db.transaction(async (tx) => {
+      await this.tempProductRepository.delete(tx, tempProduct.id);
+      const deletedImages = await this.productImageRepository.deleteByProductId(
+        tx,
+        tempProduct.id,
+        true,
+      );
+
+      await Promise.all(
+        deletedImages.map((image) => {
+          return this.s3Service.delete(image.id);
+        }),
+      );
+    });
+  }
+
+  async deleteProduct(userId: string, productId: string): Promise<void> {
+    const product = await this.productRepository.findById(productId);
+
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
+    await this.db.transaction(async (tx) => {
+      await this.productOfferRepository.deleteByProductAndShopId(
+        tx,
+        product.shopId!,
+        product.id,
+      );
+      // remove the access to product
+      await this.productRepository.update(tx, product.id, {
+        shopId: null,
+      });
+
+      const deletedImages = await this.productImageRepository.deleteByProductId(
+        tx,
+        product.id,
+        false,
+      );
+      await Promise.all(
+        deletedImages.map((image) => {
+          return this.s3Service.delete(image.id);
+        }),
+      );
+    });
+  }
+
+  async updateProduct(
+    userId: string,
+    productId: string,
+    payload: UpdateProductPayload,
+  ): Promise<IProduct> {
+    const product = await this.productRepository.findById(productId);
+
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
+    // Check if brand or category exist; throw error if not found
+    if (payload.brandId) {
+      await this.brandRepository.exists(payload.brandId);
+    }
+    if (payload.categoryId) {
+      await this.categoryRepository.exists(payload.categoryId);
+    }
+
+    return await this.productRepository.update(this.db, product.id, {
+      ...payload,
+    });
+  }
+
+  async updateProductImage(
+    userId: string,
+    productId: string,
+    imageId: string,
+    imageFile: Express.Multer.File,
+  ): Promise<void> {
+    const product = await this.productRepository.findById(productId);
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
+    await this.db.transaction(async (tx) => {
+      const image = await this.productImageRepository.delete(tx, imageId);
+      if (!image) {
+        throw new KalamcheError(KalamcheErrorType.NotFound);
+      }
+
+      await this.productUtilService.processImageUpload(
+        imageFile,
+        image.isThumbnail,
+        product.id,
+        false,
+        tx,
+      );
+
+      await this.s3Service.delete(image.id);
+    });
+  }
+
+  async getCategories() {
+    return await this.categoryRepository.findAll();
+  }
+
+  async getBrands(): Promise<IBrand[]> {
+    return await this.brandRepository.findAll();
+  }
+
+  async updateOffer(
+    userId: string,
+    offerId: string,
+    payload: UpdateOfferPayload,
+  ): Promise<IProductOffer> {
+    const offer = await this.productOfferRepository.find(offerId);
+
+    await this.productUtilService.userHasPermission(userId, offer.shopId);
+
+    return await this.productOfferRepository.update(offerId, {
+      ...payload,
+    });
   }
 }

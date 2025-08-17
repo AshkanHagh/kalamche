@@ -3,7 +3,9 @@ import { IProductOfferRepo } from "../interfaces/IProductOfferRepo";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import {
+  IProductOffer,
   IProductOfferInsertForm,
+  IProductOfferUpdateForm,
   ProductOfferTable,
 } from "src/drizzle/schemas";
 import { and, eq, lt } from "drizzle-orm";
@@ -33,16 +35,21 @@ export class ProductOfferRepository implements IProductOfferRepo {
     return offer;
   }
 
-  async findByProductId(productId: string) {
-    const [offers] = await this.db
+  async findShopProductOffer(shopId: string, productId: string) {
+    const [offer] = await this.db
       .select()
       .from(ProductOfferTable)
-      .where(eq(ProductOfferTable.productId, productId));
-    if (!offers) {
+      .where(
+        and(
+          eq(ProductOfferTable.productId, productId),
+          eq(ProductOfferTable.shopId, shopId),
+        ),
+      );
+    if (!offer) {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    return offers;
+    return offer;
   }
 
   async isByboxWinner(
@@ -71,5 +78,43 @@ export class ProductOfferRepository implements IProductOfferRepo {
         .where(eq(ProductOfferTable.productId, productId));
       return true;
     }
+  }
+
+  async deleteByProductAndShopId(
+    tx: Database,
+    shopId: string,
+    productId: string,
+  ) {
+    await tx
+      .delete(ProductOfferTable)
+      .where(
+        and(
+          eq(ProductOfferTable.productId, productId),
+          eq(ProductOfferTable.shopId, shopId),
+        ),
+      );
+  }
+
+  async find(id: string): Promise<IProductOffer> {
+    const [offer] = await this.db
+      .select()
+      .from(ProductOfferTable)
+      .where(eq(ProductOfferTable.id, id));
+
+    if (!offer) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    return offer;
+  }
+
+  async update(id: string, form: IProductOfferUpdateForm) {
+    return (
+      await this.db
+        .update(ProductOfferTable)
+        .set(form)
+        .where(eq(ProductOfferTable.id, id))
+        .returning()
+    )[0];
   }
 }

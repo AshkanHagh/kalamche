@@ -68,6 +68,7 @@ export type IProductView = Omit<IProduct, "vector" | "initialPrice"> & {
   brand: IBrand;
   category: ICategory;
 };
+export type IProductUpdateForm = Partial<IProduct>;
 
 export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   shop: one(ShopTable, {

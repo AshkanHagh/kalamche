@@ -6,6 +6,7 @@ import {
   IProductImageInsertForm,
   ProductImageTable,
   IProductImageUpdateForm,
+  IProductImage,
 } from "src/drizzle/schemas";
 import { and, count, eq, SQL } from "drizzle-orm";
 
@@ -46,16 +47,19 @@ export class ProductImageRepository implements IProductImageRepo {
     return result ? true : false;
   }
 
-  async findManyByTempProductId(tx: Database, tempProductId: string) {
+  async findManyByProductId(tx: Database, productId: string, isTemp: boolean) {
+    const query = this.#buildProductImageQuery(productId, isTemp);
+
     return tx
       .select()
       .from(ProductImageTable)
-      .where(
-        and(
-          eq(ProductImageTable.tempProductId, tempProductId),
-          eq(ProductImageTable.isCompleted, true),
-        ),
-      );
+      .where(and(query, eq(ProductImageTable.isCompleted, true)));
+  }
+
+  async deleteByProductId(tx: Database, productId: string, isTemp: boolean) {
+    const query = this.#buildProductImageQuery(productId, isTemp);
+
+    return await tx.delete(ProductImageTable).where(query).returning();
   }
 
   async updateByTempProductId(
@@ -66,7 +70,17 @@ export class ProductImageRepository implements IProductImageRepo {
     await tx
       .update(ProductImageTable)
       .set(form)
-      .where(eq(ProductImageTable.tempProductId, tempProductId));
+      .where(eq(ProductImageTable.tempProductId, tempProductId))
+      .returning();
+  }
+
+  async delete(tx: Database, id: string): Promise<IProductImage> {
+    return (
+      await tx
+        .delete(ProductImageTable)
+        .where(eq(ProductImageTable.id, id))
+        .returning()
+    )[0];
   }
 
   #buildProductImageQuery(productId: string, isTemp: boolean) {

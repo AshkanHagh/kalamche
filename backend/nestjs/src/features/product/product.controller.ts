@@ -1,15 +1,18 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseBoolPipe,
+  ParseFilePipeBuilder,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
   Redirect,
   Req,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -22,6 +25,8 @@ import {
   PaginationDto,
   RedirectToProductPageDto,
   SearchDto,
+  UpdateOfferDto,
+  UpdateProductDto,
 } from "./dto";
 import { ProductService } from "./product.service";
 import { IProductController } from "./interfaces/IController";
@@ -33,12 +38,23 @@ import {
   PRODUCT_RESOURCE_ACTION,
   ResourceType,
 } from "src/constants/global.constant";
-import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from "@nestjs/platform-express";
 import { Request } from "express";
 import { SkipAuth } from "../auth/decorators/skip-auth.decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
-import { IProductRecord, IProductView } from "src/drizzle/schemas";
-import { ApiParams, ApiQuery } from "src/utils/swagger-decorator";
+import {
+  IBrand,
+  ICategory,
+  IProduct,
+  IProductOffer,
+  IProductRecord,
+  IProductView,
+} from "src/drizzle/schemas";
+import { ApiFile, ApiParams, ApiQuery } from "src/utils/swagger-decorator";
+import { MAX_IMAGE_SIZE, MAX_IMAGES } from "./constants";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -69,7 +85,7 @@ export class ProductController implements IProductController {
     );
   }
 
-  @Post("/offer/:product_id")
+  @Post("/offers/:product_id")
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
   createOffer(
     @User("id") userId: string,
@@ -81,16 +97,24 @@ export class ProductController implements IProductController {
 
   @Post("/images/:product_id")
   @UseInterceptors(
-    FileFieldsInterceptor([
+    FileFieldsInterceptor(
+      [
+        {
+          name: "thumbnailImage",
+          maxCount: 1,
+        },
+        {
+          name: "images",
+          maxCount: 5,
+        },
+      ],
       {
-        name: "thumbnailImage",
-        maxCount: 1,
+        limits: {
+          fileSize: MAX_IMAGE_SIZE,
+          fieldSize: MAX_IMAGE_SIZE * MAX_IMAGES,
+        },
       },
-      {
-        name: "images",
-        maxCount: 5,
-      },
-    ]),
+    ),
   )
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
   async uploadImages(
@@ -154,14 +178,29 @@ export class ProductController implements IProductController {
     return await this.productService.search(params);
   }
 
+  @Get("/brands")
+  @SkipAuth()
+  @SkipPermission()
+  async getBrands(): Promise<IBrand[]> {
+    return await this.productService.getBrands();
+  }
+
+  @Get("/categories")
+  @SkipAuth()
+  @SkipPermission()
+  async getCategories(): Promise<ICategory[]> {
+    return await this.productService.getCategories();
+  }
+
   @ApiQuery({ type: GetProductsByCategoryDto })
-  @Get("/category")
+  @Get("/categories/:slug")
   @SkipAuth()
   @SkipPermission()
   async getProductsByCategory(
+    @Param("slug") slug: string,
     @Query() params: GetProductsByCategoryDto,
   ): Promise<any> {
-    return await this.productService.getProductsByCategory(params);
+    return await this.productService.getProductsByCategory(slug, params);
   }
 
   @Get("/:product_id")
@@ -171,5 +210,81 @@ export class ProductController implements IProductController {
     @Param("product_id", new ParseUUIDPipe()) productId: string,
   ): Promise<IProductView> {
     return await this.productService.getProduct(productId);
+  }
+
+  @Delete("/temp/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.DELETE)
+  async deleteTempProduct(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) tempProductId: string,
+  ): Promise<void> {
+    await this.productService.deleteTempProduct(userId, tempProductId);
+  }
+
+  @Delete("/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.DELETE)
+  async deleteProduct(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) tempProductId: string,
+  ): Promise<void> {
+    await this.productService.deleteProduct(userId, tempProductId);
+  }
+
+  @Patch("/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  async updateProduct(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Body() payload: UpdateProductDto,
+  ): Promise<IProduct> {
+    return await this.productService.updateProduct(userId, productId, payload);
+  }
+
+  @ApiFile("image", {
+    schema: {
+      type: "object",
+      properties: {
+        image: {
+          type: "string",
+          format: "binary",
+          description: "File to upload (e.g., image)",
+        },
+      },
+      required: ["image"],
+    },
+  })
+  @Patch("/:product_id/images/:image_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  @UseInterceptors(FileInterceptor("image"))
+  async updateProductImage(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Param("image_id", new ParseUUIDPipe()) imageId: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /(jpeg|jpg|png)$/i,
+        })
+        .addMaxSizeValidator({ maxSize: MAX_IMAGE_SIZE })
+        .build({ fileIsRequired: true }),
+    )
+    image: Express.Multer.File,
+  ): Promise<void> {
+    await this.productService.updateProductImage(
+      userId,
+      productId,
+      imageId,
+      image,
+    );
+  }
+
+  @Patch("offers/:offer_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  async updateOffer(
+    @User("id") userId: string,
+    @Param("offer_id", new ParseUUIDPipe()) offerId: string,
+    @Body() payload: UpdateOfferDto,
+  ): Promise<IProductOffer> {
+    return await this.productService.updateOffer(userId, offerId, payload);
   }
 }

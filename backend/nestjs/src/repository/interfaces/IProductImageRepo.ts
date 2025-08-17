@@ -15,10 +15,19 @@ export interface IProductImageRepo {
   countTotal(productId: string, isTemp: boolean): Promise<number>;
   isThumbnailExists(productId: string, isTemp: boolean): Promise<boolean>;
 
-  findManyByTempProductId(
+  findManyByProductId(
     tx: Database,
-    tempProductId: string,
+    productId: string,
+    isTemp: boolean,
   ): Promise<IProductImage[]>;
+
+  deleteByProductId(
+    tx: Database,
+    productId: string,
+    isTemp: boolean,
+  ): Promise<IProductImage[]>;
+
+  delete(tx: Database, id: string): Promise<IProductImage>;
 
   updateByTempProductId(
     tx: Database,

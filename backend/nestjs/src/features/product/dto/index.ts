@@ -85,15 +85,34 @@ export const PaginationSchema = z.object({
 export type PaginationPayload = z.infer<typeof PaginationSchema>;
 export class PaginationDto extends createZodDto(PaginationSchema) {}
 
-export const GetProductsByCategorySchema = z
-  .object({
-    category: z.string().max(255),
-  })
-  .merge(FilterSchema);
+export type GetproductsByCategoryPayload = z.infer<typeof FilterSchema>;
+export class GetProductsByCategoryDto extends createZodDto(FilterSchema) {}
 
-export type GetproductsByCategoryPayload = z.infer<
-  typeof GetProductsByCategorySchema
->;
-export class GetProductsByCategoryDto extends createZodDto(
-  GetProductsByCategorySchema,
-) {}
+export const UpdateProductSchema = z.object({
+  title: z.string().max(500).optional(),
+  description: z.string().max(10_000).optional(),
+  categoryId: z.string().uuid().optional(),
+  brandId: z.string().uuid().optional(),
+  specifications: z
+    .array(
+      z.object({
+        key: z.string().max(255),
+        value: z.string().max(255),
+      }),
+    )
+    .max(50)
+    .optional(),
+  initialPrice: z.number().min(0).optional(),
+});
+
+export type UpdateProductPayload = z.infer<typeof UpdateProductSchema>;
+export class UpdateProductDto extends createZodDto(UpdateProductSchema) {}
+
+export const UpdateOfferSchema = z.object({
+  title: z.string().max(500).optional(),
+  finalPrice: z.number().min(0).optional(),
+  pageUrl: z.string().url().optional(),
+});
+
+export type UpdateOfferPayload = z.infer<typeof UpdateOfferSchema>;
+export class UpdateOfferDto extends createZodDto(UpdateOfferSchema) {}

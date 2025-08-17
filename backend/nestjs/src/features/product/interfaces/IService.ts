@@ -6,10 +6,14 @@ import {
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
+  UpdateOfferPayload,
+  UpdateProductPayload,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
 import {
+  IBrand,
+  ICategory,
   IProduct,
   IProductOffer,
   IProductRecord,
@@ -57,5 +61,28 @@ export interface IProductService {
   ): Promise<IProductRecord[]>;
   toggleLike(userId: string, productId: string): Promise<void>;
   search(params: SearchPayload): Promise<any>;
-  getProductsByCategory(params: GetproductsByCategoryPayload): Promise<any>;
+  getProductsByCategory(
+    slug: string,
+    params: GetproductsByCategoryPayload,
+  ): Promise<any>;
+  deleteTempProduct(userId: string, tempProductId: string): Promise<void>;
+  deleteProduct(userId: string, productId: string): Promise<void>;
+  updateProduct(
+    userId: string,
+    productId: string,
+    payload: UpdateProductPayload,
+  ): Promise<IProduct>;
+  updateProductImage(
+    userId: string,
+    productId: string,
+    imageId: string,
+    image: Express.Multer.File,
+  ): Promise<void>;
+  getCategories(): Promise<ICategory[]>;
+  getBrands(): Promise<IBrand[]>;
+  updateOffer(
+    userId: string,
+    offerId: string,
+    payload: UpdateOfferPayload,
+  ): Promise<IProductOffer>;
 }
