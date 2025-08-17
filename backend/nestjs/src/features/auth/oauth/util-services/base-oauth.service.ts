@@ -28,7 +28,7 @@ export abstract class BaseOAuthService {
 
   generateAuthUrl(state: string, codeVerifier?: string) {
     const params = {
-      redirect_url: this.config.redirectUri,
+      redirect_uri: this.config.redirectUri,
       scope: this.config.scopes.join(" "),
       state,
     };
