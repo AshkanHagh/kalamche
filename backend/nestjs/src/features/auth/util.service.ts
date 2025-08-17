@@ -57,7 +57,7 @@ export class AuthUtilService {
 
     const accessToken = jwt.sign(
       {
-        exp: now * this.authConfig.accessToken.exp,
+        exp: now + this.authConfig.accessToken.exp,
         userId,
         type: "access",
       },
@@ -65,7 +65,7 @@ export class AuthUtilService {
     );
     const refreshToken = jwt.sign(
       {
-        exp: now * this.authConfig.refreshToken.exp,
+        exp: now + this.authConfig.refreshToken.exp,
         userId,
         type: "refresh",
       },
