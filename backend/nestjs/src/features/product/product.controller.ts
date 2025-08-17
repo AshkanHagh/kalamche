@@ -25,6 +25,7 @@ import {
   PaginationDto,
   RedirectToProductPageDto,
   SearchDto,
+  UpdateOfferDto,
   UpdateProductDto,
 } from "./dto";
 import { ProductService } from "./product.service";
@@ -48,6 +49,7 @@ import {
   IBrand,
   ICategory,
   IProduct,
+  IProductOffer,
   IProductRecord,
   IProductView,
 } from "src/drizzle/schemas";
@@ -83,7 +85,7 @@ export class ProductController implements IProductController {
     );
   }
 
-  @Post("/offer/:product_id")
+  @Post("/offers/:product_id")
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
   createOffer(
     @User("id") userId: string,
@@ -274,5 +276,15 @@ export class ProductController implements IProductController {
       imageId,
       image,
     );
+  }
+
+  @Patch("offers/:offer_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  async updateOffer(
+    @User("id") userId: string,
+    @Param("offer_id", new ParseUUIDPipe()) offerId: string,
+    @Body() payload: UpdateOfferDto,
+  ): Promise<IProductOffer> {
+    return await this.productService.updateOffer(userId, offerId, payload);
   }
 }

@@ -1,4 +1,8 @@
-import { IProductOffer, IProductOfferInsertForm } from "src/drizzle/schemas";
+import {
+  IProductOffer,
+  IProductOfferInsertForm,
+  IProductOfferUpdateForm,
+} from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
 
 export interface IProductOfferRepo {
@@ -18,4 +22,6 @@ export interface IProductOfferRepo {
     shopId: string,
     productId: string,
   ): Promise<void>;
+  find(id: string): Promise<IProductOffer>;
+  update(id: string, form: IProductOfferUpdateForm): Promise<IProductOffer>;
 }

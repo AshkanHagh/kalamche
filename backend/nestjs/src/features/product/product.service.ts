@@ -8,6 +8,7 @@ import {
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
+  UpdateOfferPayload,
   UpdateProductPayload,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
@@ -28,6 +29,7 @@ import { Request } from "express";
 import {
   IBrand,
   IProduct,
+  IProductOffer,
   IProductRecord,
   IProductView,
 } from "src/drizzle/schemas";
@@ -566,5 +568,19 @@ export class ProductService implements IProductService {
 
   async getBrands(): Promise<IBrand[]> {
     return await this.brandRepository.findAll();
+  }
+
+  async updateOffer(
+    userId: string,
+    offerId: string,
+    payload: UpdateOfferPayload,
+  ): Promise<IProductOffer> {
+    const offer = await this.productOfferRepository.find(offerId);
+
+    await this.productUtilService.userHasPermission(userId, offer.shopId);
+
+    return await this.productOfferRepository.update(offerId, {
+      ...payload,
+    });
   }
 }

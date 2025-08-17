@@ -3,7 +3,9 @@ import { IProductOfferRepo } from "../interfaces/IProductOfferRepo";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import {
+  IProductOffer,
   IProductOfferInsertForm,
+  IProductOfferUpdateForm,
   ProductOfferTable,
 } from "src/drizzle/schemas";
 import { and, eq, lt } from "drizzle-orm";
@@ -91,5 +93,28 @@ export class ProductOfferRepository implements IProductOfferRepo {
           eq(ProductOfferTable.shopId, shopId),
         ),
       );
+  }
+
+  async find(id: string): Promise<IProductOffer> {
+    const [offer] = await this.db
+      .select()
+      .from(ProductOfferTable)
+      .where(eq(ProductOfferTable.id, id));
+
+    if (!offer) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+
+    return offer;
+  }
+
+  async update(id: string, form: IProductOfferUpdateForm) {
+    return (
+      await this.db
+        .update(ProductOfferTable)
+        .set(form)
+        .where(eq(ProductOfferTable.id, id))
+        .returning()
+    )[0];
   }
 }

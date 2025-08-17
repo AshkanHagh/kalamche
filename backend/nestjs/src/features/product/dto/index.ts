@@ -107,3 +107,12 @@ export const UpdateProductSchema = z.object({
 
 export type UpdateProductPayload = z.infer<typeof UpdateProductSchema>;
 export class UpdateProductDto extends createZodDto(UpdateProductSchema) {}
+
+export const UpdateOfferSchema = z.object({
+  title: z.string().max(500).optional(),
+  finalPrice: z.number().min(0).optional(),
+  pageUrl: z.string().url().optional(),
+});
+
+export type UpdateOfferPayload = z.infer<typeof UpdateOfferSchema>;
+export class UpdateOfferDto extends createZodDto(UpdateOfferSchema) {}

@@ -6,6 +6,7 @@ import {
   PaginationDto,
   RedirectToProductPageDto,
   SearchDto,
+  UpdateOfferDto,
   UpdateProductDto,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
@@ -79,4 +80,9 @@ export interface IProductController {
   ): Promise<void>;
   getCategories(): Promise<ICategory[]>;
   getBrands(): Promise<IBrand[]>;
+  updateOffer(
+    userId: string,
+    offerId: string,
+    payload: UpdateOfferDto,
+  ): Promise<IProductOffer>;
 }
