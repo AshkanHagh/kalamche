@@ -11,8 +11,9 @@ import {
   ResourceType,
 } from "src/constants/global.constant";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
-import { ITransactionRecord, IUser } from "src/drizzle/schemas";
+import { IFrTokenPlan, ITransactionRecord, IUser } from "src/drizzle/schemas";
 import { ApiParams } from "src/utils/swagger-decorator";
+import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
 
 @Controller("fr-token")
 @UseGuards(AuthorizationGuard, PermissionGuard, RateLimitGuard)
@@ -37,5 +38,11 @@ export class FrTokenController implements IFrTokenController {
     @Body() payload: VerifyPaymentDto,
   ): Promise<ITransactionRecord> {
     return await this.frTokenService.verifyPayment(userId, payload);
+  }
+
+  @Get("/")
+  @SkipPermission()
+  async getPlans(): Promise<IFrTokenPlan[]> {
+    return await this.frTokenService.getPlans();
   }
 }

@@ -114,6 +114,7 @@ export class ShopService implements IShopService {
 
     return await this.db.transaction(async (tx) => {
       await Promise.all([
+        this.userRepository.removeRoles(tx, userId, [USER_ROLE.PENDING_SELLER]),
         this.userRepository.updateRole(tx, userId, USER_ROLE.SELLER),
         this.tempShopRepository.delete(tx, tempShopId),
       ]);

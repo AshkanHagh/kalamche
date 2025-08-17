@@ -42,10 +42,7 @@ export class TempShopRepository implements ITempShopRepo {
   }
 
   async delete(tx: Database, id: string): Promise<void> {
-    await this.db
-      .delete(TempShopTable)
-      .where(eq(TempShopTable.id, id))
-      .execute();
+    await tx.delete(TempShopTable).where(eq(TempShopTable.id, id)).execute();
   }
 
   async update(

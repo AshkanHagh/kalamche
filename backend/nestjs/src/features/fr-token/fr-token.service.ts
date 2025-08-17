@@ -10,6 +10,7 @@ import { TransactionRepository } from "src/repository/repositories/transaction.r
 import { ITransactionRecord, IUser } from "src/drizzle/schemas";
 import { DATABASE } from "src/drizzle/constants";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
+import { FrTokenPlanDatasets } from "src/assets/datasets/fr-token-plans";
 
 @Injectable()
 export class FrTokenService implements IFrTokenService {
@@ -95,6 +96,10 @@ export class FrTokenService implements IFrTokenService {
       );
       return transaction;
     });
+  }
+
+  async getPlans() {
+    return await this.frTokenPlanRepository.findAll();
   }
 
   private getProvider(paymentMethod: (typeof PAYMENT_METHODS)[number]) {

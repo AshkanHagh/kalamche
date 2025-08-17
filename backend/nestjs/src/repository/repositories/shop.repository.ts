@@ -16,7 +16,7 @@ export class ShopRepository implements IShopRepo {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async insert(tx: Database, form: IShopInsertForm): Promise<IShop> {
-    const [shop] = await this.db.insert(ShopTable).values(form).returning();
+    const [shop] = await tx.insert(ShopTable).values(form).returning();
     return shop;
   }
 

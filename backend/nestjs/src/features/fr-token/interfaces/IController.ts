@@ -1,5 +1,5 @@
 import { CreateCheckoutDto, VerifyPaymentDto } from "../dto";
-import { ITransactionRecord, IUser } from "src/drizzle/schemas";
+import { IFrTokenPlan, ITransactionRecord, IUser } from "src/drizzle/schemas";
 
 export interface IFrTokenController {
   createCheckout(
@@ -10,4 +10,5 @@ export interface IFrTokenController {
     userId: string,
     payload: VerifyPaymentDto,
   ): Promise<ITransactionRecord>;
+  getPlans(): Promise<IFrTokenPlan[]>;
 }

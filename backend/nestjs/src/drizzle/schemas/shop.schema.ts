@@ -15,6 +15,7 @@ export const ShopStatusEnum = pgEnum("shop_status", [
 
 // NOTE: removed status field(no admin panel will impl yet)
 // NOTE: added default value for emailVerifiedAt(no verification for email for now)
+// NOTE: email by default is unique(the phone number to)
 export const ShopTable = pgTable("shops", (table) => {
   return {
     id,
@@ -24,7 +25,7 @@ export const ShopTable = pgTable("shops", (table) => {
       .references(() => UserTable.id, { onDelete: "cascade" }),
     name: table.varchar({ length: 255 }).notNull(),
     description: table.text().notNull(),
-    email: table.varchar({ length: 255 }).unique().notNull(),
+    email: table.varchar({ length: 255 }).notNull(),
     emailVerifiedAt: table.timestamp().notNull().defaultNow(),
     phone: table.varchar({ length: 50 }).notNull(),
     website: table.text().notNull(),

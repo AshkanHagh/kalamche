@@ -21,4 +21,8 @@ export class FrTokenPlanRepository implements IFrTokenPlanRepo {
 
     return plan;
   }
+
+  async findAll(): Promise<IFrTokenPlan[]> {
+    return await this.db.select().from(FrTokenPlanTable);
+  }
 }
