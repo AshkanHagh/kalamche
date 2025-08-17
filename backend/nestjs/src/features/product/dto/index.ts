@@ -97,3 +97,23 @@ export type GetproductsByCategoryPayload = z.infer<
 export class GetProductsByCategoryDto extends createZodDto(
   GetProductsByCategorySchema,
 ) {}
+
+export const UpdateProductSchema = z.object({
+  title: z.string().max(500).optional(),
+  description: z.string().max(10_000).optional(),
+  categoryId: z.string().uuid().optional(),
+  brandId: z.string().uuid().optional(),
+  specifications: z
+    .array(
+      z.object({
+        key: z.string().max(255),
+        value: z.string().max(255),
+      }),
+    )
+    .max(50)
+    .optional(),
+  initialPrice: z.number().min(0).optional(),
+});
+
+export type UpdateProductPayload = z.infer<typeof UpdateProductSchema>;
+export class UpdateProductDto extends createZodDto(UpdateProductSchema) {}

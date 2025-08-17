@@ -8,6 +8,7 @@ import {
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
+  UpdateProductPayload,
 } from "./dto";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -20,11 +21,11 @@ import { ProductImageRepository } from "src/repository/repositories/product-imag
 import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import { MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
+import { MAX_IMAGES, MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
 import { HttpService } from "@nestjs/axios";
 import { firstValueFrom } from "rxjs";
 import { Request } from "express";
-import { IProductRecord, IProductView } from "src/drizzle/schemas";
+import { IProduct, IProductRecord, IProductView } from "src/drizzle/schemas";
 import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 import { CategoryRepository } from "src/repository/repositories/category.repository";
 import { BrandRepository } from "src/repository/repositories/brand.repository";
@@ -133,9 +134,10 @@ export class ProductService implements IProductService {
       });
 
       const uploadedImages =
-        await this.productImageRepository.findManyByTempProductId(
+        await this.productImageRepository.findManyByProductId(
           tx,
           tempProduct.id,
+          true,
         );
       uploadedImages.map((image) => {
         imageUpdateTasks.push(
@@ -235,8 +237,6 @@ export class ProductService implements IProductService {
       images: Express.Multer.File[];
     },
   ) {
-    // Regular images limit
-    const MAX_IMAGES = 5;
     // Check for user uploaded images limit
     const [existingThumbnail, totalExistingImages] = await Promise.all([
       this.productImageRepository.isThumbnailExists(productId, isTemp),
@@ -460,9 +460,10 @@ export class ProductService implements IProductService {
 
     await this.db.transaction(async (tx) => {
       await this.tempProductRepository.delete(tx, tempProduct.id);
-      const deletedImages = await this.productImageRepository.deleteTemp(
+      const deletedImages = await this.productImageRepository.deleteByProductId(
         tx,
         tempProduct.id,
+        true,
       );
 
       await Promise.all(
@@ -489,15 +490,65 @@ export class ProductService implements IProductService {
         shopId: null,
       });
 
-      const deletedImages = await this.productImageRepository.delete(
+      const deletedImages = await this.productImageRepository.deleteByProductId(
         tx,
         product.id,
+        false,
       );
       await Promise.all(
         deletedImages.map((image) => {
           return this.s3Service.delete(image.id);
         }),
       );
+    });
+  }
+
+  async updateProduct(
+    userId: string,
+    productId: string,
+    payload: UpdateProductPayload,
+  ): Promise<IProduct> {
+    const product = await this.productRepository.findById(productId);
+
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
+    // Check if brand or category exist; throw error if not found
+    if (payload.brandId) {
+      await this.brandRepository.exists(payload.brandId);
+    }
+    if (payload.categoryId) {
+      await this.categoryRepository.exists(payload.categoryId);
+    }
+
+    return await this.productRepository.update(this.db, product.id, {
+      ...payload,
+    });
+  }
+
+  async updateProductImage(
+    userId: string,
+    productId: string,
+    imageId: string,
+    imageFile: Express.Multer.File,
+  ): Promise<void> {
+    const product = await this.productRepository.findById(productId);
+    await this.productUtilService.userHasPermission(userId, product.shopId);
+
+    await this.db.transaction(async (tx) => {
+      const image = await this.productImageRepository.delete(tx, imageId);
+      if (!image) {
+        throw new KalamcheError(KalamcheErrorType.NotFound);
+      }
+
+      await this.productUtilService.processImageUpload(
+        imageFile,
+        image.isThumbnail,
+        product.id,
+        false,
+        tx,
+      );
+
+      await this.s3Service.delete(image.id);
     });
   }
 }

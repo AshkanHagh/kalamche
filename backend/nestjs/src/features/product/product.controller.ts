@@ -5,12 +5,14 @@ import {
   Get,
   Param,
   ParseBoolPipe,
+  ParseFilePipeBuilder,
   ParseUUIDPipe,
   Patch,
   Post,
   Query,
   Redirect,
   Req,
+  UploadedFile,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -23,6 +25,7 @@ import {
   PaginationDto,
   RedirectToProductPageDto,
   SearchDto,
+  UpdateProductDto,
 } from "./dto";
 import { ProductService } from "./product.service";
 import { IProductController } from "./interfaces/IController";
@@ -34,12 +37,16 @@ import {
   PRODUCT_RESOURCE_ACTION,
   ResourceType,
 } from "src/constants/global.constant";
-import { FileFieldsInterceptor } from "@nestjs/platform-express";
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from "@nestjs/platform-express";
 import { Request } from "express";
 import { SkipAuth } from "../auth/decorators/skip-auth.decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
-import { IProductRecord, IProductView } from "src/drizzle/schemas";
-import { ApiParams, ApiQuery } from "src/utils/swagger-decorator";
+import { IProduct, IProductRecord, IProductView } from "src/drizzle/schemas";
+import { ApiFile, ApiParams, ApiQuery } from "src/utils/swagger-decorator";
+import { MAX_IMAGE_SIZE } from "./constants";
 
 @Controller("products")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -190,5 +197,53 @@ export class ProductController implements IProductController {
     @Param("product_id", new ParseUUIDPipe()) tempProductId: string,
   ): Promise<void> {
     await this.productService.deleteProduct(userId, tempProductId);
+  }
+
+  @Patch("/:product_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  async updateProduct(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Body() payload: UpdateProductDto,
+  ): Promise<IProduct> {
+    return await this.productService.updateProduct(userId, productId, payload);
+  }
+
+  @ApiFile("image", {
+    schema: {
+      type: "object",
+      properties: {
+        image: {
+          type: "string",
+          format: "binary",
+          description: "File to upload (e.g., image)",
+        },
+      },
+      required: ["image"],
+    },
+  })
+  @Patch("/:product_id/images/:image_id")
+  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
+  @UseInterceptors(FileInterceptor("image"))
+  async updateProductImage(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Param("image_id", new ParseUUIDPipe()) imageId: string,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: /(jpeg|jpg|png)$/i,
+        })
+        .addMaxSizeValidator({ maxSize: MAX_IMAGE_SIZE })
+        .build({ fileIsRequired: true }),
+    )
+    image: Express.Multer.File,
+  ): Promise<void> {
+    await this.productService.updateProductImage(
+      userId,
+      productId,
+      imageId,
+      image,
+    );
   }
 }

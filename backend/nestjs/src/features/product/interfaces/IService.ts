@@ -6,6 +6,7 @@ import {
   PaginationPayload,
   RedirectToProductPagePayload,
   SearchPayload,
+  UpdateProductPayload,
 } from "../dto";
 import { ITempProduct } from "src/drizzle/schemas/temp-product.schema";
 import { Request } from "express";
@@ -60,4 +61,15 @@ export interface IProductService {
   getProductsByCategory(params: GetproductsByCategoryPayload): Promise<any>;
   deleteTempProduct(userId: string, tempProductId: string): Promise<void>;
   deleteProduct(userId: string, productId: string): Promise<void>;
+  updateProduct(
+    userId: string,
+    productId: string,
+    payload: UpdateProductPayload,
+  ): Promise<IProduct>;
+  updateProductImage(
+    userId: string,
+    productId: string,
+    imageId: string,
+    image: Express.Multer.File,
+  ): Promise<void>;
 }
