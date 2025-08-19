@@ -1,40 +1,45 @@
-## Getting Started
+# Project Setup
 
-### Prerequisites
+## Prerequisites
+- Docker and Docker Compose
+- pnpm
 
-- Node.js (v18+)
-- Docker
+## Installation
 
-### Installation
+```bash
+pnpm install
+```
 
-1. Clone the repository:
+## Running the Application
 
-   ```bash
-   git clone https://github.com/AshkanHagh/kalamche.git
-   cd kalamche/backend/nestjs
-   ```
+```bash
+# Start with Docker Compose
+docker-compose up -d
 
-2. Install dependencies:
+pnpm start:dev
+```
 
-   ```bash
-   pnpm install
-   ```
+## Database
 
-3. Set up PostgreSQL, Mailhog, Minio using Docker:
+```bash
+# Generate migrations
+pnpm db:generate
 
-   ```bash
-   docker-compose up -d
-   ```
+# Run migrations
+pnpm db:migrate
 
-4. Run database migrations with Drizzle ORM:
+# Seed database
+pnpm db:seed
 
-   ```bash
-   pnpm run db:generate
-   pnpm run db:migrate
-   ```
+# Open Drizzle Studio
+pnpm db:studio
+```
 
-5. Start the application:
+## Testing
 
-   ```bash
-   npm run start:dev
-   ```
+```bash
+# Run all tests
+pnpm test
+
+pnpm test:watch
+```
