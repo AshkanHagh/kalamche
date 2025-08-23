@@ -1,9 +1,4 @@
-export enum USER_ROLE {
-  ADMIN = "admin",
-  USER = "user",
-  SELLER = "seller",
-  PENDING_SELLER = "pending_seller",
-}
+import { USER_ROLE } from "src/drizzle/constants";
 
 export enum ResourceType {
   USER = "user",

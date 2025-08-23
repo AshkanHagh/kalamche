@@ -1,13 +1,14 @@
 import { TestingModule } from "@nestjs/testing";
 import { DATABASE } from "src/drizzle/constants";
 import {
+  IUser,
   ProductImageTable,
   ProductTable,
   ShopTable,
   TempProductTable,
   UserTable,
 } from "src/drizzle/schemas";
-import { Database, IUser } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { ProductUtilService } from "src/features/product/util.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {

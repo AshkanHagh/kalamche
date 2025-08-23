@@ -1,4 +1,4 @@
-import { PAYMENT_METHODS } from "../constants";
+import { PAYMENT_METHODS } from "src/drizzle/constants";
 
 export type VerifyPaymentParams<T extends (typeof PAYMENT_METHODS)[number]> =
   T extends "zarinpal"

@@ -6,10 +6,11 @@ import { DATABASE } from "src/drizzle/constants";
 import {
   FrTokenPlanTable,
   IFrTokenPlan,
+  IUser,
   TransactionTable,
   UserTable,
 } from "src/drizzle/schemas";
-import { Database, IUser } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { FrTokenService } from "src/features/fr-token/fr-token.service";
 import { ZarinpalPaymentService } from "src/features/fr-token/util-services/zarinpal-payment.service";
 import {

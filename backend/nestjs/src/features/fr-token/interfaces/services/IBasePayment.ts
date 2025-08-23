@@ -1,4 +1,4 @@
-import { PAYMENT_METHODS } from "../../constants";
+import { PAYMENT_METHODS } from "src/drizzle/constants";
 import { VerifyPaymentParams } from "../../types";
 
 export interface IBasePaymentProvider<

@@ -4,12 +4,14 @@ import { DATABASE } from "src/drizzle/constants";
 import {
   BrandTable,
   CategoryTable,
+  IShop,
+  IUser,
   ProductTable,
   TempProductTable,
   UserTable,
   WalletTable,
 } from "src/drizzle/schemas";
-import { Database, IShop, IUser } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import { ProductService } from "src/features/product/product.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {

@@ -10,7 +10,6 @@ import {
   UpdateShopPayload,
   UploadImagePayload,
 } from "./dto";
-import { USER_ROLE } from "src/constants/global.constant";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { ShopRepository } from "src/repository/repositories/shop.repository";
 import {
@@ -20,7 +19,7 @@ import {
   ITempShop,
 } from "src/drizzle/schemas";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
-import { DATABASE } from "src/drizzle/constants";
+import { DATABASE, USER_ROLE } from "src/drizzle/constants";
 import sharp from "sharp";
 import { ProductRepository } from "src/repository/repositories/product.repository";
 

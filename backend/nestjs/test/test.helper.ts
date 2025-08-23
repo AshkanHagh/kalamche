@@ -1,17 +1,19 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "src/app.module";
 import { getTableName, sql } from "drizzle-orm";
-import { Database, IShopUpdateForm, IUserUpdateForm } from "src/drizzle/types";
+import { Database } from "src/drizzle/types";
 import {
   BrandTable,
   CategoryTable,
   IProductInsertForm,
+  IShopUpdateForm,
+  IUserUpdateForm,
   ProductTable,
   ShopTable,
   UserTable,
 } from "src/drizzle/schemas";
 import { faker } from "@faker-js/faker";
-import { USER_ROLE } from "src/constants/global.constant";
+import { USER_ROLE } from "src/drizzle/constants";
 
 export async function createNestAppInstance(): Promise<TestingModule> {
   process.env.NODE_ENV = "test";

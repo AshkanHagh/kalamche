@@ -3,7 +3,6 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { resolve } from "node:path";
 import { Pool } from "pg";
-import { BrandTable } from "./schemas";
 
 // TODO: add categories to setweight
 export async function migration() {
@@ -40,7 +39,7 @@ export async function migration() {
         brand_name TEXT := '';
       BEGIN
         SELECT b.name INTO brand_name
-        FROM ${BrandTable} b
+        FROM brands b
         WHERE b.id = NEW.brand_id;
 
         NEW.vector :=

@@ -14,7 +14,6 @@ import fs from "node:fs";
 import { AmazonProduct } from "./types";
 import { Database } from "../types";
 import { faker } from "@faker-js/faker";
-import { USER_ROLE } from "src/constants/global.constant";
 import { FrTokenPlanDatasets } from "src/assets/datasets/fr-token-plans";
 import { BrandTable, IBrand, IBrandInsertForm } from "../schemas/brand.schema";
 import {
@@ -24,6 +23,7 @@ import {
 } from "../schemas/category.schema";
 import { randomUUID } from "node:crypto";
 import { CSV_PATH } from "./constants";
+import { USER_ROLE } from "../constants";
 
 async function main() {
   console.log("Start seeding");

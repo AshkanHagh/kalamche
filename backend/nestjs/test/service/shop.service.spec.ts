@@ -1,10 +1,14 @@
 import { faker } from "@faker-js/faker/.";
 import { TestingModule } from "@nestjs/testing";
 import { eq } from "drizzle-orm";
-import { USER_ROLE } from "src/constants/global.constant";
-import { DATABASE } from "src/drizzle/constants";
-import { ShopTable, TempShopTable, UserTable } from "src/drizzle/schemas";
-import { Database, IUser } from "src/drizzle/types";
+import { DATABASE, USER_ROLE } from "src/drizzle/constants";
+import {
+  IUser,
+  ShopTable,
+  TempShopTable,
+  UserTable,
+} from "src/drizzle/schemas";
+import { Database } from "src/drizzle/types";
 import { S3Service } from "src/features/product/services/s3.service";
 import { ShopService } from "src/features/shop/shop.service";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";

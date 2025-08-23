@@ -18,12 +18,11 @@ import {
 import { RESEND_CODE_COOLDOWN } from "./constants";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { Request, Response } from "express";
-import { USER_ROLE } from "src/constants/global.constant";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
-import { DATABASE } from "src/drizzle/constants";
+import { DATABASE, USER_ROLE } from "src/drizzle/constants";
 import { IPendingUser } from "src/drizzle/schemas";
 
 @Injectable()

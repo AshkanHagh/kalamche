@@ -1,13 +1,13 @@
 import { index, pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { UserLoginTokenTable } from "./user-login-token.schema";
-import { USER_ROLE } from "src/constants/global.constant";
 import { id } from "./schema.helper";
 import { ShopTable } from "./shop.schema";
 import { ProductLikeTable } from "./product-like-schema";
 import { OAuthAccountTable } from "./oauth-account.schema";
 import { TempShopTable } from "./temp-shop.schema";
 import { WalletTable } from "./wallet.schema";
+import { USER_ROLE } from "../constants";
 
 export const UserRoleEnum = pgEnum("user_roles_enum", USER_ROLE);
 
