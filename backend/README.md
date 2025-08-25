@@ -89,6 +89,6 @@ kalamche/
 ## SQL Diagram
 View the dbdocs diagram [here](https://dbdocs.io/w3cj/bytedash?schema=public&view=relationships).
 
-![diagram](https://s6.uupload.ir/files/kalamche_z4cl.png)
+![diagram](https://s6.uupload.ir/files/bytedash_vgot.png)
 
 ## TODO
