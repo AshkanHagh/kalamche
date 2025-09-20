@@ -5,12 +5,12 @@ Kalamche is a RESTful API serving as a super search engine for products, similar
 
 ## Objectives
 - **Product and Offer Management**: Enable a system where a shop can create a product if it doesn't exist, and once created, other shops can only submit offers for that product without creating duplicates.
-- **Full-Text Search**: Provide advanced full-text search capabilities for products with various filtering options.
-- **Redirect Tracking**: Implement a redirect system from Kalamche to seller websites for tracking purposes.
-- **Click-Based Usage Tracking**: Track product interactions per shop using a custom "fr-token" system.
-- **Role-Based Access Control (RBAC)**: Implement a permission system to manage user roles and access.
-- **Multi-OAuth Support**: Allow authentication via multiple OAuth providers and accounts.
-- **Multi-Payment Gateways**: Support various payment gateways for flexible transactions.
+- **Full-Text Search**: Provide advanced full-text search capabilities for products with various filtering options. 
+- **Redirect Tracking**: Implement a redirect system from Kalamche to seller websites for tracking purposes. 
+- **Click-Based Usage Tracking**: Track product interactions per shop using a custom "fr-token" system. 
+- **Role-Based Access Control (RBAC)**: Implement a permission system to manage user roles and access. 
+- **Multi-OAuth Support**: Allow authentication via multiple OAuth providers and accounts. 
+- **Multi-Payment Gateways**: Support various payment gateways for flexible transactions. 
 
 ## Why I Built This Project
 I built Kalamche to create a powerful, scalable search engine API for products, capable of integrating with external platforms and providing a seamless experience for users and sellers. My goal was to design a stateless backend that supports horizontal scaling, advanced search functionality, and secure authentication, while exploring modern tools like NestJS, Rust, and PostgreSQL. This project serves as a foundation for a robust e-commerce ecosystem, demonstrating my ability to handle complex backend requirements and integrations.
