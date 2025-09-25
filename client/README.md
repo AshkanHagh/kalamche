@@ -99,8 +99,8 @@ npm install -g pnpm
 Clone the repo and install dependencies:
 
 ```bash
-git clone <repo-url>
-cd kalamche
+git clone https://github.com/ashkanHagh/kalamche.git
+cd kalamche/client
 pnpm install
 ```
 
@@ -126,7 +126,3 @@ pnpm build
 * [ ] Fix styling for displaying FR token in the seller dashboard
 
 ---
-
-## 📜 License
-
-MIT License
