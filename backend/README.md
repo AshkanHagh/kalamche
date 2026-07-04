@@ -1,58 +1,26 @@
-# Kalamche Project README
+# Kalamche
 
-## Project Overview
-Kalamche is a RESTful API serving as a super search engine for products, similar to the Torob website. It provides a scalable, stateless backend system for managing product and offer data, enabling full-text search, redirect tracking, and seller management. The project is implemented in two programming languages—TypeScript (using NestJS) and Rust—with identical backend functionality, showcasing versatility and robust architecture.
+A RESTful product search engine, roughly the same idea as Torob — sellers list products, buyers search and compare, clicks get tracked back to the seller. Built twice with the same feature set: once in NestJS/TypeScript, once in Rust, mostly as an excuse to compare the two architectures side by side.
 
-## Objectives
-- **Product and Offer Management**: Enable a system where a shop can create a product if it doesn't exist, and once created, other shops can only submit offers for that product without creating duplicates.
-- **Full-Text Search**: Provide advanced full-text search capabilities for products with various filtering options. 
-- **Redirect Tracking**: Implement a redirect system from Kalamche to seller websites for tracking purposes. 
-- **Click-Based Usage Tracking**: Track product interactions per shop using a custom "fr-token" system. 
-- **Role-Based Access Control (RBAC)**: Implement a permission system to manage user roles and access. 
-- **Multi-OAuth Support**: Allow authentication via multiple OAuth providers and accounts. 
-- **Multi-Payment Gateways**: Support various payment gateways for flexible transactions. 
+## How it actually works
 
-## Why I Built This Project
-I built Kalamche to create a powerful, scalable search engine API for products, capable of integrating with external platforms and providing a seamless experience for users and sellers. My goal was to design a stateless backend that supports horizontal scaling, advanced search functionality, and secure authentication, while exploring modern tools like NestJS, Rust, and PostgreSQL. This project serves as a foundation for a robust e-commerce ecosystem, demonstrating my ability to handle complex backend requirements and integrations.
+A shop can create a product only if it doesn't already exist (matched by product code); if it exists, other shops just attach an offer — a price — to it instead of creating a duplicate. Products can have offers from many sellers, and the cheapest one wins the "offer box" shown on the product page, similar to how an ad auction picks a winner.
 
-## Key Features
-- **Authentication**: Supports email/password login and email OTP verification.
-- **Token System**: Implements refresh and access tokens for secure sessions.
-- **Multi-OAuth**: Enables multiple accounts and providers for OAuth authentication.
-- **RBAC Permission System**: Manages user roles and permissions for secure access control.
-- **Click-Based Usage (fr-token)**: Tracks product interactions per shop using a custom token system.
-- **Multi-Payment Gateways**: Integrates multiple payment providers for transactions.
-- **Redirect Tracking**: Tracks redirects to seller websites for fr-token calculations.
-- **Rate Limiting**: Applies rate limiting per module using NestJS for API protection.
-- **Hierarchical Categories**: Organizes products into nested category structures.
-- **One Product, Multiple Offers**: Allows a shop to create a product if it doesn't exist; other shops can only submit offers for existing products, preventing duplicates.
-- **Full-Text Search**: Supports advanced product search with customizable filters.
-- **Image Upload and Resize**: Handles image uploads to S3 with resizing capabilities.
-- **Seller Dashboard**: Provides sellers with tools to manage their products and shops.
+Token spending works like Google Ads: sellers buy click tokens up front, and a product's offer only shows up on the search/product page while its seller still has tokens left. When a user clicks through and gets redirected to the seller's site, that click consumes a token. Once a seller runs out, their offer stops showing until they top up. All of this is tracked through the fr-token system, with a redirect layer in between Kalamche and the seller's site to actually register the click.
+
+Search is full-text over the product catalog, with filtering by category (nested/hierarchical), price, value, and range, plus whatever other product attributes matter for narrowing results.
+
+Auth is email/password plus email OTP, and also multi-OAuth — a user can link several OAuth providers to one account. Either path issues the same refresh/access token pair, so session management is uniform regardless of how someone logged in.
+
+Beyond that: RBAC for roles/permissions, per-module rate limiting, S3-backed image upload with resizing, and a seller dashboard for managing shops and products.
 
 ## Tech Stack
-### NestJS Backend
-- **Framework**: NestJS with Express
-- **Database**: PostgreSQL 17
-- **ORM**: Drizzle ORM
-- **Authentication**: Argon2 for password hashing, JWT for tokens
-- **API Documentation**: Swagger with Zod and auto-generated DTOs
-- **Storage**: AWS S3 for image uploads
-- **Testing**: Jest for unit and integration tests
-- **Containerization**: Docker and Docker Compose
-- **Language**: TypeScript
-- **Additional Tools**: ESLint for linting
 
-### Rust Backend
-- **Framework**: Actix Web
-- **Database**: PostgreSQL 17
-- **ORM**: Diesel ORM
-- **Cache**: Redis
-- **Storage**: AWS S3 for image uploads
-- **Language**: Rust
+**NestJS backend** — NestJS + Express, PostgreSQL 17 via Drizzle ORM, Argon2 + JWT for auth, Swagger docs generated from Zod schemas, S3 for images, Jest for tests, Docker for local services.
+
+**Rust backend** — Actix Web, PostgreSQL 17 via Diesel, Redis for caching, S3 for images.
 
 ## Folder Structure (NestJS Backend)
-The NestJS backend follows a modular folder structure for clarity and maintainability. Below is the directory layout with descriptions:
 
 ```
 kalamche/
@@ -86,13 +54,12 @@ kalamche/
 └── README.md                      # Project documentation (this file)
 ```
 
-## SQL Diagram
-View the dbdocs diagram [here](https://dbdocs.io/w3cj/bytedash?schema=public&view=relationships).
+## Database
+
+Schema diagram: [dbdocs](https://dbdocs.io/w3cj/bytedash?schema=public&view=relationships)
 
 ![diagram](https://s6.uupload.ir/files/bytedash_vgot.png)
 
-## Known Limitations
-Due to time constraints, some CRUD routes are not fully built out across every module. The core business logic is implemented and working, but certain standard CRUD endpoints (e.g., update/delete on some resources) are still missing or incomplete. These gaps are a result of limited development time rather than a design decision, and are planned as follow-up work.
+## Known limitations
 
-
-## TODO
+Some modules are missing standard CRUD endpoints (update/delete on a few resources) — that's a time constraint, not a design choice, and it's on the list to fill in.
