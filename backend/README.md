@@ -91,4 +91,8 @@ View the dbdocs diagram [here](https://dbdocs.io/w3cj/bytedash?schema=public&vie
 
 ![diagram](https://s6.uupload.ir/files/bytedash_vgot.png)
 
+## Known Limitations
+Due to time constraints, some CRUD routes are not fully built out across every module. The core business logic is implemented and working, but certain standard CRUD endpoints (e.g., update/delete on some resources) are still missing or incomplete. These gaps are a result of limited development time rather than a design decision, and are planned as follow-up work.
+
+
 ## TODO
