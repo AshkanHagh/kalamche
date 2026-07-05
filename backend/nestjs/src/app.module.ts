@@ -10,8 +10,10 @@ import { ShopModule } from "./features/shop/shop.module";
 import { UserModule } from "./features/user/user.module";
 import { RateLimitModule } from "./features/rate-limit/rate-limit.module";
 import { FrTokenModule } from "./features/fr-token/fr-token.module";
-import { APP_PIPE } from "@nestjs/core";
-import { ZodValidationPipe } from "./utils/zod-validation.pipe";
+import { APP_FILTER, APP_PIPE } from "@nestjs/core";
+import { ZodValidationExceptionFilter } from "./filters/zod-exception.filter";
+import { HttpExceptionFilter } from "./filters/http-exception.filter";
+import { ZodValidationPipe } from "nestjs-zod";
 
 @Module({
   imports: [
@@ -28,6 +30,14 @@ import { ZodValidationPipe } from "./utils/zod-validation.pipe";
     FrTokenModule,
   ],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: ZodValidationExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
     {
       provide: APP_PIPE,
       useClass: ZodValidationPipe,

@@ -1,4 +1,12 @@
-export interface IOAuthConfig {
+export type OAuthUser = {
+  providerId: string;
+  email: string;
+  name: string;
+  avatar: string;
+  provider: "github" | "discord";
+};
+
+export type OAuthConfig = {
   clientId: string;
   clientSecret: string;
   redirectUri: string;
@@ -7,9 +15,9 @@ export interface IOAuthConfig {
   tokenHost: string;
   authorizePath: string;
   tokenPath: string;
-}
+};
 
-export interface IGitHubUser {
+export type GitHubOAuthUser = {
   login: string;
   id: number;
   node_id: string;
@@ -42,15 +50,15 @@ export interface IGitHubUser {
   following: number;
   created_at: string; // ISO 8601 format
   updated_at: string; // ISO 8601 format
-}
+};
 
-export interface IGitHubUserEmail {
+export type GitHubOAuthUserEmail = {
   email: string;
   primary: boolean;
   verified: boolean;
-}
+};
 
-export interface IDiscordUser {
+export type DiscordOAuthUser = {
   id: string;
   username: string;
   discriminator: string;
@@ -61,4 +69,4 @@ export interface IDiscordUser {
   locale?: string;
   premium_type?: number;
   public_flags?: number;
-}
+};

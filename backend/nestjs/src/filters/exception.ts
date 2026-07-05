@@ -46,13 +46,14 @@ export class KalamcheError extends HttpException {
     public type: KalamcheErrorType,
     cause?: unknown,
   ) {
-    super(type, KalamcheError.getStatusCode(type), {
+    // set default status code 500 for not handeled errors
+    super(type, HttpStatus.INTERNAL_SERVER_ERROR, {
       cause,
     });
   }
 
-  static getStatusCode(type: KalamcheErrorType) {
-    switch (type) {
+  getStatus(): number {
+    switch (this.type) {
       case KalamcheErrorType.NotEnoughTokens: {
         return HttpStatus.PAYMENT_REQUIRED;
       }
@@ -107,4 +108,6 @@ export class KalamcheError extends HttpException {
       }
     }
   }
+
+  static getStatusCode(type: KalamcheErrorType) {}
 }

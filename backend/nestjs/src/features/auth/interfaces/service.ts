@@ -5,25 +5,16 @@ import {
   ResendVerificationCodeDto,
   VerifyEmailRegistrationDto,
 } from "../dto";
-import {
-  LoginPendingResponse,
-  LoginResponse,
-  VerifyEmailRegistrationRes,
-} from "../types";
 
 export interface IAuthService {
   register(payload: RegisterDto): Promise<string>;
   resendVerificationCode(payload: ResendVerificationCodeDto): Promise<string>;
-  login(
-    res: Response,
-    req: Request,
-    payload: LoginDto,
-  ): Promise<LoginPendingResponse | LoginResponse>;
+  login(res: Response, req: Request, payload: LoginDto): Promise<unknown>;
 
   verifyEmailRegistration(
     res: Response,
     req: Request,
     payload: VerifyEmailRegistrationDto,
-  ): Promise<VerifyEmailRegistrationRes>;
+  ): Promise<unknown>;
   refreshToken(req: Request, res: Response): Promise<{ accessToken: string }>;
 }

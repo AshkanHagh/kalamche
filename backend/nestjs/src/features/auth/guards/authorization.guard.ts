@@ -6,19 +6,18 @@ import {
 } from "@nestjs/common";
 import { Request } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { Reflector } from "@nestjs/core";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
 import { UserTable } from "src/drizzle/schemas";
+import { JwtService } from "@nestjs/jwt";
 
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    @AuthConfig() private config: IAuthConfig,
+    private jwtService: JwtService,
     @Inject(DATABASE) private db: Database,
   ) {}
 
@@ -37,10 +36,9 @@ export class AuthorizationGuard implements CanActivate {
     const accessToken = token.split("Bearer ")[1];
     let tokenPayload: { userId: string };
     try {
-      tokenPayload = jwt.verify(
+      tokenPayload = await this.jwtService.verifyAsync<{ userId: string }>(
         accessToken,
-        this.config.accessToken.secret!,
-      ) as { userId: string };
+      );
     } catch (error) {
       throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
     }

@@ -12,12 +12,12 @@ export interface IAuthController {
     payload: ResendVerificationCodeDto,
   ): Promise<{ token: string }>;
 
-  login(req: Request, res: Response, payload: LoginDto): Promise<Response>;
+  login(req: Request, res: Response, payload: LoginDto): Promise<unknown>;
 
   verifyEmailRegistration(
     res: Response,
     req: Request,
     payload: VerifyEmailRegistrationDto,
-  ): Promise<Response>;
-  refreshToken(req: Request, res: Response): Promise<Response>;
+  ): Promise<unknown>;
+  refreshToken(req: Request, res: Response): Promise<unknown>;
 }

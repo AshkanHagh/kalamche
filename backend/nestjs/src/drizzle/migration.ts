@@ -11,7 +11,7 @@ export async function migration() {
   });
   const db = drizzle(pool, { casing: "snake_case" });
 
-  const path = resolve(__dirname, "migrations");
+  const path = resolve(__dirname, "..", "..", "migrations");
   await migrate(db, { migrationsFolder: path });
 
   // create and add trigger auto update vector field in products table

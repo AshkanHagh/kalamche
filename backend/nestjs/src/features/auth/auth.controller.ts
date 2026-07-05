@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, Res } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+} from "@nestjs/common";
 import {
   LoginDto,
   RegisterDto,
@@ -7,7 +16,7 @@ import {
 } from "./dto";
 import { AuthService } from "./auth.service";
 import { Request, Response } from "express";
-import { IAuthController } from "./interfaces/IController";
+import { IAuthController } from "./interfaces/controller";
 
 @Controller("auth")
 export class AuthController implements IAuthController {
@@ -15,50 +24,46 @@ export class AuthController implements IAuthController {
 
   @Post("/register")
   async register(@Body() payload: RegisterDto): Promise<{ token: string }> {
-    const verificationToken = await this.authService.register(payload);
-    return { token: verificationToken };
+    const token = await this.authService.register(payload);
+    return {
+      token,
+    };
   }
 
   @Post("/verify/resend")
   async resendVerificationCode(
     @Body() payload: ResendVerificationCodeDto,
   ): Promise<{ token: string }> {
-    const verificationToken =
-      await this.authService.resendVerificationCode(payload);
-    return { token: verificationToken };
+    const token = await this.authService.resendVerificationCode(payload);
+    return {
+      token,
+    };
   }
 
   @Post("/login")
   async login(
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
     @Body() payload: LoginDto,
-  ): Promise<Response> {
-    const result = await this.authService.login(res, req, payload);
-    return res.status(200).json(result);
+  ) {
+    return await this.authService.login(res, req, payload);
   }
 
   @Post("/verify")
+  @HttpCode(HttpStatus.CREATED)
   async verifyEmailRegistration(
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
     @Req() req: Request,
     @Body() payload: VerifyEmailRegistrationDto,
-  ): Promise<Response> {
-    const result = await this.authService.verifyEmailRegistration(
-      res,
-      req,
-      payload,
-    );
-
-    return res.status(201).json(result);
+  ) {
+    return await this.authService.verifyEmailRegistration(res, req, payload);
   }
 
   @Get("/refresh")
   async refreshToken(
     @Req() req: Request,
-    @Res() res: Response,
-  ): Promise<Response> {
-    const result = await this.authService.refreshToken(req, res);
-    return res.status(200).json(result);
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return await this.authService.refreshToken(req, res);
   }
 }

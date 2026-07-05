@@ -6,10 +6,9 @@ import { RepositoryModule } from "src/repository/repository.module";
 import { ProductScheduler } from "./scheduler";
 import { S3Service } from "./services/s3.service";
 import { ProductUtilService } from "./util.service";
-import { HttpModule } from "@nestjs/axios";
 
 @Module({
-  imports: [AuthModule, RepositoryModule, HttpModule],
+  imports: [AuthModule, RepositoryModule],
   controllers: [ProductController],
   providers: [ProductService, ProductScheduler, S3Service, ProductUtilService],
   exports: [S3Service],

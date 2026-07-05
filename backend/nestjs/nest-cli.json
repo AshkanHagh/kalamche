@@ -4,6 +4,7 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "assets": ["**/*", "!**/*.seed.ts"],
-    "deleteOutDir": true
+    "deleteOutDir": true,
+    "builder": "swc"
   }
 }

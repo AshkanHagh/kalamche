@@ -53,7 +53,6 @@ import {
   IProductRecord,
   IProductView,
 } from "src/drizzle/schemas";
-import { ApiFile, ApiParams, ApiQuery } from "src/utils/swagger-decorator";
 import { MAX_IMAGE_SIZE, MAX_IMAGES } from "./constants";
 
 @Controller("products")
@@ -137,7 +136,6 @@ export class ProductController implements IProductController {
     });
   }
 
-  @ApiParams({ type: RedirectToProductPageDto })
   @Get("/redirect-offer-page/:shopId/:productId")
   @SkipAuth()
   @SkipPermission()
@@ -150,7 +148,6 @@ export class ProductController implements IProductController {
     return { url, statusCode: 302 };
   }
 
-  @ApiQuery({ type: PaginationDto })
   @Get("/similar/:product_id")
   @SkipAuth()
   @SkipPermission()
@@ -170,7 +167,6 @@ export class ProductController implements IProductController {
     await this.productService.toggleLike(userId, productId);
   }
 
-  @ApiQuery({ type: SearchDto })
   @Get("/")
   @SkipAuth()
   @SkipPermission()
@@ -192,7 +188,6 @@ export class ProductController implements IProductController {
     return await this.productService.getCategories();
   }
 
-  @ApiQuery({ type: GetProductsByCategoryDto })
   @Get("/categories/:slug")
   @SkipAuth()
   @SkipPermission()
@@ -240,19 +235,6 @@ export class ProductController implements IProductController {
     return await this.productService.updateProduct(userId, productId, payload);
   }
 
-  @ApiFile("image", {
-    schema: {
-      type: "object",
-      properties: {
-        image: {
-          type: "string",
-          format: "binary",
-          description: "File to upload (e.g., image)",
-        },
-      },
-      required: ["image"],
-    },
-  })
   @Patch("/:product_id/images/:image_id")
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.UPDATE)
   @UseInterceptors(FileInterceptor("image"))

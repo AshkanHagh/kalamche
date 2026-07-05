@@ -1,18 +1,15 @@
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
 import { BaseOAuthService } from "./base-oauth.service";
-import { IGitHubUser, IGitHubUserEmail } from "../types";
+import { GitHubOAuthUser, GitHubOAuthUserEmail, OAuthUser } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { Injectable } from "@nestjs/common";
-import { HttpService } from "@nestjs/axios";
-import { firstValueFrom, map } from "rxjs";
-import { OAuthUserPayload } from "../dto";
+import ky, { KyInstance } from "ky";
 
 @Injectable()
 export class GithubOAuthService extends BaseOAuthService {
-  constructor(
-    @AuthConfig() private authConfig: IAuthConfig,
-    private httpService: HttpService,
-  ) {
+  private ky: KyInstance;
+
+  constructor(@AuthConfig() authConfig: IAuthConfig) {
     super({
       clientId: authConfig.oauth.github.clientId,
       clientSecret: authConfig.oauth.github.clientSecret,
@@ -23,32 +20,39 @@ export class GithubOAuthService extends BaseOAuthService {
       authorizePath: "/login/oauth/authorize",
       tokenPath: "/login/oauth/access_token",
     });
+
+    this.ky = ky.create({
+      prefix: "https://api.github.com",
+      headers: {
+        "content-type": "application/json",
+        "user-agent": "kalamche",
+      },
+      timeout: 1000 * 15,
+      keepalive: true,
+      retry: {
+        afterStatusCodes: [429, 500, 502, 503, 504, 401, 403, 404],
+        limit: 3,
+      },
+    });
   }
 
-  async getUserInfo(accessToken: string): Promise<OAuthUserPayload> {
+  async getUserInfo(accessToken: string): Promise<OAuthUser> {
     try {
       const [user, userEmails] = await Promise.all([
-        firstValueFrom(
-          this.httpService
-            .get<IGitHubUser>("https://api.github.com/user", {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "User-Agent": "kalamche",
-              },
-            })
-            .pipe(map((res) => res.data)),
-        ),
-
-        firstValueFrom(
-          this.httpService
-            .get<IGitHubUserEmail[]>("https://api.github.com/user/emails", {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                "User-Agent": "kalamche",
-              },
-            })
-            .pipe(map((res) => res.data)),
-        ),
+        this.ky
+          .get<GitHubOAuthUser>("user", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+          .json(),
+        this.ky
+          .get<GitHubOAuthUserEmail[]>("user/emails", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          })
+          .json(),
       ]);
 
       const primaryEmail = userEmails.find(

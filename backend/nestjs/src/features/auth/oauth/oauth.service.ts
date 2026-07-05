@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IOAuthService } from "./interfaces/IOAuthService";
+import { IOAuthService } from "./interfaces/service";
 import { GithubOAuthService } from "./util-services/github-oauth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { OAuthStateRepository } from "src/repository/repositories/oauth-state.repository";
@@ -11,7 +11,7 @@ import { OAuthAccountRepository } from "src/repository/repositories/oauth-accoun
 import { UserRepository } from "src/repository/repositories/user.repository";
 import { AuthUtilService } from "../util.service";
 import { DiscordOAuthService } from "./util-services/discrod-oauth.service";
-import { HandleCallbackPayload } from "./dto";
+import { HandleCallbackDto } from "./dto";
 import { IUser } from "src/drizzle/schemas";
 
 @Injectable()
@@ -43,7 +43,7 @@ export class OAuthService implements IOAuthService {
   async handleCallback(
     req: Request,
     res: Response,
-    payload: HandleCallbackPayload,
+    payload: HandleCallbackDto,
   ) {
     const provider = this.getProvider(payload.provider);
 
@@ -56,15 +56,14 @@ export class OAuthService implements IOAuthService {
       throw new KalamcheError(KalamcheErrorType.StateExpired);
     }
 
+    if (!provider.validateState(payload.state, accountState.state)) {
+      throw new KalamcheError(KalamcheErrorType.InvalidOAuthState);
+    }
+    const result = await provider.exchangeCodeForTokens(payload.code);
+    const oauthUser = await provider.getUserInfo(result.accessToken);
+
     return await this.db.transaction(async (tx) => {
       await this.oauthStateRepository.delete(tx, accountState.id);
-
-      if (!provider.validateState(payload.state, accountState.state)) {
-        throw new KalamcheError(KalamcheErrorType.InvalidOAuthState);
-      }
-
-      const result = await provider.exchangeCodeForTokens(payload.code);
-      const oauthUser = await provider.getUserInfo(result.accessToken);
 
       const userOAuthAccount = await this.oauthAccountRepository.findByProvider(
         tx,
@@ -81,7 +80,6 @@ export class OAuthService implements IOAuthService {
         if (!existingUser) {
           throw new KalamcheError(KalamcheErrorType.NotFound);
         }
-
         user = existingUser;
       } else {
         user = await this.authUtilService.findOrCreateUser(tx, {

@@ -7,5 +7,5 @@ export interface IOAuthController {
     req: Request,
     res: Response,
     payload: HandleCallbackDto,
-  ): Promise<Response>;
+  ): Promise<unknown>;
 }

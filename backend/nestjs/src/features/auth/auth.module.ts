@@ -7,19 +7,29 @@ import { EmailModule } from "../email/email.module";
 import { OauthController } from "./oauth/oauth.controller";
 import { OAuthService } from "./oauth/oauth.service";
 import { GithubOAuthService } from "./oauth/util-services/github-oauth.service";
-import { HttpModule } from "@nestjs/axios";
 import { DiscordOAuthService } from "./oauth/util-services/discrod-oauth.service";
 import { RateLimitModule } from "../rate-limit/rate-limit.module";
 import { APP_GUARD } from "@nestjs/core";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
 import { AuthorizationGuard } from "./guards/authorization.guard";
 import { PermissionGuard } from "./guards/permission.guard";
+import { JwtModule } from "@nestjs/jwt";
+import { authConfig, IAuthConfig } from "src/config/auth.config";
 
 @Module({
   imports: [
     RepositoryModule,
     EmailModule,
-    HttpModule,
+    JwtModule.registerAsync({
+      global: true,
+      inject: [authConfig.KEY],
+      useFactory: (authConfig: IAuthConfig) => ({
+        secret: process.env.ACCESS_TOKEN_SECRET,
+        signOptions: {
+          expiresIn: authConfig.accessToken.exp,
+        },
+      }),
+    }),
     RateLimitModule.forFeature({
       keyExtractor: "ip",
       mode: "DRY_MODE",

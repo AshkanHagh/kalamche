@@ -1,9 +1,16 @@
-import { Controller, Get, Query, Req, Res } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Query,
+  Req,
+  Res,
+} from "@nestjs/common";
 import { OAuthService } from "./oauth.service";
-import { IOAuthController } from "./interfaces/IOAuthController";
+import { IOAuthController } from "./interfaces/controller";
 import { Request, Response } from "express";
 import { HandleCallbackDto } from "./dto";
-import { ApiQuery } from "src/utils/swagger-decorator";
 
 @Controller("oauth")
 export class OauthController implements IOAuthController {
@@ -12,17 +19,18 @@ export class OauthController implements IOAuthController {
   @Get("/")
   async initiateOAuth(@Query("provider") provider: string) {
     const url = await this.oauthService.initiateOAuth(provider);
-    return { url };
+    return {
+      url,
+    };
   }
 
-  @ApiQuery({ type: HandleCallbackDto })
   @Get("/callback")
+  @HttpCode(HttpStatus.CREATED)
   async handleCallback(
     @Req() req: Request,
-    @Res() res: Response,
+    @Res({ passthrough: true }) res: Response,
     @Query() payload: HandleCallbackDto,
   ) {
-    const result = await this.oauthService.handleCallback(req, res, payload);
-    return res.status(201).json(result);
+    return await this.oauthService.handleCallback(req, res, payload);
   }
 }

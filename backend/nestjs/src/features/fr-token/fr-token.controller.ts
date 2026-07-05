@@ -12,7 +12,6 @@ import {
 } from "src/constants/global.constant";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
 import { IFrTokenPlan, ITransactionRecord, IUser } from "src/drizzle/schemas";
-import { ApiParams } from "src/utils/swagger-decorator";
 import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
 
 @Controller("fr-token")
@@ -20,7 +19,6 @@ import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
 export class FrTokenController implements IFrTokenController {
   constructor(private frTokenService: FrTokenService) {}
 
-  @ApiParams({ type: CreateCheckoutDto })
   @Get("/:paymentMethod/:planId")
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
   async createCheckout(

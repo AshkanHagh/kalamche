@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IAuthService } from "./interfaces/IService";
+import { IAuthService } from "./interfaces/service";
 import {
   LoginDto,
   RegisterDto,
@@ -10,11 +10,6 @@ import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { Database } from "src/drizzle/types";
 import * as argon2 from "argon2";
 import { AuthUtilService } from "./util.service";
-import {
-  LoginPendingResponse,
-  LoginResponse,
-  VerifyEmailRegistrationRes,
-} from "./types";
 import { RESEND_CODE_COOLDOWN } from "./constants";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { Request, Response } from "express";
@@ -36,7 +31,7 @@ export class AuthService implements IAuthService {
     @Inject(DATABASE) private db: Database,
   ) {}
 
-  async register(payload: RegisterDto): Promise<string> {
+  async register(payload: RegisterDto) {
     const emailExists = await this.userRepository.emailExists(payload.email);
     if (emailExists) {
       throw new KalamcheError(KalamcheErrorType.EmailAlreadyExists);
@@ -47,6 +42,7 @@ export class AuthService implements IAuthService {
 
     return await this.db.transaction(async (tx) => {
       if (pendingUser) {
+        // check if previews register email otp is expired or not
         const minutesElapsed = getElapsedTime(pendingUser.createdAt, "minutes");
         if (minutesElapsed < RESEND_CODE_COOLDOWN) {
           throw new KalamcheError(KalamcheErrorType.RegistrationCooldown);
@@ -56,6 +52,7 @@ export class AuthService implements IAuthService {
         pendingUser = await this.pendingUserRepository.insert(tx, {
           email: payload.email,
           passwordHash: hashedPassword,
+          // token will set later
           token: "",
         });
       }
@@ -68,9 +65,7 @@ export class AuthService implements IAuthService {
     });
   }
 
-  async resendVerificationCode(
-    payload: ResendVerificationCodeDto,
-  ): Promise<string> {
+  async resendVerificationCode(payload: ResendVerificationCodeDto) {
     const pendingUser = await this.pendingUserRepository.findByEmail(
       payload.email,
     );
@@ -95,11 +90,7 @@ export class AuthService implements IAuthService {
   // Login has two scenarios:
   // 1. If the user's last interaction with the app was more than 12 hours ago, they must log in using 2FA.
   // 2. If it was within 12 hours, a normal login is allowed.
-  async login(
-    res: Response,
-    req: Request,
-    payload: LoginDto,
-  ): Promise<LoginPendingResponse | LoginResponse> {
+  async login(res: Response, req: Request, payload: LoginDto) {
     const user = await this.userRepository.findByEmail(this.db, payload.email);
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
@@ -174,8 +165,8 @@ export class AuthService implements IAuthService {
     res: Response,
     req: Request,
     payload: VerifyEmailRegistrationDto,
-  ): Promise<VerifyEmailRegistrationRes> {
-    const token = this.authUtil.verifyToken<{ code: number }>(
+  ) {
+    const token = await this.authUtil.verifyToken<{ code: number }>(
       payload.token,
       this.config.verificationToken.secret!,
     );
@@ -213,16 +204,13 @@ export class AuthService implements IAuthService {
     });
   }
 
-  async refreshToken(
-    req: Request,
-    res: Response,
-  ): Promise<{ accessToken: string }> {
+  async refreshToken(req: Request, res: Response) {
     const refreshToken = req.cookies["refresh_token"] as string | undefined;
     if (!refreshToken) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }
 
-    const result = this.authUtil.verifyToken(
+    const result = await this.authUtil.verifyToken(
       refreshToken,
       this.config.refreshToken.secret!,
     );
@@ -241,7 +229,9 @@ export class AuthService implements IAuthService {
     return await this.db.transaction(async (tx) => {
       const tokens = await this.authUtil.refreshToken(tx, req, user.id);
       this.authUtil.setCookies(res, tokens.accessToken, tokens.refreshToken);
-      return { accessToken: tokens.accessToken };
+      return {
+        accessToken: tokens.accessToken,
+      };
     });
   }
 }

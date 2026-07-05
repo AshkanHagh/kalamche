@@ -39,7 +39,6 @@ import {
   IShopRecord,
   ITempShop,
 } from "src/drizzle/schemas";
-import { ApiParams, ApiQuery } from "src/utils/swagger-decorator";
 
 @Controller("shops")
 @UseGuards(AuthorizationGuard, PermissionGuard)
@@ -53,7 +52,6 @@ export class ShopController implements IShopController {
     return result;
   }
 
-  @ApiParams({ type: UploadImageDto })
   @Post("/images/:shopId/:isTempShop")
   @UseInterceptors(FileInterceptor("image"))
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -118,7 +116,6 @@ export class ShopController implements IShopController {
     return await this.shopService.updateShop(userId, shopId, payload);
   }
 
-  @ApiQuery({ type: PaginationDto })
   @Get("/products/:shop_id")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
   async getProducts(
@@ -135,7 +132,6 @@ export class ShopController implements IShopController {
     return await this.shopService.getMyShop(userId);
   }
 
-  @ApiParams({ type: GetProductDto })
   @Get("/products/:shopId/:productId")
   @Permission(ResourceType.SHOP, SHOP_RESOURCE_ACTION.READ)
   async getProduct(@User("id") userId: string, @Param() params: GetProductDto) {

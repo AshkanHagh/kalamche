@@ -1,6 +1,5 @@
 import { randomInt } from "crypto";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
-import * as jwt from "jsonwebtoken";
 import { EmailService } from "../email/email.service";
 import { CookieOptions, Request, Response } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
@@ -10,10 +9,12 @@ import { PendingUserRepository } from "src/repository/repositories/pending-user.
 import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
 import { IUser, IUserInsertForm } from "src/drizzle/schemas";
+import { JwtService } from "@nestjs/jwt";
 
 export class AuthUtilService {
   constructor(
     @AuthConfig() private authConfig: IAuthConfig,
+    private jwtService: JwtService,
     private userRepository: UserRepository,
     private pendingUserRepository: PendingUserRepository,
     private userLoginTokenRepository: UserLoginTokenRepository,
@@ -30,21 +31,20 @@ export class AuthUtilService {
   ): Promise<string> {
     const verificationCode = randomInt(100_000, 999_999);
 
-    const verificationToken: string = jwt.sign(
+    const verificationToken = await this.jwtService.signAsync(
       {
-        exp: Math.floor(
-          (Date.now() / 1000) * this.authConfig.verificationToken.exp,
-        ),
         userId,
         code: verificationCode,
       },
-      this.authConfig.verificationToken.secret!,
+      {
+        expiresIn: this.authConfig.verificationToken.exp,
+        secret: this.authConfig.verificationToken.secret,
+      },
     );
 
     await this.pendingUserRepository.update(tx, userId, {
       token: verificationToken,
     });
-
     await this.emailService.sendVerificationAccountEmail({
       code: verificationCode,
       to: email,
@@ -53,23 +53,15 @@ export class AuthUtilService {
   }
 
   async refreshToken(tx: Database, req: Request, userId: string) {
-    const now = Math.floor(Date.now() / 1000);
-
-    const accessToken = jwt.sign(
+    const accessToken = await this.jwtService.signAsync({
+      userId,
+    });
+    const refreshToken = await this.jwtService.signAsync(
+      { userId },
       {
-        exp: now + this.authConfig.accessToken.exp,
-        userId,
-        type: "access",
+        expiresIn: this.authConfig.refreshToken.exp,
+        secret: this.authConfig.refreshToken.secret,
       },
-      this.authConfig.accessToken.secret!,
-    );
-    const refreshToken = jwt.sign(
-      {
-        exp: now + this.authConfig.refreshToken.exp,
-        userId,
-        type: "refresh",
-      },
-      this.authConfig.refreshToken.secret!,
     );
 
     let userIp = req.headers["x-forwarded-for"] as string | undefined;
@@ -93,10 +85,15 @@ export class AuthUtilService {
     };
   }
 
-  verifyToken<T>(token: string, secret: string) {
+  async verifyToken<T>(token: string, secret: string) {
     try {
-      const result = jwt.verify(token, secret);
-      return result as { userId: string; type: string } & T;
+      const result = await this.jwtService.verifyAsync<{ userId: string } & T>(
+        token,
+        {
+          secret,
+        },
+      );
+      return result;
     } catch (error: unknown) {
       throw new KalamcheError(KalamcheErrorType.InvalidJwtToken, error);
     }
@@ -122,9 +119,8 @@ export class AuthUtilService {
       path: "/",
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     };
-
     res
       .cookie("access_token", accessToken, {
         ...cookieOptions,

@@ -1,14 +1,13 @@
 import { AuthorizationCode } from "simple-oauth2";
-import { IOAuthConfig } from "../types";
+import { OAuthConfig, OAuthUser } from "../types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { randomBytes, timingSafeEqual } from "node:crypto";
-import { OAuthUserPayload } from "../dto";
 
 export abstract class BaseOAuthService {
   private client: AuthorizationCode;
-  private config: IOAuthConfig;
+  private config: OAuthConfig;
 
-  constructor(config: IOAuthConfig) {
+  constructor(config: OAuthConfig) {
     this.config = config;
     this.client = new AuthorizationCode({
       client: {
@@ -24,9 +23,9 @@ export abstract class BaseOAuthService {
     });
   }
 
-  abstract getUserInfo(accessToken: string): Promise<OAuthUserPayload>;
+  abstract getUserInfo(accessToken: string): Promise<OAuthUser>;
 
-  generateAuthUrl(state: string, codeVerifier?: string) {
+  generateAuthUrl(state: string) {
     const params = {
       redirect_uri: this.config.redirectUri,
       scope: this.config.scopes.join(" "),
@@ -36,7 +35,7 @@ export abstract class BaseOAuthService {
     return this.client.authorizeURL(params);
   }
 
-  async exchangeCodeForTokens(code: string, codeVerifier?: string) {
+  async exchangeCodeForTokens(code: string) {
     const tokenParams = {
       code,
       redirect_uri: this.config.redirectUri,
@@ -56,10 +55,6 @@ export abstract class BaseOAuthService {
   }
 
   generateState() {
-    return randomBytes(32).toString("base64url");
-  }
-
-  generateCodeVerifier() {
     return randomBytes(32).toString("base64url");
   }
 

@@ -23,8 +23,6 @@ import { DATABASE } from "src/drizzle/constants";
 import { S3Service } from "./services/s3.service";
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
 import { MAX_IMAGES, MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
-import { HttpService } from "@nestjs/axios";
-import { firstValueFrom } from "rxjs";
 import { Request } from "express";
 import {
   IBrand,
@@ -36,6 +34,7 @@ import {
 import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 import { CategoryRepository } from "src/repository/repositories/category.repository";
 import { BrandRepository } from "src/repository/repositories/brand.repository";
+import ky from "ky";
 
 @Injectable()
 export class ProductService implements IProductService {
@@ -54,7 +53,6 @@ export class ProductService implements IProductService {
     private categoryRepository: CategoryRepository,
     private brandRepository: BrandRepository,
     private s3Service: S3Service,
-    private httpService: HttpService,
   ) {}
 
   async createProduct(
@@ -76,16 +74,13 @@ export class ProductService implements IProductService {
     // validate upc in production if GO_UPC_API_TOKEN is set
     if (process.env.NODE_ENV === "production" && process.env.GO_UPC_API_TOKEN) {
       try {
-        await firstValueFrom(
-          this.httpService.get(
-            `https://go-upc.com/api/v1/code/${payload.upc}`,
-            {
-              headers: {
-                Authorization: `Bearer ${process.env.GO_UPC_API_TOKEN}`,
-              },
+        await ky
+          .get(`https://go-upc.com/api/v1/code/${payload.upc}`, {
+            headers: {
+              Authorization: `Bearer ${process.env.GO_UPC_API_TOKEN}`,
             },
-          ),
-        );
+          })
+          .json();
       } catch (error) {
         throw new KalamcheError(KalamcheErrorType.InvalidUpc, error);
       }
