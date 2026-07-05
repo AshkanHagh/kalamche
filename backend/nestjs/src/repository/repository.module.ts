@@ -8,7 +8,6 @@ import { ShopRepository } from "./repositories/shop.repository";
 import { TempProductRepository } from "./repositories/temp-product.repository";
 import { ProductOfferRepository } from "./repositories/product-offer.repository";
 import { ProductImageRepository } from "./repositories/product-image.repository";
-import { RateLimitBucketRepository } from "./repositories/rate-limit-bucket.repository";
 import { WalletRepository } from "./repositories/wallet.repository";
 import { TempShopRepository } from "./repositories/temp-shop.repository";
 import { ProductLikeRepository } from "./repositories/product-like.repository";
@@ -24,7 +23,6 @@ const repositories = [
   TempProductRepository,
   ProductOfferRepository,
   ProductImageRepository,
-  RateLimitBucketRepository,
   WalletRepository,
   TempShopRepository,
   ProductLikeRepository,

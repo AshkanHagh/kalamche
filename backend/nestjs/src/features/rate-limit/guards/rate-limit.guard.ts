@@ -19,9 +19,7 @@ export class RateLimitGuard implements CanActivate {
     const result = await this.rateLimitService.checkRateLimit(identifier);
     res.set({
       "X-RateLimit-Remaining": result.remainingTokens.toString(),
-      "X-RateLimit-Reset": Math.ceil(
-        result.resetTime.getTime() / 1000,
-      ).toString(),
+      "X-RateLimit-Reset": result.resetTime.toString(),
     });
 
     if (!result.allowed) {
