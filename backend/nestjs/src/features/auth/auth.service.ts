@@ -95,11 +95,9 @@ export class AuthService implements IAuthService {
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
     }
-
     if (!user.passwordHash) {
       throw new KalamcheError(KalamcheErrorType.NoPasswordOAuthError);
     }
-
     if (!(await argon2.verify(user.passwordHash, payload.password))) {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
     }

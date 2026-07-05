@@ -1,22 +1,18 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IUserService } from "./interfaces/IService";
+import { IUserService } from "./interfaces/service";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
 import { UpdateUserDto } from "./dto";
-import { UserRepository } from "src/repository/repositories/user.repository";
+import { ProductLikeTable, UserTable } from "src/drizzle/schemas";
+import { eq, and } from "drizzle-orm";
 
 @Injectable()
 export class UserService implements IUserService {
-  constructor(
-    @Inject(DATABASE) private db: Database,
-    private productLikeRepository: ProductLikeRepository,
-    private userRepository: UserRepository,
-  ) {}
+  constructor(@Inject(DATABASE) private db: Database) {}
 
   async me(userId: string) {
-    const result = await this.db.query.UserTable.findFirst({
-      where: (table, funcs) => funcs.eq(table.id, userId),
+    return await this.db.query.UserTable.findFirst({
+      where: eq(UserTable.id, userId),
       columns: {
         passwordHash: false,
       },
@@ -24,21 +20,25 @@ export class UserService implements IUserService {
         wallet: true,
       },
     });
-
-    return result;
   }
 
   async likeStatus(userId: string, productId: string): Promise<boolean> {
-    return await this.productLikeRepository.exists(userId, productId);
+    const liked = await this.db.query.ProductLikeTable.findFirst({
+      where: and(
+        eq(ProductLikeTable.userId, userId),
+        eq(ProductLikeTable.productId, productId),
+      ),
+    });
+    return !!liked;
   }
 
   async updateUser(userId: string, payload: UpdateUserDto): Promise<any> {
-    console.log(payload);
-    const { passwordHash, ...result } = await this.userRepository.update(
-      userId,
-      { ...payload },
-    );
-
+    const [user] = await this.db
+      .update(UserTable)
+      .set(payload)
+      .where(eq(UserTable.id, userId))
+      .returning();
+    const { passwordHash: _, ...result } = user;
     return result;
   }
 }

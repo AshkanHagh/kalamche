@@ -2,17 +2,20 @@ import { Inject, Injectable } from "@nestjs/common";
 import { IOAuthService } from "./interfaces/service";
 import { GithubOAuthService } from "./util-services/github-oauth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { OAuthStateRepository } from "src/repository/repositories/oauth-state.repository";
 import { Request, Response } from "express";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { DATABASE, USER_ROLE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
-import { OAuthAccountRepository } from "src/repository/repositories/oauth-account.repository";
-import { UserRepository } from "src/repository/repositories/user.repository";
 import { AuthUtilService } from "../util.service";
 import { DiscordOAuthService } from "./util-services/discrod-oauth.service";
 import { HandleCallbackDto } from "./dto";
-import { IUser } from "src/drizzle/schemas";
+import {
+  IUser,
+  OAuthAccountTable,
+  OAuthStateTable,
+  UserTable,
+} from "src/drizzle/schemas";
+import { and, eq } from "drizzle-orm";
 
 @Injectable()
 export class OAuthService implements IOAuthService {
@@ -20,9 +23,6 @@ export class OAuthService implements IOAuthService {
     @Inject(DATABASE) private db: Database,
     private githubOAuthService: GithubOAuthService,
     private discordOAuthService: DiscordOAuthService,
-    private oauthStateRepository: OAuthStateRepository,
-    private oauthAccountRepository: OAuthAccountRepository,
-    private userRepository: UserRepository,
     private authUtilService: AuthUtilService,
   ) {}
 
@@ -31,10 +31,13 @@ export class OAuthService implements IOAuthService {
     const state = provider.generateState();
 
     return await this.db.transaction(async (tx) => {
-      await this.oauthStateRepository.insert(tx, {
-        provider: providerName,
-        state,
-      });
+      await tx
+        .insert(OAuthStateTable)
+        .values({
+          provider: providerName,
+          state,
+        })
+        .execute();
 
       return provider.generateAuthUrl(state);
     });
@@ -47,12 +50,19 @@ export class OAuthService implements IOAuthService {
   ) {
     const provider = this.getProvider(payload.provider);
 
-    const accountState = await this.oauthStateRepository.findByState(
-      payload.provider,
-      payload.state,
-    );
+    const accountState = await this.db.query.OAuthStateTable.findFirst({
+      where: and(
+        eq(OAuthStateTable.provider, payload.provider),
+        eq(OAuthStateTable.state, payload.state),
+      ),
+    });
+    if (!accountState) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
     if (getElapsedTime(accountState.createdAt, "minutes") > 10) {
-      await this.oauthStateRepository.delete(this.db, accountState.id);
+      await this.db
+        .delete(OAuthStateTable)
+        .where(eq(OAuthStateTable.id, accountState.id));
       throw new KalamcheError(KalamcheErrorType.StateExpired);
     }
 
@@ -63,20 +73,22 @@ export class OAuthService implements IOAuthService {
     const oauthUser = await provider.getUserInfo(result.accessToken);
 
     return await this.db.transaction(async (tx) => {
-      await this.oauthStateRepository.delete(tx, accountState.id);
+      await tx
+        .delete(OAuthStateTable)
+        .where(eq(OAuthStateTable.id, accountState.id));
 
-      const userOAuthAccount = await this.oauthAccountRepository.findByProvider(
-        tx,
-        payload.provider,
-        oauthUser.providerId,
-      );
+      const oauthAccount = await tx.query.OAuthAccountTable.findFirst({
+        where: and(
+          eq(OAuthAccountTable.provider, payload.provider),
+          eq(OAuthAccountTable.providerId, oauthUser.providerId),
+        ),
+      });
 
       let user: IUser;
-      if (userOAuthAccount) {
-        const existingUser = await this.userRepository.findById(
-          tx,
-          userOAuthAccount.userId,
-        );
+      if (oauthAccount) {
+        const existingUser = await this.db.query.UserTable.findFirst({
+          where: eq(UserTable.id, oauthAccount.userId),
+        });
         if (!existingUser) {
           throw new KalamcheError(KalamcheErrorType.NotFound);
         }
@@ -89,12 +101,11 @@ export class OAuthService implements IOAuthService {
         });
       }
 
-      await this.oauthAccountRepository.insert(tx, {
+      await tx.insert(OAuthAccountTable).values({
         provider: payload.provider,
         providerId: oauthUser.providerId,
         userId: user.id,
       });
-
       const response = await this.authUtilService.generateLoginRes(
         tx,
         res,
