@@ -1,45 +1,15 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Controller, Get, UseGuards } from "@nestjs/common";
 import { FrTokenService } from "./fr-token.service";
-import { IFrTokenController } from "./interfaces/IController";
-import { CreateCheckoutDto, VerifyPaymentDto } from "./dto";
-import { AuthorizationGuard } from "../auth/guards/authorization.guard";
-import { User } from "../auth/decorators/user.decorator";
-import { PermissionGuard } from "../auth/guards/permission.guard";
-import { Permission } from "../auth/decorators/permission.decorators";
-import {
-  PRODUCT_RESOURCE_ACTION,
-  ResourceType,
-} from "src/constants/global.constant";
+import { IFrTokenController } from "./interfaces/controller";
+import { IFrTokenPlan } from "src/drizzle/schemas";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
-import { IFrTokenPlan, ITransactionRecord, IUser } from "src/drizzle/schemas";
-import { SkipPermission } from "../auth/decorators/skip-permission.decorator";
 
 @Controller("fr-token")
-@UseGuards(AuthorizationGuard, PermissionGuard, RateLimitGuard)
+@UseGuards(RateLimitGuard)
 export class FrTokenController implements IFrTokenController {
   constructor(private frTokenService: FrTokenService) {}
 
-  @Get("/:paymentMethod/:planId")
-  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
-  async createCheckout(
-    @User() user: IUser,
-    @Param() params: CreateCheckoutDto,
-  ): Promise<{ url: string }> {
-    const url = await this.frTokenService.createCheckout(user, params);
-    return { url };
-  }
-
-  @Post("/verify")
-  @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
-  async verifyPayment(
-    @User("id") userId: string,
-    @Body() payload: VerifyPaymentDto,
-  ): Promise<ITransactionRecord> {
-    return await this.frTokenService.verifyPayment(userId, payload);
-  }
-
-  @Get("/")
-  @SkipPermission()
+  @Get("/plans")
   async getPlans(): Promise<IFrTokenPlan[]> {
     return await this.frTokenService.getPlans();
   }

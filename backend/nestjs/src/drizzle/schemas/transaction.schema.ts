@@ -21,7 +21,6 @@ export const TransactionTable = pgTable("transactions", (table) => {
       .uuid()
       .notNull()
       .references(() => UserTable.id),
-    referenceId: table.text(),
     transactionId: table.text(),
     tokens: table.smallint().notNull(),
     price: table.real().notNull(),

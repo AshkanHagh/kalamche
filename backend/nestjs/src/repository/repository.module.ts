@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Global, Module } from "@nestjs/common";
 import { DrizzleModule } from "src/drizzle/drizzle.module";
 import { UserRepository } from "./repositories/user.repository";
 import { PendingUserRepository } from "./repositories/pending-user.repository";
@@ -9,8 +9,6 @@ import { TempProductRepository } from "./repositories/temp-product.repository";
 import { ProductOfferRepository } from "./repositories/product-offer.repository";
 import { ProductImageRepository } from "./repositories/product-image.repository";
 import { RateLimitBucketRepository } from "./repositories/rate-limit-bucket.repository";
-import { TransactionRepository } from "./repositories/transaction.repository";
-import { FrTokenPlanRepository } from "./repositories/fr-token-plan.repository";
 import { WalletRepository } from "./repositories/wallet.repository";
 import { TempShopRepository } from "./repositories/temp-shop.repository";
 import { ProductLikeRepository } from "./repositories/product-like.repository";
@@ -27,8 +25,6 @@ const repositories = [
   ProductOfferRepository,
   ProductImageRepository,
   RateLimitBucketRepository,
-  TransactionRepository,
-  FrTokenPlanRepository,
   WalletRepository,
   TempShopRepository,
   ProductLikeRepository,
@@ -36,6 +32,7 @@ const repositories = [
   BrandRepository,
 ];
 
+@Global()
 @Module({
   imports: [DrizzleModule],
   providers: repositories,

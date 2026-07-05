@@ -12,7 +12,7 @@ import {
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
 import { FrTokenService } from "src/features/fr-token/fr-token.service";
-import { ZarinpalPaymentService } from "src/features/fr-token/util-services/zarinpal-payment.service";
+import { ZarinpalPaymentService } from "src/features/payment/services/zarinpal-payment.service";
 import {
   createNestAppInstance,
   createUser,

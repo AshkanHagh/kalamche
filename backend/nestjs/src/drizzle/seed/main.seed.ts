@@ -163,14 +163,14 @@ async function seedUsers(db: Database) {
     .values(insertForms)
     .returning();
 
-  await Promise.all([
+  await Promise.all(
     users.map(async (user) => {
       await db.insert(schema.WalletTable).values({
         tokens: faker.number.int({ min: 1, max: 100 }),
         userId: user.id,
       });
     }),
-  ]);
+  );
 
   return users;
 }

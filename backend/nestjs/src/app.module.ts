@@ -14,6 +14,7 @@ import { APP_FILTER, APP_PIPE } from "@nestjs/core";
 import { ZodValidationExceptionFilter } from "./filters/zod-exception.filter";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { ZodValidationPipe } from "nestjs-zod";
+import { PaymentModule } from "./features/payment/payment.module";
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ZodValidationPipe } from "nestjs-zod";
     UserModule,
     RateLimitModule,
     FrTokenModule,
+    PaymentModule,
   ],
   providers: [
     {

@@ -7,4 +7,4 @@ export enum USER_ROLE {
   PENDING_SELLER = "pending_seller",
 }
 
-export const PAYMENT_METHODS = ["zarinpal", "stripe"] as const;
+export const PAYMENT_METHODS = ["zarinpal"] as const;
