@@ -1,5 +1,5 @@
 import { TestingModule } from "@nestjs/testing";
-import { AuthService } from "src/features/auth/auth.service";
+import { AuthService } from "src/modules/auth/auth.service";
 import { Database } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 import { PendingUserTable, UserTable } from "src/drizzle/schemas";
@@ -7,9 +7,9 @@ import { eq } from "drizzle-orm";
 import { createNestAppInstance, truncateTables } from "test/test.helper";
 import { faker } from "@faker-js/faker/.";
 import * as jwt from "jsonwebtoken";
-import { RESEND_CODE_COOLDOWN } from "src/features/auth/constants";
+import { RESEND_CODE_COOLDOWN } from "src/modules/auth/constants";
 import { KalamcheErrorType } from "src/filters/exception";
-import { EmailService } from "src/features/email/email.service";
+import { EmailService } from "src/modules/email/email.service";
 
 describe("AuthService", () => {
   let nestModule: TestingModule;

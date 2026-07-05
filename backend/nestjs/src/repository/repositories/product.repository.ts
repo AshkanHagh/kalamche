@@ -16,7 +16,7 @@ import {
   ShopTable,
   ShopViewTable,
 } from "src/drizzle/schemas";
-import { FilterOptions } from "src/features/product/dto";
+import { FilterOptions } from "src/modules/product/dto";
 
 export class ProductRepository implements IProductRepo {
   constructor(@Inject(DATABASE) private db: Database) {}

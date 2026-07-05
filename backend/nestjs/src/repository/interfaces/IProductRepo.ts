@@ -1,6 +1,6 @@
 import { IProduct, IProductInsertForm } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { FilterOptions } from "src/features/product/dto";
+import { FilterOptions } from "src/modules/product/dto";
 
 export interface IProductRepo {
   findByUpc(upc: string): Promise<IProduct | undefined>;

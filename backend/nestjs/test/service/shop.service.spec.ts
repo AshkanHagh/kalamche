@@ -9,8 +9,8 @@ import {
   UserTable,
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { S3Service } from "src/features/product/services/s3.service";
-import { ShopService } from "src/features/shop/shop.service";
+import { S3Service } from "src/modules/product/services/s3.service";
+import { ShopService } from "src/modules/shop/shop.service";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
 import {
   createNestAppInstance,

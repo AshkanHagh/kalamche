@@ -11,8 +11,8 @@ import {
   UserTable,
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { FrTokenService } from "src/features/fr-token/fr-token.service";
-import { ZarinpalPaymentService } from "src/features/payment/services/zarinpal-payment.service";
+import { FrTokenService } from "src/modules/fr-token/fr-token.service";
+import { ZarinpalPaymentService } from "src/modules/payment/services/zarinpal-payment.service";
 import {
   createNestAppInstance,
   createUser,

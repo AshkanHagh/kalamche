@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker/.";
 import { TestingModule } from "@nestjs/testing";
 import { Transporter } from "nodemailer";
-import { EmailService } from "src/features/email/email.service";
+import { EmailService } from "src/modules/email/email.service";
 import { createNestAppInstance } from "test/test.helper";
 import { instance, mock } from "ts-mockito";
 

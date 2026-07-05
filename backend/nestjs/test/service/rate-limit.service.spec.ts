@@ -6,7 +6,7 @@ import { randomUUID } from "node:crypto";
 import { DATABASE } from "src/drizzle/constants";
 import { RateLimitBucketTable } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { RateLimitService } from "src/features/rate-limit/rate-limit.service";
+import { RateLimitService } from "src/modules/rate-limit/rate-limit.service";
 import { RateLimitBucketRepository } from "src/repository/repositories/rate-limit-bucket.repository";
 import { createNestAppInstance, truncateTables } from "test/test.helper";
 
