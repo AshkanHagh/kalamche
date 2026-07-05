@@ -10,6 +10,7 @@ import { UserLoginTokenRepository } from "src/repository/repositories/user-login
 import { WalletRepository } from "src/repository/repositories/wallet.repository";
 import { IUser, IUserInsertForm } from "src/drizzle/schemas";
 import { JwtService } from "@nestjs/jwt";
+import { EmailTemplate } from "../email/types";
 
 export class AuthUtilService {
   constructor(
@@ -45,9 +46,13 @@ export class AuthUtilService {
     await this.pendingUserRepository.update(tx, userId, {
       token: verificationToken,
     });
-    await this.emailService.sendVerificationAccountEmail({
-      code: verificationCode,
+    await this.emailService.sendMail({
       to: email,
+      subject: "verify your account",
+      template: EmailTemplate.VERIFY_EMAIL,
+      context: {
+        code: verificationCode,
+      },
     });
     return verificationToken;
   }
