@@ -1,5 +1,10 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { CreateOfferDto, CreateProductDto, SearchDto } from "./dto";
+import {
+  CreateOfferDto,
+  CreateProductDto,
+  PaginationDto,
+  SearchDto,
+} from "./dto";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { ProductUtilService } from "./util.service";
 import { Database } from "src/drizzle/types";
@@ -18,7 +23,10 @@ import ky from "ky";
 import { and, gte } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { generateAsin } from "src/utils/asin";
-import { MeilisearchService } from "./services/meilisearch.service";
+import {
+  MeilisearchService,
+  ProductSearchDocument,
+} from "./services/meilisearch.service";
 import { S3Service } from "../attachment/services/s3.service";
 import { count } from "drizzle-orm";
 
@@ -27,7 +35,7 @@ export class ProductService {
   constructor(
     @Inject(DATABASE) private db: Database,
     private s3Service: S3Service,
-    private productUtilService: ProductUtilService,
+    private utilService: ProductUtilService,
     private searchService: MeilisearchService,
   ) {}
 
@@ -44,6 +52,16 @@ export class ProductService {
   async createProduct(userId: string, payload: CreateProductDto) {
     const shop = await this.checkUserPermission(userId);
 
+    await this.db.transaction(async (tx) => {
+      const [product] = await tx
+        .select()
+        .from(ProductTable)
+        .where(eq(ProductTable.upc, payload.upc))
+        .for("update");
+      if (product) {
+        throw new KalamcheError(KalamcheErrorType.ProductWithUpcAlreadyExists);
+      }
+    });
     // validate upc in production if GO_UPC_API_TOKEN is set
     if (process.env.NODE_ENV === "production" && process.env.GO_UPC_API_TOKEN) {
       try {
@@ -67,11 +85,11 @@ export class ProductService {
         where: eq(CategoryTable.id, payload.categoryId),
       }),
     ]);
-    if (brand || category) {
+    if (!brand || !category) {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    const product = await this.db.transaction(async (tx) => {
+    return await this.db.transaction(async (tx) => {
       const [product] = await tx
         .insert(ProductTable)
         .values({
@@ -82,24 +100,11 @@ export class ProductService {
         })
         .returning();
       await Promise.all([
-        this.productUtilService.setProductImages(
-          tx,
-          payload.imageIds,
-          product.id,
-        ),
-        this.productUtilService.createProductOffer(
-          tx,
-          product.id,
-          shop.id,
-          payload,
-        ),
+        this.utilService.setProductImages(tx, payload.imageIds, product.id),
+        this.utilService.createProductOffer(tx, product.id, shop.id, payload),
       ]);
       return product;
     });
-
-    // currently we dont have any backup plan for when indexing fails
-    await this.searchService.addNewDoc(product.id).catch(() => {});
-    return product;
   }
 
   async createOffer(
@@ -115,18 +120,21 @@ export class ProductService {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    const hasOffer = await this.db.query.ProductOfferTable.findFirst({
-      where: and(
-        eq(ProductOfferTable.shopId, shop.id),
-        eq(ProductOfferTable.productId, productId),
-      ),
-    });
-    if (hasOffer) {
-      throw new KalamcheError(KalamcheErrorType.OfferAlreadyExists);
-    }
-
     return await this.db.transaction(async (tx) => {
-      return await this.productUtilService.createProductOffer(
+      const [hasOffer] = await this.db
+        .select()
+        .from(ProductOfferTable)
+        .where(
+          and(
+            eq(ProductOfferTable.shopId, shop.id),
+            eq(ProductOfferTable.productId, productId),
+          ),
+        )
+        .for("update");
+      if (hasOffer) {
+        throw new KalamcheError(KalamcheErrorType.OfferAlreadyExists);
+      }
+      return await this.utilService.createProductOffer(
         tx,
         productId,
         shop.id,
@@ -136,6 +144,7 @@ export class ProductService {
   }
 
   async getProduct(productId: string) {
+    // date filter for product price history(default is from 6m-present)
     const sixMountsAgo = new Date();
     sixMountsAgo.setMonth(sixMountsAgo.getMonth() - 6);
 
@@ -189,23 +198,64 @@ export class ProductService {
     };
   }
 
-  // async getSimilarProduct(productId: string, params: PaginationDto) {
-  //   const product = await this.productRepository.findById(productId);
-  //   const result = await this.productRepository.findSimilarProducts(
-  //     product,
-  //     params.limit,
-  //     params.offset,
-  //   );
+  async getSimilarProduct(productId: string, params: PaginationDto) {
+    const product = await this.db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
+      with: {
+        brand: true,
+        offers: {
+          where: eq(ProductOfferTable.byboxWinner, true),
+        },
+      },
+    });
+    if (!product) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
 
-  //   const productRecord: IProductRecord[] = result.map(
-  //     ({ images, offers, ...product }) => ({
-  //       imageUrl: images[0]?.url || "",
-  //       price: offers[0]?.finalPrice || 0,
-  //       ...product,
-  //     }),
-  //   );
-  //   return productRecord;
-  // }
+    const price = product.offers[0].finalPrice;
+    const minPrice = price * 0.7;
+    const maxPrice = price * 1.3;
+    const baseFilter = [
+      'status = "public"',
+      `id != ${product.id}`,
+      `categoryId = "${product.categoryId}"`,
+      `finalPrice ${minPrice} TO ${maxPrice}`,
+    ];
+
+    const result =
+      await this.searchService.productIndex.search<ProductSearchDocument>("", {
+        filter: [...baseFilter, `brandName = "${product.brand.name}"`],
+        limit: params.limit + 1,
+        offset: params.offset,
+      });
+    const nA = result.estimatedTotalHits;
+    let products = result.hits;
+
+    const fallbackCountNeeded = params.limit - products.length;
+    if (fallbackCountNeeded > 0) {
+      const result =
+        await this.searchService.productIndex.search<ProductSearchDocument>(
+          "",
+          {
+            filter: [...baseFilter, `brandName != "${product.brand.name}"`],
+            limit: fallbackCountNeeded + 1,
+            offset: Math.max(0, params.offset - nA),
+          },
+        );
+      products = result.hits;
+    }
+
+    // Check for next page by fetching one extra product beyond the limit
+    const hasNext = products.length > params.limit;
+    if (hasNext) {
+      // Remove the extra product
+      products.pop();
+    }
+    return {
+      hasNext,
+      products,
+    };
+  }
 
   async toggleLike(userId: string, productId: string) {
     const product = await this.db.query.ProductTable.findFirst({
@@ -215,53 +265,66 @@ export class ProductService {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    const liked = await this.db.query.ProductLikeTable.findFirst({
-      where: and(
-        eq(ProductLikeTable.userId, userId),
-        eq(ProductLikeTable.productId, productId),
-      ),
-    });
-    if (liked) {
-      await this.db
-        .delete(ProductLikeTable)
+    await this.db.transaction(async (tx) => {
+      const liked = await tx
+        .select()
+        .from(ProductLikeTable)
         .where(
           and(
             eq(ProductLikeTable.userId, userId),
             eq(ProductLikeTable.productId, productId),
           ),
-        );
-    } else {
-      await this.db.insert(ProductLikeTable).values({
-        userId,
-        productId,
-      });
-    }
-
-    const [likes] = await this.db
-      .select({ count: count() })
-      .from(ProductLikeTable)
-      .where(eq(ProductLikeTable.productId, productId));
-    await this.searchService.updateDoc(productId, {
-      likeCount: likes.count,
+        )
+        .for("update");
+      if (liked) {
+        await tx
+          .delete(ProductLikeTable)
+          .where(
+            and(
+              eq(ProductLikeTable.userId, userId),
+              eq(ProductLikeTable.productId, productId),
+            ),
+          );
+      } else {
+        await tx.insert(ProductLikeTable).values({
+          userId,
+          productId,
+        });
+      }
     });
   }
 
-  async search(params: SearchDto, categoryId?: string) {
+  async search(params: SearchDto) {
     const sortMap: Record<string, string[] | undefined> = {
       cheapest: ["initialPrice:asc"],
       expensive: ["initialPrice:desc"],
       newest: ["createdAt:desc"],
       popular: ["likeCount:desc"],
       view: ["viewCount:desc"],
+      // IGNORE: meilisearch always return relevent products,
+      // this was used for postgres(has no use here)
       relevent: undefined,
     };
     const filters: string[] = ['status = "public"'];
-    if (params.brand) {
-      filters.push(`brandName = "${params.brand}"`);
-    } else if (params.prMax && params.prMin) {
+
+    if (params.prMax && params.prMin) {
       filters.push(`finalPrice ${params.prMin} TO ${params.prMax}`);
-    } else if (categoryId) {
-      filters.push(`categoryId = "${categoryId}"`);
+    } else if (params.category) {
+      // set categoryId filter only when brand is valid
+      const category = await this.db.query.CategoryTable.findFirst({
+        where: eq(CategoryTable.slug, params.category),
+      });
+      if (category) {
+        filters.push(`categoryId = "${category.id}"`);
+      }
+    } else if (params.brand) {
+      const brand = await this.db.query.BrandTable.findFirst({
+        where: eq(BrandTable.slug, params.brand),
+      });
+      // set brand name filter only when brand is valid
+      if (brand) {
+        filters.push(`brandName = "${params.brand}"`);
+      }
     }
 
     const products = await this.searchService.productIndex.search(params.q, {
@@ -297,36 +360,6 @@ export class ProductService {
       hasNext,
     };
   }
-
-  // async getProductsByCategory(slug: string, params: CategorySearchDto) {
-  //   const notFoundResult = {
-  //     products: [],
-  //     hasNext: false,
-  //   };
-  //   const category = await this.db.query.CategoryTable.findFirst({
-  //     where: eq(CategoryTable.slug, slug),
-  //   });
-  //   if (!category) {
-  //     return notFoundResult;
-  //   }
-
-  //   const parentCategories = this.categoryRepository.findHierarchy(
-  //     category.path,
-  //   );
-
-  //   const result = await this.search(
-  //     {
-  //       ...params,
-  //       q: "",
-  //     },
-  //     category.id,
-  //   );
-
-  //   return {
-  //     ...result,
-  //     parentCategories,
-  //   };
-  // }
 
   async deleteProduct(userId: string, productId: string) {
     const product = await this.db.query.ProductTable.findFirst({
@@ -364,5 +397,13 @@ export class ProductService {
         }),
       );
     });
+  }
+
+  async getCategories() {
+    return await this.db.query.CategoryTable.findMany();
+  }
+
+  async getBrands() {
+    return await this.db.query.BrandTable.findMany();
   }
 }

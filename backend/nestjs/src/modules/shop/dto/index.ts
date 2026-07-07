@@ -12,7 +12,7 @@ const CreateShopSchema = z.object({
   state: z.string().max(100),
   streetAddress: z.string().max(255),
   zipCode: z.string().min(5).max(10),
-  imageId: z.uuid(),
+  imageId: z.uuid().optional(),
 });
 
 export class CreateShopDto extends createZodDto(CreateShopSchema) {}

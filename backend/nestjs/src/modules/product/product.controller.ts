@@ -4,11 +4,17 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
 } from "@nestjs/common";
-import { CreateOfferDto, CreateProductDto, SearchDto } from "./dto";
+import {
+  CreateOfferDto,
+  CreateProductDto,
+  PaginationDto,
+  SearchDto,
+} from "./dto";
 import { ProductService } from "./product.service";
 import { User } from "../auth/decorators/user.decorator";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
@@ -32,17 +38,57 @@ export class ProductController {
     @User("id") userId: string,
     @Body() payload: CreateProductDto,
   ) {
-    return this.productService.createProduct(userId, payload);
+    return await this.productService.createProduct(userId, payload);
   }
 
   @Post("/offers/:product_id")
   @Permission(ResourceType.PRODUCT, PRODUCT_RESOURCE_ACTION.CREATE)
-  createOffer(
+  async createOffer(
     @User("id") userId: string,
     @Param("product_id", new ParseUUIDPipe()) productId: string,
     @Body() payload: CreateOfferDto,
   ) {
-    return this.productService.createOffer(userId, productId, payload);
+    return await this.productService.createOffer(userId, productId, payload);
+  }
+
+  @Get("/:id")
+  @SkipAuth()
+  @SkipPermission()
+  async get(@Param("id", new ParseUUIDPipe()) productId: string) {
+    return await this.productService.getProduct(productId);
+  }
+
+  @Get("similar/:product_id")
+  @SkipAuth()
+  @SkipPermission()
+  async getSimilarProduct(
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+    @Query() params: PaginationDto,
+  ) {
+    return await this.productService.getSimilarProduct(productId, params);
+  }
+
+  @Patch("/like/:product_id")
+  @SkipPermission()
+  async toggleLike(
+    @User("id") userId: string,
+    @Param("product_id", new ParseUUIDPipe()) productId: string,
+  ) {
+    await this.productService.toggleLike(userId, productId);
+  }
+
+  @Get("brands")
+  @SkipAuth()
+  @SkipPermission()
+  async getBrands() {
+    return await this.productService.getBrands();
+  }
+
+  @Get("categories")
+  @SkipAuth()
+  @SkipPermission()
+  async getCategories() {
+    return await this.productService.getCategories();
   }
 
   @Get("/")

@@ -8,8 +8,10 @@ import {
   ProductImageTable,
   ProductOfferTable,
 } from "src/drizzle/schemas";
-import { and, eq, inArray, lte } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { CreateProductDto } from "./dto";
+import { MAX_PRODUCT_IMAGE_COUNT } from "../attachment/constants";
+import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 
 @Injectable()
 export class ProductUtilService {
@@ -18,13 +20,27 @@ export class ProductUtilService {
     private s3Service: S3Service,
   ) {}
 
+  // thumbnail upload and image upload count will be checked here
   async setProductImages(tx: Database, imagesId: string[], productId: string) {
     const uploadedImages = await tx.query.AnonymouseImageTable.findMany({
       where: and(
-        inArray(AnonymouseImageTable.userId, imagesId),
+        inArray(AnonymouseImageTable.id, imagesId),
         eq(AnonymouseImageTable.usage, "product"),
       ),
     });
+
+    const uploadedImagesCount = uploadedImages.filter(
+      (image) => !image.isThumbnail,
+    ).length;
+    const thumbnailsCount = uploadedImages.filter(
+      (image) => image.isThumbnail,
+    ).length;
+    if (thumbnailsCount > 1) {
+      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
+    }
+    if (uploadedImagesCount >= MAX_PRODUCT_IMAGE_COUNT) {
+      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
+    }
 
     const imagesForm: ProductImageInsertForm[] = [];
     await Promise.all(
@@ -50,13 +66,12 @@ export class ProductUtilService {
     const offer = await this.db.query.ProductOfferTable.findFirst({
       where: and(
         eq(ProductOfferTable.productId, productId),
-        lte(ProductOfferTable.finalPrice, payload.finalPrice),
+        eq(ProductOfferTable.byboxWinner, true),
       ),
     });
-
     let isByboxWinner = false;
-
-    if (!offer) {
+    if (offer && payload.finalPrice <= offer.finalPrice) {
+      // if no offer is in range of new offer, set by box winner to true
       isByboxWinner = true;
       // removing anyone that is bybox winner to set new by box winner
       await tx

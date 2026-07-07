@@ -5,16 +5,10 @@ import { S3Service } from "./services/s3.service";
 import { eq } from "drizzle-orm";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { randomUUID } from "node:crypto";
-import {
-  AnonymouseImageTable,
-  ProductImageTable,
-  ShopTable,
-} from "src/drizzle/schemas";
+import { AnonymouseImageTable, ShopTable } from "src/drizzle/schemas";
 import Piscina from "piscina";
 import { join } from "node:path";
 import { ImageResize } from "./image-resize.worker";
-import { count } from "drizzle-orm";
-import { MAX_PRODUCT_IMAGE_COUNT } from "./constants";
 
 @Injectable()
 export class AttachmentService {
@@ -55,11 +49,6 @@ export class AttachmentService {
     };
   }
 
-  /**
-   * this is not verify memory efficent because if product thumbnail limit reached
-   * and user uploads 5 regular images, all those 5 images will be stored in memory before
-   * thumbnail check
-   */
   async anonymouseProductImages(
     userId: string,
     files: {
@@ -74,31 +63,12 @@ export class AttachmentService {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
 
-    const [[currentImages], thumbnail] = await Promise.all([
-      this.db
-        .select({ count: count() })
-        .from(ProductImageTable)
-        .where(eq(ProductImageTable.isThumbnail, false)),
-      this.db.query.ProductImageTable.findFirst({
-        where: eq(ProductImageTable.isThumbnail, true),
-      }),
-    ]);
-
-    const newImagesCount = currentImages.count + files.images.length;
-    if (thumbnail && files.thumbnailImage) {
-      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
-    }
-    if (newImagesCount >= MAX_PRODUCT_IMAGE_COUNT) {
-      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
-    }
-
     const allFiles = [
       ...(files.thumbnailImage
         ? [{ file: files.thumbnailImage, isThumbnail: true }]
         : []),
       ...files.images.map((file) => ({ file, isThumbnail: false })),
     ];
-
     const uploaded = await Promise.all(
       allFiles.map(async ({ file, isThumbnail }) => {
         const imageId = randomUUID() as string;

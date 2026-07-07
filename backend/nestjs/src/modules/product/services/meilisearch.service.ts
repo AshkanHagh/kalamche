@@ -61,7 +61,13 @@ export class MeilisearchService implements OnModuleInit {
         "upc",
         "specifications.value",
       ],
-      filterableAttributes: ["status", "categoryId", "brandName", "finalPrice"],
+      filterableAttributes: [
+        "id",
+        "status",
+        "categoryId",
+        "brandName",
+        "finalPrice",
+      ],
       sortableAttributes: [
         "initialPrice",
         "createdAt",

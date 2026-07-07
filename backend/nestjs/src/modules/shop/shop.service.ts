@@ -42,31 +42,33 @@ export class ShopService {
         .where(eq(UserTable.id, userId))
         .execute();
 
-      const uploadedImage = await tx.query.AnonymouseImageTable.findFirst({
-        where: and(
-          eq(AnonymouseImageTable.id, payload.imageId),
-          eq(AnonymouseImageTable.usage, "shop"),
-        ),
-      });
-      if (uploadedImage) {
-        // removing the temp flag from uploaded image
-        await this.s3Service.removeImageTempFlag(uploadedImage.id);
+      let uploadedImageUrl: string | undefined;
+      if (payload.imageId) {
+        const uploadedImage = await tx.query.AnonymouseImageTable.findFirst({
+          where: and(
+            eq(AnonymouseImageTable.id, payload.imageId),
+            eq(AnonymouseImageTable.usage, "shop"),
+          ),
+        });
+        if (uploadedImage) {
+          uploadedImageUrl = uploadedImage.url;
+          // removing the temp flag from uploaded image
+          await this.s3Service.removeImageTempFlag(uploadedImage.id);
+        }
+        await tx
+          .delete(AnonymouseImageTable)
+          .where(eq(AnonymouseImageTable.id, payload.imageId));
       }
 
-      const [shop] = await Promise.all([
-        this.db
-          .insert(ShopTable)
-          .values({
-            userId,
-            imageUrl: uploadedImage?.url,
-            ...payload,
-          })
-          .returning(),
-        tx
-          .delete(AnonymouseImageTable)
-          .where(eq(AnonymouseImageTable.id, payload.imageId)),
-      ]);
-      return shop[0];
+      const [shop] = await tx
+        .insert(ShopTable)
+        .values({
+          userId,
+          imageUrl: uploadedImageUrl,
+          ...payload,
+        })
+        .returning();
+      return shop;
     });
   }
 

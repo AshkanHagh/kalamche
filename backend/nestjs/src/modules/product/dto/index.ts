@@ -25,7 +25,8 @@ export const CreateOfferSchema = z.object({
 
 export class CreateOfferDto extends createZodDto(CreateOfferSchema) {}
 
-const FilterSchema = z.object({
+const SearchSchema = z.object({
+  q: z.string().max(255).default(""),
   sort: z.enum([
     "cheapest",
     "view",
@@ -39,19 +40,14 @@ const FilterSchema = z.object({
   brand: z.string().max(255).optional(),
   offset: z.coerce.number(),
   limit: z.coerce.number(),
+  category: z.string().optional(),
 });
-const SearchSchema = z
-  .object({
-    q: z.string().max(255),
-  })
-  .merge(FilterSchema);
 
 export class SearchDto extends createZodDto(SearchSchema) {}
-export class CategorySearchDto extends createZodDto(FilterSchema) {}
 
 const PaginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(10),
-  offset: z.coerce.number().min(0).default(0),
+  offset: z.coerce.number().max(255).min(0).default(0),
 });
 
 export class PaginationDto extends createZodDto(PaginationSchema) {}
