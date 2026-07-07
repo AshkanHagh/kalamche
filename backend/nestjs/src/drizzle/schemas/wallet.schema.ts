@@ -9,7 +9,7 @@ export const WalletTable = pgTable("wallets", (table) => {
     userId: table
       .uuid()
       .notNull()
-      .references(() => UserTable.id),
+      .references(() => UserTable.id, { onDelete: "cascade" }),
     tokens: table.smallint().notNull(),
     createdAt,
     updatedAt,

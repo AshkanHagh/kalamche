@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IUserService } from "./interfaces/service";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import { UpdateUserDto } from "./dto";
@@ -7,7 +6,7 @@ import { ProductLikeTable, UserTable } from "src/drizzle/schemas";
 import { eq, and } from "drizzle-orm";
 
 @Injectable()
-export class UserService implements IUserService {
+export class UserService {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async me(userId: string) {

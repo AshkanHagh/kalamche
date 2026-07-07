@@ -8,14 +8,13 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { IUserController } from "./interfaces/controller";
 import { User } from "../auth/decorators/user.decorator";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
 import { UpdateUserDto } from "./dto";
 
 @Controller("users")
 @UseGuards(AuthorizationGuard)
-export class UserController implements IUserController {
+export class UserController {
   constructor(private userService: UserService) {}
 
   @Get("/me")

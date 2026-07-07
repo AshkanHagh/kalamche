@@ -1,7 +1,6 @@
 import { Global, Module } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
-import { RepositoryModule } from "src/repository/repository.module";
 import { AuthUtilService } from "./util.service";
 import { EmailModule } from "../email/email.module";
 import { OauthController } from "./oauth/oauth.controller";

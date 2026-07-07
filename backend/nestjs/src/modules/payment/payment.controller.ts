@@ -8,14 +8,13 @@ import {
 import { IUser } from "src/drizzle/schemas";
 import { User } from "../auth/decorators/user.decorator";
 import { CreateCheckoutDto, VerifyPaymentDto } from "./dtos";
-import { IPaymentController } from "./interfaces/controller";
 import { RateLimitGuard } from "../rate-limit/guards/rate-limit.guard";
 import { AuthorizationGuard } from "../auth/guards/authorization.guard";
 import { PermissionGuard } from "../auth/guards/permission.guard";
 
 @Controller("payments")
 @UseGuards(AuthorizationGuard, PermissionGuard, RateLimitGuard)
-export class PaymentController implements IPaymentController {
+export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   @Get(":provider/:planId")

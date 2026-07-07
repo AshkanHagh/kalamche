@@ -8,12 +8,11 @@ import {
   Res,
 } from "@nestjs/common";
 import { OAuthService } from "./oauth.service";
-import { IOAuthController } from "./interfaces/controller";
 import { Request, Response } from "express";
 import { HandleCallbackDto } from "./dto";
 
 @Controller("oauth")
-export class OauthController implements IOAuthController {
+export class OauthController {
   constructor(private oauthService: OAuthService) {}
 
   @Get("/")

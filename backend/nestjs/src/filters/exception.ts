@@ -32,6 +32,7 @@ export enum KalamcheErrorType {
   RateLimitInvalidIdentifier = "RATE_LIMIT_INVALID_IDENTIFIER",
   RateLimitExceeded = "RATE_LIMIT_EXCEEDED",
   ZarinpalReqFailed = "ZARINPAL_REQUEST_FAILED",
+  ProductIndexFailed = "PRODUCT_INDEX_FAILED",
   PaymentVerificationFailed = "PAYMENT_VERIFICATION_FAILED",
   InvalidPaymentMethod = "INVALID_PAYMENT_METHOD",
   NotEnoughTokens = "NOT_ENOUGH_TOKENS",
@@ -39,6 +40,7 @@ export enum KalamcheErrorType {
   TokenChargingFailed = "TOKEN_CHARGING_FAILED",
   FailedToRedirect = "FAILED_TO_REDIRECT",
   BadRequest = "BAD_REQUEST",
+  UploadLimitReached = "UPLOAD_LIMIT_REACHED",
 }
 
 export class KalamcheError extends HttpException {
@@ -60,6 +62,7 @@ export class KalamcheError extends HttpException {
       case KalamcheErrorType.PaymentVerificationFailed: {
         return HttpStatus.NOT_ACCEPTABLE;
       }
+      case KalamcheErrorType.UploadLimitReached:
       case KalamcheErrorType.RateLimitExceeded: {
         return HttpStatus.TOO_MANY_REQUESTS;
       }

@@ -1,16 +1,22 @@
 import { Module } from "@nestjs/common";
 import { ProductController } from "./product.controller";
 import { ProductService } from "./product.service";
-import { AuthModule } from "../auth/auth.module";
-import { RepositoryModule } from "src/repository/repository.module";
-import { ProductScheduler } from "./scheduler";
-import { S3Service } from "./services/s3.service";
 import { ProductUtilService } from "./util.service";
+import { AttachmentModule } from "../attachment/attachment.module";
+import { RateLimitModule } from "../rate-limit/rate-limit.module";
+import { MeilisearchService } from "./services/meilisearch.service";
 
 @Module({
-  imports: [AuthModule, RepositoryModule],
+  imports: [
+    AttachmentModule,
+    RateLimitModule.forFeature({
+      mode: "DRY_MODE",
+      keyExtractor: "userId",
+      bucketSize: 100,
+      refillRate: 1000 * 60,
+    }),
+  ],
   controllers: [ProductController],
-  providers: [ProductService, ProductScheduler, S3Service, ProductUtilService],
-  exports: [S3Service],
+  providers: [ProductService, ProductUtilService, MeilisearchService],
 })
 export class ProductModule {}

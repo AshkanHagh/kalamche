@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createZodDto } from "nestjs-zod";
-import { PAYMENT_METHODS } from "src/drizzle/constants";
+import { PAYMENT_METHODS } from "src/constants/global.constant";
 
 const CreateCheckoutSchema = z.object({
   provider: z.enum(PAYMENT_METHODS),

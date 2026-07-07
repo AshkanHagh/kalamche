@@ -1,12 +1,13 @@
 services:
   mailhog:
     image: mailhog/mailhog
+    restart: no
     ports:
       - "1025:1025" # SMTP
       - "8025:8025" # Web UI
 
   postgres:
-    image: mirror2.chabokan.net/pgvector/pgvector:0.8.4-pg18
+    image: postgres:17.5
     restart: no
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
@@ -17,6 +18,7 @@ services:
 
   s3:
     image: rustfs/rustfs:latest
+    restart: no
     environment:
       RUSTFS_ADDRESS: "0.0.0.0:9000"
       RUSTFS_CONSOLE_ADDRESS: "0.0.0.0:9001"
@@ -27,3 +29,11 @@ services:
     ports:
       - 9000:9000
       - 9001:9001
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    restart: no
+    environment:
+      MEILI_MASTER_KEY: ${MEILISEARCH_API_KEY}
+    ports:
+      - 7700:7700

@@ -1,10 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IFrTokenService } from "./interfaces/service";
 import { Database } from "src/drizzle/types";
 import { DATABASE } from "src/drizzle/constants";
 
 @Injectable()
-export class FrTokenService implements IFrTokenService {
+export class FrTokenService {
   constructor(@Inject(DATABASE) private db: Database) {}
 
   async getPlans() {

@@ -13,6 +13,3 @@ export const RateLimitBucketTable = pgTable("rate_limit_buckets", (table) => {
 });
 
 export type IRateLimitBucket = typeof RateLimitBucketTable.$inferSelect;
-export type IRateLimitBucketInsertForm =
-  typeof RateLimitBucketTable.$inferInsert;
-export type IRateLimitBucketUpdateForm = Partial<IRateLimitBucketInsertForm>;

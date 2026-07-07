@@ -9,7 +9,7 @@ import {
   UserTable,
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { S3Service } from "src/modules/product/services/s3.service";
+import { S3Service } from "src/modules/attachment/services/s3.service";
 import { ShopService } from "src/modules/shop/shop.service";
 import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
 import {

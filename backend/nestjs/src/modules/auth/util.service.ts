@@ -4,22 +4,22 @@ import { EmailService } from "../email/email.service";
 import { CookieOptions, Request, Response } from "express";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { Database } from "src/drizzle/types";
-import { UserRepository } from "src/repository/repositories/user.repository";
-import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
-import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
-import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import { IUser, IUserInsertForm } from "src/drizzle/schemas";
+import {
+  IUser,
+  IUserInsertForm,
+  PendingUserTable,
+  UserLoginTokenTable,
+  UserTable,
+  WalletTable,
+} from "src/drizzle/schemas";
 import { JwtService } from "@nestjs/jwt";
 import { EmailTemplate } from "../email/types";
+import { eq } from "drizzle-orm";
 
 export class AuthUtilService {
   constructor(
     @AuthConfig() private authConfig: IAuthConfig,
     private jwtService: JwtService,
-    private userRepository: UserRepository,
-    private pendingUserRepository: PendingUserRepository,
-    private userLoginTokenRepository: UserLoginTokenRepository,
-    private walletRepository: WalletRepository,
     private emailService: EmailService,
   ) {}
 
@@ -31,7 +31,6 @@ export class AuthUtilService {
     email: string,
   ): Promise<string> {
     const verificationCode = randomInt(100_000, 999_999);
-
     const verificationToken = await this.jwtService.signAsync(
       {
         userId,
@@ -43,9 +42,10 @@ export class AuthUtilService {
       },
     );
 
-    await this.pendingUserRepository.update(tx, userId, {
-      token: verificationToken,
-    });
+    await tx
+      .update(PendingUserTable)
+      .set({ token: verificationToken })
+      .where(eq(PendingUserTable.id, userId));
     await this.emailService.sendMail({
       to: email,
       subject: "verify your account",
@@ -69,21 +69,32 @@ export class AuthUtilService {
       },
     );
 
+    const userAgent = req.headers["user-agent"];
     let userIp = req.headers["x-forwarded-for"] as string | undefined;
     if (userIp) {
       userIp = userIp.split(",")[0].trim();
     } else {
       userIp = req.connection.remoteAddress || req.socket.remoteAddress;
     }
-    const userAgent = req.headers["user-agent"];
 
-    await this.userLoginTokenRepository.insertOrUpdate(tx, {
+    const form = {
       token: refreshToken,
       userId,
       userAgent,
       ip: userIp,
-    });
-
+    };
+    await tx
+      .insert(UserLoginTokenTable)
+      .values(form)
+      .onConflictDoUpdate({
+        target: UserLoginTokenTable.userId,
+        set: {
+          createdAt: new Date(),
+          userAgent: form.userAgent,
+          ip: form.ip,
+          token: form.token,
+        },
+      });
     return {
       accessToken,
       refreshToken,
@@ -104,13 +115,16 @@ export class AuthUtilService {
     }
   }
 
-  // NOT COMPLETED YET
+  // NOTE: NOT COMPLETED YET
   async findOrCreateUser(tx: Database, userForm: IUserInsertForm) {
-    let user = await this.userRepository.findByEmail(tx, userForm.email);
+    let user = await tx.query.UserTable.findFirst({
+      where: eq(UserTable.email, userForm.email),
+    });
     if (!user) {
-      user = await this.userRepository.insert(tx, userForm);
+      const [newUser] = await tx.insert(UserTable).values(userForm).returning();
+      user = newUser;
       // initiate default user free trial wallet
-      await this.walletRepository.insert(tx, {
+      await tx.insert(WalletTable).values({
         tokens: 50,
         userId: user.id,
       });

@@ -2,14 +2,13 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import { Request } from "express";
 import { IRateLimitConfig } from "./types";
 import { IRateLimitBucket, RateLimitBucketTable } from "src/drizzle/schemas";
-import { IRateLimitService } from "./interfaces/service";
 import { RATE_LIMIT_CONFIG } from "./constants";
 import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import { eq } from "drizzle-orm";
 
 @Injectable()
-export class RateLimitService implements IRateLimitService {
+export class RateLimitService {
   private logger = new Logger(RateLimitService.name);
 
   constructor(

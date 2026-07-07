@@ -1,75 +1,48 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IProductService } from "./interfaces/IService";
-import {
-  CompleteProductCreationPayload,
-  CreateOfferPayload,
-  CreateProductPayload,
-  GetproductsByCategoryPayload,
-  PaginationPayload,
-  RedirectToProductPagePayload,
-  SearchPayload,
-  UpdateOfferPayload,
-  UpdateProductPayload,
-} from "./dto";
-import { ProductRepository } from "src/repository/repositories/product.repository";
+import { CreateOfferDto, CreateProductDto, SearchDto } from "./dto";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { TempProductRepository } from "src/repository/repositories/temp-product.repository";
 import { ProductUtilService } from "./util.service";
 import { Database } from "src/drizzle/types";
-import { ShopRepository } from "src/repository/repositories/shop.repository";
-import { ProductOfferRepository } from "src/repository/repositories/product-offer.repository";
-import { ProductImageRepository } from "src/repository/repositories/product-image.repository";
 import { DATABASE } from "src/drizzle/constants";
-import { S3Service } from "./services/s3.service";
-import { WalletRepository } from "src/repository/repositories/wallet.repository";
-import { MAX_IMAGES, MIN_TOKEN_FOR_PRODUCT_CREATION } from "./constants";
-import { Request } from "express";
 import {
-  IBrand,
-  IProduct,
-  IProductOffer,
-  IProductRecord,
-  IProductView,
+  BrandTable,
+  CategoryTable,
+  ProductImageTable,
+  ProductLikeTable,
+  ProductOfferTable,
+  ProductPriceHistoryTable,
+  ProductTable,
+  ShopTable,
 } from "src/drizzle/schemas";
-import { ProductLikeRepository } from "src/repository/repositories/product-like.repository";
-import { CategoryRepository } from "src/repository/repositories/category.repository";
-import { BrandRepository } from "src/repository/repositories/brand.repository";
 import ky from "ky";
+import { and, gte } from "drizzle-orm";
+import { eq } from "drizzle-orm";
+import { generateAsin } from "src/utils/asin";
+import { MeilisearchService } from "./services/meilisearch.service";
+import { S3Service } from "../attachment/services/s3.service";
+import { count } from "drizzle-orm";
 
 @Injectable()
-export class ProductService implements IProductService {
-  private OFFER_REDIRECT_PAGE_BASE_URL = `${process.env.BASE_URL}/products/redirect-offer-page`;
-
+export class ProductService {
   constructor(
     @Inject(DATABASE) private db: Database,
-    private productRepository: ProductRepository,
-    private tempProductRepository: TempProductRepository,
-    private productUtilService: ProductUtilService,
-    private shopRepository: ShopRepository,
-    private productOfferRepository: ProductOfferRepository,
-    private productImageRepository: ProductImageRepository,
-    private walletRepository: WalletRepository,
-    private productLikeRepository: ProductLikeRepository,
-    private categoryRepository: CategoryRepository,
-    private brandRepository: BrandRepository,
     private s3Service: S3Service,
+    private productUtilService: ProductUtilService,
+    private searchService: MeilisearchService,
   ) {}
 
-  async createProduct(
-    userId: string,
-    shopId: string,
-    payload: CreateProductPayload,
-  ) {
-    const product = await this.productRepository.findByUpc(payload.upc);
-    if (product) {
-      throw new KalamcheError(KalamcheErrorType.ProductWithUpcAlreadyExists);
+  private async checkUserPermission(userId: string) {
+    const shop = await this.db.query.ShopTable.findFirst({
+      where: eq(ShopTable.userId, userId),
+    });
+    if (!shop) {
+      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
-    await this.productUtilService.userHasPermission(userId, shopId);
+    return shop;
+  }
 
-    const wallet = await this.walletRepository.findByUserId(userId);
-    if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {
-      throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
-    }
+  async createProduct(userId: string, payload: CreateProductDto) {
+    const shop = await this.checkUserPermission(userId);
 
     // validate upc in production if GO_UPC_API_TOKEN is set
     if (process.env.NODE_ENV === "production" && process.env.GO_UPC_API_TOKEN) {
@@ -85,497 +58,311 @@ export class ProductService implements IProductService {
         throw new KalamcheError(KalamcheErrorType.InvalidUpc, error);
       }
     }
-
-    return await this.tempProductRepository.insert({
-      shopId,
-      upc: payload.upc,
-    });
-  }
-
-  async completeProductCreation(
-    userId: string,
-    productId: string,
-    payload: CompleteProductCreationPayload,
-  ) {
-    const tempProduct = await this.tempProductRepository.findById(productId);
-    await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
-
     // Check if brand and category exist; throw error if either is not found
-    await Promise.all([
-      this.brandRepository.exists(payload.brandId),
-      this.categoryRepository.exists(payload.categoryId),
+    const [brand, category] = await Promise.all([
+      this.db.query.BrandTable.findFirst({
+        where: eq(BrandTable.id, payload.brandId),
+      }),
+      this.db.query.CategoryTable.findFirst({
+        where: eq(CategoryTable.id, payload.categoryId),
+      }),
     ]);
-
-    const wallet = await this.walletRepository.findByUserId(userId);
-    if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {
-      throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
+    if (brand || category) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    // TODO: move to utils
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let asin = characters.charAt(Math.floor(Math.random() * 26));
-    for (let i = 0; i < 9; i++) {
-      asin += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-
-    const imageUpdateTasks: Promise<void>[] = [];
-    const result = await this.db.transaction(async (tx) => {
-      await this.walletRepository.consumeTokens(
-        tx,
-        userId,
-        MIN_TOKEN_FOR_PRODUCT_CREATION,
-      );
-
-      const product = await this.productRepository.insert(tx, {
-        ...payload,
-        id: tempProduct.id,
-        asin,
-        upc: tempProduct.upc,
-        shopId: tempProduct.shopId,
-        status: "public",
-      });
-
-      const uploadedImages =
-        await this.productImageRepository.findManyByProductId(
-          tx,
-          tempProduct.id,
-          true,
-        );
-      uploadedImages.map((image) => {
-        imageUpdateTasks.push(
-          this.s3Service.updateObjectTag(image.id, "temp", "false"),
-        );
-      });
-
-      const redirectPageUrl = `${this.OFFER_REDIRECT_PAGE_BASE_URL}/${product.shopId}/${product.id}`;
-      const byboxWinner = await this.productOfferRepository.isByboxWinner(
-        tx,
-        productId,
-        payload.finalPrice,
-      );
-
+    const product = await this.db.transaction(async (tx) => {
+      const [product] = await tx
+        .insert(ProductTable)
+        .values({
+          ...payload,
+          asin: generateAsin(),
+          shopId: shop.id,
+          status: "public",
+        })
+        .returning();
       await Promise.all([
-        this.productOfferRepository.insert(tx, {
-          redirectPageUrl,
-          finalPrice: payload.finalPrice,
-          pageUrl: payload.websiteUrl,
-          productId: product.id,
-          shopId: product.shopId!,
-          title: payload.title,
-          status: "active",
-          byboxWinner,
-        }),
-        this.productImageRepository.updateByTempProductId(tx, product.id, {
-          tempProductId: null,
-          productId: product.id,
-        }),
+        this.productUtilService.setProductImages(
+          tx,
+          payload.imageIds,
+          product.id,
+        ),
+        this.productUtilService.createProductOffer(
+          tx,
+          product.id,
+          shop.id,
+          payload,
+        ),
       ]);
-
-      await this.tempProductRepository.delete(tx, productId);
-
       return product;
     });
 
-    await Promise.all(imageUpdateTasks);
-    return result;
+    // currently we dont have any backup plan for when indexing fails
+    await this.searchService.addNewDoc(product.id).catch(() => {});
+    return product;
   }
 
   async createOffer(
     userId: string,
     productId: string,
-    payload: CreateOfferPayload,
+    payload: CreateOfferDto,
   ) {
-    await this.productRepository.exists(productId);
-
-    const userShop = await this.shopRepository.findByUserId(userId);
-    if (!userShop) {
-      throw new KalamcheError(KalamcheErrorType.UserHasNoShop);
+    const shop = await this.checkUserPermission(userId);
+    const product = await this.db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
+    });
+    if (!product) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
     }
 
-    const wallet = await this.walletRepository.findByUserId(userId);
-    if (wallet.tokens < MIN_TOKEN_FOR_PRODUCT_CREATION) {
-      throw new KalamcheError(KalamcheErrorType.NotEnoughTokens);
-    }
-
-    const hasOffer = await this.productOfferRepository.checkShopOfferExists(
-      userShop.id,
-      productId,
-    );
+    const hasOffer = await this.db.query.ProductOfferTable.findFirst({
+      where: and(
+        eq(ProductOfferTable.shopId, shop.id),
+        eq(ProductOfferTable.productId, productId),
+      ),
+    });
     if (hasOffer) {
       throw new KalamcheError(KalamcheErrorType.OfferAlreadyExists);
     }
 
     return await this.db.transaction(async (tx) => {
-      await this.walletRepository.consumeTokens(
-        tx,
-        userId,
-        MIN_TOKEN_FOR_PRODUCT_CREATION,
-      );
-
-      const redirectPageUrl = `${this.OFFER_REDIRECT_PAGE_BASE_URL}/${userShop.id}/${productId}`;
-      const byboxWinner = await this.productOfferRepository.isByboxWinner(
+      return await this.productUtilService.createProductOffer(
         tx,
         productId,
-        payload.finalPrice,
+        shop.id,
+        payload,
       );
-
-      return await this.productOfferRepository.insert(tx, {
-        ...payload,
-        redirectPageUrl,
-        productId,
-        status: "active",
-        shopId: userShop.id,
-        byboxWinner,
-      });
     });
   }
 
-  async uploadImages(
-    userId: string,
-    productId: string,
-    isTemp: boolean,
-    files: {
-      thumbnailImage?: Express.Multer.File;
-      images: Express.Multer.File[];
-    },
-  ) {
-    // Check for user uploaded images limit
-    const [existingThumbnail, totalExistingImages] = await Promise.all([
-      this.productImageRepository.isThumbnailExists(productId, isTemp),
-      this.productImageRepository.countTotal(productId, isTemp),
-    ]);
-    if (existingThumbnail && files.thumbnailImage) {
-      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
-    }
-    if (totalExistingImages + files.images.length > MAX_IMAGES) {
-      throw new KalamcheError(KalamcheErrorType.ImageLimitExceeded);
-    }
+  async getProduct(productId: string) {
+    const sixMountsAgo = new Date();
+    sixMountsAgo.setMonth(sixMountsAgo.getMonth() - 6);
 
-    const repository = isTemp
-      ? this.tempProductRepository
-      : this.productRepository;
-    const product = await repository.findById(productId);
-
-    await this.productUtilService.userHasPermission(userId, product.shopId);
-
-    return this.db.transaction(async (tx) => {
-      const uploadTasks: Promise<void>[] = [];
-
-      if (files.thumbnailImage) {
-        uploadTasks.push(
-          this.productUtilService.processImageUpload(
-            files.thumbnailImage,
-            true,
-            productId,
-            isTemp,
-            tx,
-          ),
-        );
-      }
-
-      uploadTasks.push(
-        ...files.images.map((file) =>
-          this.productUtilService.processImageUpload(
-            file,
-            false,
-            productId,
-            isTemp,
-            tx,
-          ),
-        ),
-      );
-
-      await Promise.all(uploadTasks);
-    });
-  }
-
-  async redirectToProductPage(
-    req: Request,
-    params: RedirectToProductPagePayload,
-  ): Promise<string> {
-    let ip = req.headers["x-forwarded-for"] as string | undefined;
-    if (ip) {
-      ip = ip.split(",")[0].trim();
-    } else {
-      ip = req.connection?.remoteAddress || req.socket?.remoteAddress || "";
-    }
-
-    const userAgent = req.headers["user-agent"] as string;
-
-    const [shop, offer] = await Promise.all([
-      this.shopRepository.findById(params.shopId),
-      this.productOfferRepository.findShopProductOffer(
-        params.shopId,
-        params.productId,
+    const products = await this.db.query.ProductTable.findFirst({
+      where: and(
+        eq(ProductTable.id, productId),
+        eq(ProductTable.status, "public"),
       ),
-      this.productRepository.exists(params.productId),
-    ]);
+      with: {
+        offers: {
+          where: eq(ProductOfferTable.status, "active"),
+          with: {
+            shop: true,
+          },
+          columns: {
+            pageUrl: false,
+          },
+        },
+        views: {
+          columns: {
+            id: true,
+          },
+        },
+        likes: {
+          columns: {
+            productId: true,
+          },
+        },
+        priceHistory: {
+          where: gte(ProductPriceHistoryTable.createdAt, sixMountsAgo),
+          limit: 6,
+        },
+        category: true,
+        brand: true,
+      },
+      columns: {
+        initialPrice: false,
+      },
+    });
 
-    await this.productUtilService.handleTokenCharging(
-      shop.userId,
-      params.shopId,
-      params.productId,
-      ip,
-      userAgent,
-    );
-
-    return offer.pageUrl;
-  }
-
-  async getProduct(productId: string): Promise<IProductView> {
-    const result = await this.productRepository.findProductView(productId);
-    if (!result) {
+    if (!products) {
       throw new KalamcheError(KalamcheErrorType.NotFound);
     }
-
-    const { offers, likes, views, priceHistory, ...product } = result;
-    const productView: IProductView = {
+    const { offers, likes, views, priceHistory, ...product } = products;
+    return {
       ...product,
       offers,
       views: views.length,
       likes: likes.length,
       priceHistory,
     };
-
-    return productView;
   }
 
-  async getSimilarProduct(
-    productId: string,
-    params: PaginationPayload,
-  ): Promise<IProductRecord[]> {
-    const product = await this.productRepository.findById(productId);
-    const result = await this.productRepository.findSimilarProducts(
-      product,
-      params.limit,
-      params.offset,
-    );
+  // async getSimilarProduct(productId: string, params: PaginationDto) {
+  //   const product = await this.productRepository.findById(productId);
+  //   const result = await this.productRepository.findSimilarProducts(
+  //     product,
+  //     params.limit,
+  //     params.offset,
+  //   );
 
-    const productRecord: IProductRecord[] = result.map(
-      ({ images, offers, ...product }) => ({
-        imageUrl: images[0]?.url || "",
-        price: offers[0]?.finalPrice || 0,
-        ...product,
-      }),
-    );
-    return productRecord;
-  }
+  //   const productRecord: IProductRecord[] = result.map(
+  //     ({ images, offers, ...product }) => ({
+  //       imageUrl: images[0]?.url || "",
+  //       price: offers[0]?.finalPrice || 0,
+  //       ...product,
+  //     }),
+  //   );
+  //   return productRecord;
+  // }
 
-  async toggleLike(userId: string, productId: string): Promise<void> {
-    await this.productRepository.exists(productId);
+  async toggleLike(userId: string, productId: string) {
+    const product = await this.db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
+    });
+    if (!product) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
 
-    const liked = await this.productLikeRepository.exists(userId, productId);
+    const liked = await this.db.query.ProductLikeTable.findFirst({
+      where: and(
+        eq(ProductLikeTable.userId, userId),
+        eq(ProductLikeTable.productId, productId),
+      ),
+    });
     if (liked) {
-      await this.productLikeRepository.delete(userId, productId);
+      await this.db
+        .delete(ProductLikeTable)
+        .where(
+          and(
+            eq(ProductLikeTable.userId, userId),
+            eq(ProductLikeTable.productId, productId),
+          ),
+        );
     } else {
-      await this.productLikeRepository.insert({
+      await this.db.insert(ProductLikeTable).values({
         userId,
         productId,
       });
     }
+
+    const [likes] = await this.db
+      .select({ count: count() })
+      .from(ProductLikeTable)
+      .where(eq(ProductLikeTable.productId, productId));
+    await this.searchService.updateDoc(productId, {
+      likeCount: likes.count,
+    });
   }
 
-  async search(params: SearchPayload) {
-    const result = await this.productRepository.findByFilters(
-      { q: params.q },
-      params,
-    );
-    if (result.length === 0) {
+  async search(params: SearchDto, categoryId?: string) {
+    const sortMap: Record<string, string[] | undefined> = {
+      cheapest: ["initialPrice:asc"],
+      expensive: ["initialPrice:desc"],
+      newest: ["createdAt:desc"],
+      popular: ["likeCount:desc"],
+      view: ["viewCount:desc"],
+      relevent: undefined,
+    };
+    const filters: string[] = ['status = "public"'];
+    if (params.brand) {
+      filters.push(`brandName = "${params.brand}"`);
+    } else if (params.prMax && params.prMin) {
+      filters.push(`finalPrice ${params.prMin} TO ${params.prMax}`);
+    } else if (categoryId) {
+      filters.push(`categoryId = "${categoryId}"`);
+    }
+
+    const products = await this.searchService.productIndex.search(params.q, {
+      filter: filters,
+      sort: sortMap[params.sort],
+      facets: ["brandName", "finalPrice"],
+      limit: params.limit + 1,
+      offset: params.offset,
+    });
+
+    if (products.hits.length === 0) {
       return {
         products: [],
         hasNext: false,
       };
     }
-
-    const [priceRangeResult, similarBrands] = await Promise.all([
-      this.productRepository.findPriceRange(params.q),
-      this.brandRepository.findSimilarBrands({ q: params.q }, 5),
-    ]);
-
     // Check for next page by fetching one extra product beyond the limit
-    const hasNext = result.length > params.limit;
+    const hasNext = products.hits.length > params.limit;
     if (hasNext) {
       // Remove the extra product
-      result.pop();
+      products.hits.pop();
     }
-
     return {
-      products: result,
+      products: products.hits,
       priceRange: {
-        min: priceRangeResult.minPrice,
-        max: priceRangeResult.maxPrice,
+        min: products.facetStats?.finalPrice.min,
+        max: products.facetStats?.finalPrice.max,
       },
-      similarBrands,
+      // OPTIONAL: if the result is not good(is good)
+      // we should refactor brand schema to connect with category
+      // this way we can query all brands from this category that user is serached
+      similarBrands: Object.keys(products.facetDistribution?.brandName || {}),
       hasNext,
     };
   }
 
-  async getProductsByCategory(
-    slug: string,
-    params: GetproductsByCategoryPayload,
-  ) {
-    const notFoundResult = {
-      products: [],
-      hasNext: false,
-    };
+  // async getProductsByCategory(slug: string, params: CategorySearchDto) {
+  //   const notFoundResult = {
+  //     products: [],
+  //     hasNext: false,
+  //   };
+  //   const category = await this.db.query.CategoryTable.findFirst({
+  //     where: eq(CategoryTable.slug, slug),
+  //   });
+  //   if (!category) {
+  //     return notFoundResult;
+  //   }
 
-    const category = await this.categoryRepository.findBySlug(slug);
-    if (!category) {
-      return notFoundResult;
-    }
-    const result = await this.productRepository.findByFilters(
-      { categoryId: category.id },
-      params,
-    );
-    if (result.length === 0) {
-      return notFoundResult;
-    }
+  //   const parentCategories = this.categoryRepository.findHierarchy(
+  //     category.path,
+  //   );
 
-    const [priceRangeResult, similarBrands, similarCategories] =
-      await Promise.all([
-        this.productRepository.findPriceRange(slug),
-        this.brandRepository.findSimilarBrands({ categoryId: category.id }, 5),
-        this.categoryRepository.findHierarchy(category.path),
-      ]);
+  //   const result = await this.search(
+  //     {
+  //       ...params,
+  //       q: "",
+  //     },
+  //     category.id,
+  //   );
 
-    // Check for next page by fetching one extra product beyond the limit
-    const hasNext = result.length > params.limit;
-    if (hasNext) {
-      // Remove the extra product
-      result.pop();
-    }
+  //   return {
+  //     ...result,
+  //     parentCategories,
+  //   };
+  // }
 
-    return {
-      products: result,
-      priceRange: {
-        min: priceRangeResult.minPrice,
-        max: priceRangeResult.maxPrice,
-      },
-      similarBrands,
-      similarCategories,
-      hasNext,
-    };
-  }
-
-  async deleteTempProduct(userId: string, tempProductId: string) {
-    const tempProduct =
-      await this.tempProductRepository.findById(tempProductId);
-
-    await this.productUtilService.userHasPermission(userId, tempProduct.shopId);
-
-    await this.db.transaction(async (tx) => {
-      await this.tempProductRepository.delete(tx, tempProduct.id);
-      const deletedImages = await this.productImageRepository.deleteByProductId(
-        tx,
-        tempProduct.id,
-        true,
-      );
-
-      await Promise.all(
-        deletedImages.map((image) => {
-          return this.s3Service.delete(image.id);
-        }),
-      );
+  async deleteProduct(userId: string, productId: string) {
+    const product = await this.db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
     });
-  }
-
-  async deleteProduct(userId: string, productId: string): Promise<void> {
-    const product = await this.productRepository.findById(productId);
-
-    await this.productUtilService.userHasPermission(userId, product.shopId);
+    if (!product) {
+      throw new KalamcheError(KalamcheErrorType.NotFound);
+    }
+    const shop = await this.checkUserPermission(userId);
 
     await this.db.transaction(async (tx) => {
-      await this.productOfferRepository.deleteByProductAndShopId(
-        tx,
-        product.shopId!,
-        product.id,
-      );
+      await tx
+        .delete(ProductOfferTable)
+        .where(
+          and(
+            eq(ProductOfferTable.productId, product.id),
+            eq(ProductOfferTable.shopId, shop.id),
+          ),
+        );
       // remove the access to product
-      await this.productRepository.update(tx, product.id, {
-        shopId: null,
-      });
+      await tx
+        .update(ProductTable)
+        .set({
+          shopId: null,
+        })
+        .where(eq(ProductTable.id, product.id));
 
-      const deletedImages = await this.productImageRepository.deleteByProductId(
-        tx,
-        product.id,
-        false,
-      );
+      const deletedImages = await tx
+        .delete(ProductImageTable)
+        .where(eq(ProductImageTable.productId, product.id))
+        .returning();
       await Promise.all(
-        deletedImages.map((image) => {
-          return this.s3Service.delete(image.id);
+        deletedImages.map(async (image) => {
+          await this.s3Service.delete(image.id);
         }),
       );
-    });
-  }
-
-  async updateProduct(
-    userId: string,
-    productId: string,
-    payload: UpdateProductPayload,
-  ): Promise<IProduct> {
-    const product = await this.productRepository.findById(productId);
-
-    await this.productUtilService.userHasPermission(userId, product.shopId);
-
-    // Check if brand or category exist; throw error if not found
-    if (payload.brandId) {
-      await this.brandRepository.exists(payload.brandId);
-    }
-    if (payload.categoryId) {
-      await this.categoryRepository.exists(payload.categoryId);
-    }
-
-    return await this.productRepository.update(this.db, product.id, {
-      ...payload,
-    });
-  }
-
-  async updateProductImage(
-    userId: string,
-    productId: string,
-    imageId: string,
-    imageFile: Express.Multer.File,
-  ): Promise<void> {
-    const product = await this.productRepository.findById(productId);
-    await this.productUtilService.userHasPermission(userId, product.shopId);
-
-    await this.db.transaction(async (tx) => {
-      const image = await this.productImageRepository.delete(tx, imageId);
-      if (!image) {
-        throw new KalamcheError(KalamcheErrorType.NotFound);
-      }
-
-      await this.productUtilService.processImageUpload(
-        imageFile,
-        image.isThumbnail,
-        product.id,
-        false,
-        tx,
-      );
-
-      await this.s3Service.delete(image.id);
-    });
-  }
-
-  async getCategories() {
-    return await this.categoryRepository.findAll();
-  }
-
-  async getBrands(): Promise<IBrand[]> {
-    return await this.brandRepository.findAll();
-  }
-
-  async updateOffer(
-    userId: string,
-    offerId: string,
-    payload: UpdateOfferPayload,
-  ): Promise<IProductOffer> {
-    const offer = await this.productOfferRepository.find(offerId);
-
-    await this.productUtilService.userHasPermission(userId, offer.shopId);
-
-    return await this.productOfferRepository.update(offerId, {
-      ...payload,
     });
   }
 }

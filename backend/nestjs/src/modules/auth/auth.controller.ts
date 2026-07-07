@@ -16,10 +16,9 @@ import {
 } from "./dto";
 import { AuthService } from "./auth.service";
 import { Request, Response } from "express";
-import { IAuthController } from "./interfaces/controller";
 
 @Controller("auth")
-export class AuthController implements IAuthController {
+export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post("/register")

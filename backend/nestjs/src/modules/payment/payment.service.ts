@@ -1,19 +1,21 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IPaymentService } from "./interfaces/service";
 import { Database } from "src/drizzle/types";
-import { FrTokenPlanTable, IUser, TransactionTable } from "src/drizzle/schemas";
+import {
+  FrTokenPlanTable,
+  IUser,
+  TransactionTable,
+  WalletTable,
+} from "src/drizzle/schemas";
 import { CreateCheckoutDto, VerifyPaymentDto } from "./dtos";
 import { ZarinpalPaymentService } from "./services/zarinpal-payment.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { DATABASE } from "src/drizzle/constants";
-import { and, eq, inArray } from "drizzle-orm";
-import { WalletRepository } from "src/repository/repositories/wallet.repository";
+import { and, eq, inArray, sql } from "drizzle-orm";
 
 @Injectable()
-export class PaymentService implements IPaymentService {
+export class PaymentService {
   constructor(
     @Inject(DATABASE) private db: Database,
-    private walletRepository: WalletRepository,
     private zarinpalProvider: ZarinpalPaymentService,
   ) {}
 
@@ -97,11 +99,12 @@ export class PaymentService implements IPaymentService {
         })
         .where(eq(TransactionTable.id, pendingTrx.id))
         .returning();
-      await this.walletRepository.updateWalletTokens(
-        tx,
-        userId,
-        transaction.tokens,
-      );
+      await tx
+        .update(WalletTable)
+        .set({
+          tokens: sql`${WalletTable.tokens} + ${transaction.tokens}`,
+        })
+        .where(eq(WalletTable.userId, userId));
       return transaction;
     });
   }

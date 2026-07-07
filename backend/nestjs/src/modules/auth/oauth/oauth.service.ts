@@ -1,10 +1,9 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IOAuthService } from "./interfaces/service";
 import { GithubOAuthService } from "./util-services/github-oauth.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { Request, Response } from "express";
 import { getElapsedTime } from "src/utils/elapsed-time";
-import { DATABASE, USER_ROLE } from "src/drizzle/constants";
+import { DATABASE } from "src/drizzle/constants";
 import { Database } from "src/drizzle/types";
 import { AuthUtilService } from "../util.service";
 import { DiscordOAuthService } from "./util-services/discrod-oauth.service";
@@ -16,9 +15,10 @@ import {
   UserTable,
 } from "src/drizzle/schemas";
 import { and, eq } from "drizzle-orm";
+import { USER_ROLE } from "src/constants/global.constant";
 
 @Injectable()
-export class OAuthService implements IOAuthService {
+export class OAuthService {
   constructor(
     @Inject(DATABASE) private db: Database,
     private githubOAuthService: GithubOAuthService,

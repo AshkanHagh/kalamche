@@ -1,245 +1,127 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IShopService } from "./interfaces/IService";
 import { Database } from "src/drizzle/types";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
-import { S3Service } from "../product/services/s3.service";
+import { S3Service } from "../attachment/services/s3.service";
+import { CreateShopDto, PaginationDto, UpdateShopDto } from "./dto";
 import {
-  GetProductPayload,
-  PaginationPayload,
-  UpdateShopCreationPayload,
-  UpdateShopPayload,
-  UploadImagePayload,
-} from "./dto";
-import { UserRepository } from "src/repository/repositories/user.repository";
-import { ShopRepository } from "src/repository/repositories/shop.repository";
-import {
-  IProductRecord,
-  IShop,
-  IShopRecord,
-  ITempShop,
+  AnonymouseImageTable,
+  ProductImageTable,
+  ProductOfferTable,
+  ProductTable,
+  ShopTable,
+  UserTable,
 } from "src/drizzle/schemas";
-import { TempShopRepository } from "src/repository/repositories/temp-shop.repository";
-import { DATABASE, USER_ROLE } from "src/drizzle/constants";
-import sharp from "sharp";
-import { ProductRepository } from "src/repository/repositories/product.repository";
+import { DATABASE } from "src/drizzle/constants";
+import { and, eq, sql } from "drizzle-orm";
+import { USER_ROLE } from "src/constants/global.constant";
+import { getImageNameFromUrl } from "src/utils/image-name";
+import { desc } from "drizzle-orm";
 
 @Injectable()
-export class ShopService implements IShopService {
+export class ShopService {
   constructor(
     @Inject(DATABASE) private db: Database,
-    private shopRepository: ShopRepository,
-    private userRepository: UserRepository,
-    private tempShopRepository: TempShopRepository,
-    private productRepository: ProductRepository,
     private s3Service: S3Service,
   ) {}
 
-  async createShop(userId: string): Promise<ITempShop> {
-    const tempShopExists = await this.tempShopRepository.existsByUserId(userId);
-    if (tempShopExists) {
-      throw new KalamcheError(KalamcheErrorType.ShopAlreadyExists);
-    }
-    const shopExists = await this.shopRepository.userHasShop(userId);
-    if (shopExists) {
-      throw new KalamcheError(KalamcheErrorType.ShopAlreadyExists);
-    }
-
-    return await this.db.transaction(async (tx) => {
-      await this.userRepository.updateRole(
-        tx,
-        userId,
-        USER_ROLE.PENDING_SELLER,
-      );
-
-      return await this.tempShopRepository.insert(tx, { userId });
+  async getMyShop(userId: string) {
+    const shop = await this.db.query.ShopTable.findFirst({
+      where: eq(ShopTable.userId, userId),
     });
-  }
-
-  async uploadImage(
-    userId: string,
-    params: UploadImagePayload,
-    imageBuffer: Buffer,
-  ): Promise<void> {
-    const repository = params.isTempShop
-      ? this.tempShopRepository
-      : this.shopRepository;
-    const shop = await repository.findById(params.shopId);
-    if (shop.userId !== userId) {
+    if (!shop) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
-
-    let imageUrl: string;
-    try {
-      // TODO: Move image resizing to a separate thread and retrieve result
-      const fileBuffer = await sharp(imageBuffer)
-        .resize({
-          height: 800,
-          width: 800,
-          fit: "inside",
-          withoutEnlargement: true,
-        })
-        .webp({ quality: 80 })
-        .toBuffer();
-
-      imageUrl = await this.s3Service.putObject(
-        crypto.randomUUID(),
-        "image/webp",
-        fileBuffer,
-        true,
-      );
-    } catch (error) {
-      throw new KalamcheError(KalamcheErrorType.ImageProcessingFailed, error);
-    }
-
-    return this.db.transaction(async (tx) => {
-      await repository.update(tx, params.shopId, { imageUrl });
-
-      if (shop.imageUrl) {
-        const imageId = shop.imageUrl.split("/").at(-1)!;
-        await this.s3Service.delete(imageId);
-      }
-    });
+    return shop;
   }
 
-  async completeShopCreation(
-    userId: string,
-    tempShopId: string,
-    payload: UpdateShopCreationPayload,
-  ): Promise<IShop> {
-    const tempShop = await this.tempShopRepository.findById(tempShopId);
-    if (tempShop.userId !== userId) {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
-
+  async createShop(userId: string, payload: CreateShopDto) {
     return await this.db.transaction(async (tx) => {
-      await Promise.all([
-        this.userRepository.removeRoles(tx, userId, [USER_ROLE.PENDING_SELLER]),
-        this.userRepository.updateRole(tx, userId, USER_ROLE.SELLER),
-        this.tempShopRepository.delete(tx, tempShopId),
-      ]);
+      await tx
+        .update(UserTable)
+        .set({ roles: sql`array_append(roles, ${USER_ROLE.SELLER})` })
+        .where(eq(UserTable.id, userId))
+        .execute();
 
-      if (tempShop.imageUrl) {
-        const imageId = tempShop.imageUrl.split("/").at(-1)!;
-        await this.s3Service.updateObjectTag(imageId, "temp", "false");
-      }
-
-      // because we dont have admin dashboard yet we verify all the shops,
-      return await this.shopRepository.insert(tx, {
-        userId,
-        id: tempShop.id,
-        status: "verified",
-        imageUrl: tempShop.imageUrl,
-        ...payload,
+      const uploadedImage = await tx.query.AnonymouseImageTable.findFirst({
+        where: and(
+          eq(AnonymouseImageTable.id, payload.imageId),
+          eq(AnonymouseImageTable.usage, "shop"),
+        ),
       });
-    });
-  }
-
-  async deleteTempShop(userId: string, tempShopId: string): Promise<void> {
-    const tempShop = await this.tempShopRepository.findById(tempShopId);
-    if (tempShop.userId !== userId) {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
-
-    await this.db.transaction(async (tx) => {
-      await Promise.all([
-        this.userRepository.removeRoles(tx, userId, [USER_ROLE.PENDING_SELLER]),
-        this.tempShopRepository.delete(tx, tempShopId),
-      ]);
-
-      if (tempShop.imageUrl) {
-        await this.s3Service.delete(tempShop.imageUrl.split("/").at(-1)!);
+      if (uploadedImage) {
+        // removing the temp flag from uploaded image
+        await this.s3Service.removeImageTempFlag(uploadedImage.id);
       }
+
+      const [shop] = await Promise.all([
+        this.db
+          .insert(ShopTable)
+          .values({
+            userId,
+            imageUrl: uploadedImage?.url,
+            ...payload,
+          })
+          .returning(),
+        tx
+          .delete(AnonymouseImageTable)
+          .where(eq(AnonymouseImageTable.id, payload.imageId)),
+      ]);
+      return shop[0];
     });
   }
 
-  async deleteShop(userId: string, shopId: string): Promise<void> {
-    const shop = await this.shopRepository.findById(shopId);
-    if (shop.userId !== userId) {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
+  async deleteShop(userId: string) {
+    const shop = await this.getMyShop(userId);
 
     await this.db.transaction(async (tx) => {
       // Deleting a shop removes its associated product offer.
       // Users, including the product creator, will lose access and editing rights to the product.
       await Promise.all([
-        this.shopRepository.delete(tx, shopId),
-        this.userRepository.removeRoles(tx, userId, [USER_ROLE.SELLER]),
+        tx.delete(ShopTable).where(eq(ShopTable.id, shop.id)),
+        tx
+          .update(UserTable)
+          .set({ roles: sql`array_append(roles, ${USER_ROLE.SELLER})` })
+          .where(eq(UserTable.id, userId))
+          .execute(),
       ]);
-
       if (shop.imageUrl) {
-        await this.s3Service.delete(shop.imageUrl.split("/").at(-1)!);
+        await this.s3Service.delete(getImageNameFromUrl(shop.imageUrl));
       }
     });
   }
 
-  async updateShop(
-    userId: string,
-    shopId: string,
-    payload: UpdateShopPayload,
-  ): Promise<IShopRecord> {
-    const shop = await this.shopRepository.findById(shopId);
-    if (shop.userId !== userId) {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
-    if (shop.status === "pending") {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
-
-    const updatedShop = await this.shopRepository.update(
-      this.db,
-      shopId,
-      payload,
-    );
+  async updateShop(userId: string, payload: UpdateShopDto) {
+    const shop = await this.getMyShop(userId);
+    const [updatedShop] = await this.db
+      .update(ShopTable)
+      .set(payload)
+      .where(eq(ShopTable.id, shop.id))
+      .returning();
     return updatedShop;
   }
 
-  async getProducts(
-    userId: string,
-    shopId: string,
-    params: PaginationPayload,
-  ): Promise<IProductRecord[]> {
-    const shop = await this.shopRepository.findById(shopId);
-    if (shop.userId !== userId) {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
+  async getProducts(userId: string, params: PaginationDto) {
+    const shop = await this.getMyShop(userId);
 
-    const result = await this.productRepository.findByShopId(
-      shopId,
-      params.limit,
-      params.offset,
-    );
-
-    const productRecord: IProductRecord[] = result.map(
-      ({ images, offers, ...product }) => ({
-        imageUrl: images[0]?.url || "",
-        price: offers[0]?.finalPrice || 0,
-        ...product,
-      }),
-    );
-    return productRecord;
-  }
-
-  async getMyShop(userId: string): Promise<IShop> {
-    const shop = await this.shopRepository.findByUserId(userId);
-    if (!shop) {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
-    return shop;
-  }
-
-  async getProduct(userId: string, params: GetProductPayload) {
-    const shop = await this.shopRepository.findById(params.shopId);
-    if (shop.userId !== userId) {
-      throw new KalamcheError(KalamcheErrorType.PermissionDenied);
-    }
-
-    const result = await this.productRepository.findWithShop(
-      shop.id,
-      params.productId,
-    );
-    if (!result) {
-      throw new KalamcheError(KalamcheErrorType.NotFound);
-    }
-    return result;
+    const products = await this.db.query.ProductTable.findMany({
+      where: eq(ProductTable.shopId, shop.id),
+      with: {
+        images: {
+          where: eq(ProductImageTable.isThumbnail, true),
+        },
+        offers: {
+          where: eq(ProductOfferTable.shopId, shop.id),
+        },
+      },
+      orderBy: desc(ProductTable.createdAt),
+      limit: params.limit + 1,
+      offset: params.offset,
+    });
+    // updates obj to have one of images and if offer dosent exists then set to a default value
+    return products.map(({ images, offers, ...product }) => ({
+      imageUrl: images[0]?.url || "",
+      price: offers[0]?.finalPrice || 0,
+      ...product,
+    }));
   }
 }

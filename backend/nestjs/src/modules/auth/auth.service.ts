@@ -1,5 +1,4 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { IAuthService } from "./interfaces/service";
 import {
   LoginDto,
   RegisterDto,
@@ -14,31 +13,34 @@ import { RESEND_CODE_COOLDOWN } from "./constants";
 import { getElapsedTime } from "src/utils/elapsed-time";
 import { Request, Response } from "express";
 import { AuthConfig, IAuthConfig } from "src/config/auth.config";
-import { UserRepository } from "src/repository/repositories/user.repository";
-import { PendingUserRepository } from "src/repository/repositories/pending-user.repository";
-import { UserLoginTokenRepository } from "src/repository/repositories/user-login-token.repository";
-import { DATABASE, USER_ROLE } from "src/drizzle/constants";
-import { IPendingUser } from "src/drizzle/schemas";
+import {
+  PendingUserTable,
+  UserLoginTokenTable,
+  UserTable,
+} from "src/drizzle/schemas";
+import { DATABASE } from "src/drizzle/constants";
+import { eq } from "drizzle-orm";
+import { USER_ROLE } from "src/constants/global.constant";
 
 @Injectable()
-export class AuthService implements IAuthService {
+export class AuthService {
   constructor(
-    private userRepository: UserRepository,
-    private pendingUserRepository: PendingUserRepository,
-    private userLoginTokenRepository: UserLoginTokenRepository,
     private authUtil: AuthUtilService,
     @AuthConfig() private config: IAuthConfig,
     @Inject(DATABASE) private db: Database,
   ) {}
 
   async register(payload: RegisterDto) {
-    const emailExists = await this.userRepository.emailExists(payload.email);
+    const emailExists = await this.db.query.UserTable.findFirst({
+      where: eq(UserTable.email, payload.email),
+    });
     if (emailExists) {
       throw new KalamcheError(KalamcheErrorType.EmailAlreadyExists);
     }
 
-    let pendingUser: IPendingUser | undefined;
-    pendingUser = await this.pendingUserRepository.findByEmail(payload.email);
+    let pendingUser = await this.db.query.PendingUserTable.findFirst({
+      where: eq(PendingUserTable.email, payload.email),
+    });
 
     return await this.db.transaction(async (tx) => {
       if (pendingUser) {
@@ -49,12 +51,16 @@ export class AuthService implements IAuthService {
         }
       } else {
         const hashedPassword = await argon2.hash(payload.password);
-        pendingUser = await this.pendingUserRepository.insert(tx, {
-          email: payload.email,
-          passwordHash: hashedPassword,
-          // token will set later
-          token: "",
-        });
+        const [pUser] = await tx
+          .insert(PendingUserTable)
+          .values({
+            email: payload.email,
+            passwordHash: hashedPassword,
+            // token will set later
+            token: "",
+          })
+          .returning();
+        pendingUser = pUser;
       }
 
       return await this.authUtil.initiateAccountVerification(
@@ -66,9 +72,9 @@ export class AuthService implements IAuthService {
   }
 
   async resendVerificationCode(payload: ResendVerificationCodeDto) {
-    const pendingUser = await this.pendingUserRepository.findByEmail(
-      payload.email,
-    );
+    const pendingUser = await this.db.query.PendingUserTable.findFirst({
+      where: eq(PendingUserTable.email, payload.email),
+    });
     if (!pendingUser) {
       throw new KalamcheError(KalamcheErrorType.NotRegistered);
     }
@@ -87,11 +93,10 @@ export class AuthService implements IAuthService {
     });
   }
 
-  // Login has two scenarios:
-  // 1. If the user's last interaction with the app was more than 12 hours ago, they must log in using 2FA.
-  // 2. If it was within 12 hours, a normal login is allowed.
   async login(res: Response, req: Request, payload: LoginDto) {
-    const user = await this.userRepository.findByEmail(this.db, payload.email);
+    const user = await this.db.query.UserTable.findFirst({
+      where: eq(UserTable.email, payload.email),
+    });
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
     }
@@ -102,54 +107,7 @@ export class AuthService implements IAuthService {
       throw new KalamcheError(KalamcheErrorType.InvalidEmailAddress);
     }
 
-    const loginToken = await this.userLoginTokenRepository.findByUserId(
-      user.id,
-    );
-
     return await this.db.transaction(async (tx) => {
-      const hoursElapsed = getElapsedTime(loginToken.createdAt, "hours");
-      // Check if 12+ hours have passed since token creation. If so,
-      // create a pending user for verification.
-      if (hoursElapsed >= 12) {
-        // Remove existing pending user to allow resending a new code
-        const pendingUser = await this.pendingUserRepository.deleteByEmail(
-          tx,
-          payload.email,
-        );
-
-        if (pendingUser) {
-          const minutesElapsed = getElapsedTime(
-            pendingUser.createdAt,
-            "minutes",
-          );
-
-          // Block if not enough time has passed
-          if (minutesElapsed < RESEND_CODE_COOLDOWN) {
-            throw new KalamcheError(KalamcheErrorType.RegistrationCooldown);
-          }
-        }
-
-        const hashedPass = await argon2.hash(payload.password);
-        const newPendingUser = await this.pendingUserRepository.insert(tx, {
-          email: payload.email,
-          passwordHash: hashedPass,
-          token: "",
-        });
-
-        const verificationToken =
-          await this.authUtil.initiateAccountVerification(
-            tx,
-            newPendingUser.id,
-            newPendingUser?.email,
-          );
-
-        return {
-          token: verificationToken,
-          verificationEmailSent: true,
-        };
-      }
-
-      // If less than 12 hours have passed, log the user in and generate access tokens.
       const response = await this.authUtil.generateLoginRes(tx, res, req, user);
       return {
         user: response.user,
@@ -173,10 +131,10 @@ export class AuthService implements IAuthService {
     }
 
     return await this.db.transaction(async (tx) => {
-      const pendingUser = await this.pendingUserRepository.delete(
-        tx,
-        token.userId,
-      );
+      const [pendingUser] = await tx
+        .delete(PendingUserTable)
+        .where(eq(PendingUserTable.id, token.userId))
+        .returning();
 
       if (!pendingUser || !pendingUser.passwordHash) {
         throw new KalamcheError(KalamcheErrorType.NotRegistered);
@@ -212,15 +170,17 @@ export class AuthService implements IAuthService {
       refreshToken,
       this.config.refreshToken.secret!,
     );
-    const user = await this.userRepository.findById(this.db, result.userId);
+    const user = await this.db.query.UserTable.findFirst({
+      where: eq(UserTable.id, result.userId),
+    });
     if (!user) {
       throw new KalamcheError(KalamcheErrorType.UnAuthorized);
     }
 
-    const loginToken = await this.userLoginTokenRepository.findByUserId(
-      user.id,
-    );
-    if (loginToken.token !== refreshToken) {
+    const loginToken = await this.db.query.UserLoginTokenTable.findFirst({
+      where: eq(UserLoginTokenTable.userId, user.id),
+    });
+    if (loginToken!.token !== refreshToken) {
       throw new KalamcheError(KalamcheErrorType.PermissionDenied);
     }
 

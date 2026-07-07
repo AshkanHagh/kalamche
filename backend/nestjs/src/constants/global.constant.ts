@@ -1,11 +1,14 @@
-import { USER_ROLE } from "src/drizzle/constants";
-
+export const PAYMENT_METHODS = ["zarinpal"] as const;
+export enum USER_ROLE {
+  ADMIN = "admin",
+  USER = "user",
+  SELLER = "seller",
+}
 export enum ResourceType {
   USER = "user",
   PRODUCT = "product",
   SHOP = "shop",
 }
-
 export enum USER_RESOURCE_ACTION {
   CREATE = "create",
   UPDATE_SELF = "update_self",
@@ -13,14 +16,12 @@ export enum USER_RESOURCE_ACTION {
   DELETE = "delete",
   READ = "read",
 }
-
 export enum SHOP_RESOURCE_ACTION {
   CREATE = "create",
   UPDATE = "update",
   DELETE = "delete",
   READ = "read",
 }
-
 export enum PRODUCT_RESOURCE_ACTION {
   CREATE = "create",
   UPDATE = "update",
@@ -29,9 +30,7 @@ export enum PRODUCT_RESOURCE_ACTION {
 }
 
 export type ActionType =
-  | USER_RESOURCE_ACTION
-  | SHOP_RESOURCE_ACTION
-  | PRODUCT_RESOURCE_ACTION;
+  USER_RESOURCE_ACTION | SHOP_RESOURCE_ACTION | PRODUCT_RESOURCE_ACTION;
 
 export const ROLE_PERMISSIONS: Record<
   USER_ROLE,
@@ -56,12 +55,5 @@ export const ROLE_PERMISSIONS: Record<
   [USER_ROLE.SELLER]: {
     [ResourceType.SHOP]: Object.values(SHOP_RESOURCE_ACTION),
     [ResourceType.PRODUCT]: Object.values(PRODUCT_RESOURCE_ACTION),
-  },
-  [USER_ROLE.PENDING_SELLER]: {
-    [ResourceType.SHOP]: [
-      SHOP_RESOURCE_ACTION.CREATE,
-      SHOP_RESOURCE_ACTION.UPDATE,
-      SHOP_RESOURCE_ACTION.DELETE,
-    ],
   },
 };

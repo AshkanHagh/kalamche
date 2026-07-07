@@ -2,7 +2,6 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "./config/config.module";
 import { DrizzleModule } from "./drizzle/drizzle.module";
 import { AuthModule } from "./modules/auth/auth.module";
-import { RepositoryModule } from "./repository/repository.module";
 import { EmailModule } from "./modules/email/email.module";
 import { ProductModule } from "./modules/product/product.module";
 import { ScheduleModule } from "@nestjs/schedule";
@@ -15,6 +14,7 @@ import { ZodValidationExceptionFilter } from "./filters/zod-exception.filter";
 import { HttpExceptionFilter } from "./filters/http-exception.filter";
 import { ZodValidationPipe } from "nestjs-zod";
 import { PaymentModule } from "./modules/payment/payment.module";
+import { AttachmentModule } from "./modules/attachment/attachment.module";
 
 @Module({
   imports: [
@@ -22,7 +22,6 @@ import { PaymentModule } from "./modules/payment/payment.module";
     ScheduleModule.forRoot(),
     DrizzleModule,
     AuthModule,
-    RepositoryModule,
     EmailModule,
     ProductModule,
     ShopModule,
@@ -30,6 +29,7 @@ import { PaymentModule } from "./modules/payment/payment.module";
     RateLimitModule,
     FrTokenModule,
     PaymentModule,
+    AttachmentModule,
   ],
   providers: [
     {
