@@ -5,9 +5,11 @@ import { ProductUtilService } from "./util.service";
 import { AttachmentModule } from "../attachment/attachment.module";
 import { RateLimitModule } from "../rate-limit/rate-limit.module";
 import { MeilisearchService } from "./services/meilisearch.service";
+import { FrTokenModule } from "../fr-token/fr-token.module";
 
 @Module({
   imports: [
+    FrTokenModule,
     AttachmentModule,
     RateLimitModule.forFeature({
       mode: "DRY_MODE",

@@ -14,5 +14,6 @@ import { RateLimitModule } from "../rate-limit/rate-limit.module";
   ],
   controllers: [FrTokenController],
   providers: [FrTokenService],
+  exports: [FrTokenService],
 })
 export class FrTokenModule {}

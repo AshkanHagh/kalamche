@@ -28,7 +28,6 @@ import {
   ProductSearchDocument,
 } from "./services/meilisearch.service";
 import { S3Service } from "../attachment/services/s3.service";
-import { count } from "drizzle-orm";
 
 @Injectable()
 export class ProductService {

@@ -12,12 +12,14 @@ import { and, eq, inArray } from "drizzle-orm";
 import { CreateProductDto } from "./dto";
 import { MAX_PRODUCT_IMAGE_COUNT } from "../attachment/constants";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
+import { FrTokenService } from "../fr-token/fr-token.service";
 
 @Injectable()
 export class ProductUtilService {
   constructor(
     @Inject(DATABASE) private db: Database,
     private s3Service: S3Service,
+    private frTokenService: FrTokenService,
   ) {}
 
   // thumbnail upload and image upload count will be checked here
@@ -84,7 +86,7 @@ export class ProductUtilService {
       .insert(ProductOfferTable)
       .values({
         // TODO: missing redirect url
-        redirectPageUrl: "",
+        redirectPageUrl: this.frTokenService.generateRedirectUrl(offer!.id),
         finalPrice: payload.finalPrice,
         pageUrl: payload.websiteUrl,
         productId,
