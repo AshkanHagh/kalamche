@@ -412,6 +412,13 @@ export class ProductService implements OnModuleInit {
         }),
       );
     });
+
+    this.kafka.emit("product-deleted", {
+      key: product.id,
+      value: {
+        id: product.id,
+      },
+    });
   }
 
   async getCategories() {

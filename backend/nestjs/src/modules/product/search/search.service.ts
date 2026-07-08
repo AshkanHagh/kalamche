@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { KafkaRetriableException } from "@nestjs/microservices";
 import { eq } from "drizzle-orm";
-import { Index, Meilisearch } from "meilisearch";
+import { Index, Meilisearch, TaskUidOrEnqueuedTask } from "meilisearch";
 import { DbConfig, type IDbConfig } from "src/config/db.config";
 import { DATABASE } from "src/drizzle/constants";
 import {
@@ -79,6 +79,31 @@ export class SearchService implements OnModuleInit {
     });
   }
 
+  // TODO: implement a retry logic here
+  private async runWithRetry(fn: () => Promise<TaskUidOrEnqueuedTask>) {
+    try {
+      const taskId = await fn();
+
+      const task = await this.client.tasks.waitForTask(taskId, {
+        interval: 50,
+        timeout: 5000,
+      });
+      if (task.status != "succeeded") {
+        throw new Error(
+          `indexing product doc ${task.uid} failed: ${task.error?.message}`,
+        );
+      }
+    } catch (e) {
+      const error = e as Error;
+      this.logger.error({
+        type: "kafka",
+        errorType: KalamcheErrorType.ProductIndexFailed,
+        message: error.message,
+      });
+      throw new KafkaRetriableException(KalamcheErrorType.ProductIndexFailed);
+    }
+  }
+
   async indexProduct(productId: string) {
     const product = await this.db.query.ProductTable.findFirst({
       where: eq(ProductTable.id, productId),
@@ -115,18 +140,10 @@ export class SearchService implements OnModuleInit {
       finalPrice: offers[0].finalPrice,
       thumbnailUrl: images[0].url,
     };
-    try {
-      await this.productIndex.addDocuments([doc]);
-    } catch (e) {
-      const error = e as Error;
-      this.logger.error({
-        type: "kafka",
-        errorType: KalamcheErrorType.ProductIndexFailed,
-        message: error.message,
-        cause: error.cause,
-      });
-      throw new KafkaRetriableException(KalamcheErrorType.ProductIndexFailed);
-    }
+    await this.runWithRetry(async () => {
+      const result = await this.productIndex.addDocuments([doc]);
+      return result.taskUid;
+    });
   }
 
   async updateProductOffer(productId: string) {
@@ -139,22 +156,21 @@ export class SearchService implements OnModuleInit {
       },
       columns: {},
     });
-    try {
-      await this.productIndex.updateDocuments([
+    await this.runWithRetry(async () => {
+      const result = await this.productIndex.updateDocuments([
         {
           id: productId,
           finalPrice: product!.offers[0].finalPrice,
         },
       ]);
-    } catch (e) {
-      const error = e as Error;
-      this.logger.error({
-        type: "kafka",
-        errorType: KalamcheErrorType.ProductIndexFailed,
-        message: error.message,
-        cause: error.cause,
-      });
-      throw new KafkaRetriableException(KalamcheErrorType.ProductIndexFailed);
-    }
+      return result.taskUid;
+    });
+  }
+
+  async deleteProduct(productId: string) {
+    await this.runWithRetry(async () => {
+      const result = await this.productIndex.deleteDocument(productId);
+      return result.taskUid;
+    });
   }
 }

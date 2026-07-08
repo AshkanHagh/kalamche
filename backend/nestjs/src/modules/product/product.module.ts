@@ -17,7 +17,7 @@ import { ClientsModule, Transport } from "@nestjs/microservices";
       mode: "DRY_MODE",
       keyExtractor: "userId",
       bucketSize: 100,
-      refillRate: 1000 * 60,
+      refillRate: 1000 * 30,
     }),
     ClientsModule.register([
       {

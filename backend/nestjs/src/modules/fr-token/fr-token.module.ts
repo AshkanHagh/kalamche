@@ -8,8 +8,8 @@ import { RateLimitModule } from "../rate-limit/rate-limit.module";
     RateLimitModule.forFeature({
       mode: "DRY_MODE",
       keyExtractor: "ip",
-      bucketSize: 20,
-      refillRate: 1000 * 60,
+      bucketSize: 100,
+      refillRate: 1000 * 10,
     }),
   ],
   controllers: [FrTokenController],
