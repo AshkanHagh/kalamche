@@ -10,11 +10,11 @@ import {
   UserTable,
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { OAuthUserPayload } from "src/features/auth/oauth/dto";
-import { OAuthService } from "src/features/auth/oauth/oauth.service";
-import { DiscordOAuthService } from "src/features/auth/oauth/util-services/discrod-oauth.service";
-import { GithubOAuthService } from "src/features/auth/oauth/util-services/github-oauth.service";
-import { AuthUtilService } from "src/features/auth/util.service";
+import { OAuthUserPayload } from "src/modules/auth/oauth/dto";
+import { OAuthService } from "src/modules/auth/oauth/oauth.service";
+import { DiscordOAuthService } from "src/modules/auth/oauth/util-services/discrod-oauth.service";
+import { GithubOAuthService } from "src/modules/auth/oauth/util-services/github-oauth.service";
+import { AuthUtilService } from "src/modules/auth/util.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   createNestAppInstance,

@@ -1,8 +1,8 @@
+use parser::read_csv;
 use std::path::PathBuf;
 
-use parser::read_csv;
-
 pub mod deserialize;
+pub mod fs;
 pub mod parser;
 pub mod structs;
 

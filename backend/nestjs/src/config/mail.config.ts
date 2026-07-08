@@ -4,7 +4,6 @@ import { Inject } from "@nestjs/common";
 
 export const mailConfig = registerAs(MAIL_CONFIG, () => {
   return {
-    enable: JSON.parse(process.env.SMTP_ENABLE!) as boolean,
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT!),
     secure: JSON.parse(process.env.SMTP_TLS_ENABLED!) as boolean,

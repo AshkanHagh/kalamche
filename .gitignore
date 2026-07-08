@@ -5,7 +5,6 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 *.log
-package-lock.json*
 
 # Next.js specific
 .next/
@@ -20,7 +19,6 @@ coverage/
 .cache/
 
 # pnpm
-pnpm-lock.yaml
 .pnpm-debug.log*
 .pnpm-store/
 
@@ -85,5 +83,4 @@ target/
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-migrations/
 TODO.txt

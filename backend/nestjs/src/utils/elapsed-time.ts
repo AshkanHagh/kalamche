@@ -1,9 +1,5 @@
 export type ElapsedTimeUnite =
-  | "milliseconds"
-  | "seconds"
-  | "minutes"
-  | "hours"
-  | "days";
+  "milliseconds" | "seconds" | "minutes" | "hours" | "days";
 
 // get elapsed time from created at
 export function getElapsedTime(createdAt: Date, unit: ElapsedTimeUnite) {

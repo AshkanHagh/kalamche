@@ -47,6 +47,7 @@ pub fn routes_v1(cfg: &mut ServiceConfig, rate_limit: &RateLimiter) {
             "/progress/{image_name}",
             get().to(routes::images::download::get_upload_progress),
           ),
-      ),
+      )
+      .service(scope("/products").route("/search", get().to(api::product::search::search))),
   );
 }

@@ -8,6 +8,10 @@ export const dbConfig = registerAs(DB_CONFIG, () => {
       url: process.env.DATABASE_URL!,
       ssl: false,
     },
+    meilisearch: {
+      host: process.env.MEILISEARCH_API_URL!,
+      apiKey: process.env.MEILISEARCH_API_KEY!,
+    },
   };
 });
 

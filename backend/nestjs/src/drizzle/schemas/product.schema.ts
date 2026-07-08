@@ -2,24 +2,17 @@ import { pgEnum, pgTable } from "drizzle-orm/pg-core";
 import { createdAt, id, updatedAt } from "./schema.helper";
 import { relations } from "drizzle-orm";
 import { ProductImageTable } from "./product-image.schema";
-import {
-  IProductPriceHistory,
-  ProductPriceHistoryTable,
-} from "./product-price-history.schema";
+import { ProductPriceHistoryTable } from "./product-price-history.schema";
 import { ProductLikeTable } from "./product-like-schema";
-import { IProductOfferView, ProductOfferTable } from "./product-offer.schema";
+import { ProductOfferTable } from "./product-offer.schema";
 import { ShopTable } from "./shop.schema";
 import { ShopViewTable } from "./shop-view.schema";
-import { CategoryTable, ICategory } from "./category.schema";
-import { BrandTable, IBrand } from "./brand.schema";
+import { CategoryTable } from "./category.schema";
+import { BrandTable } from "./brand.schema";
 
-export const ProductStatusEnum = pgEnum("product_status_enum", [
-  "draft",
-  "public",
-]);
+export const ProductStatus = pgEnum("product_status", ["draft", "public"]);
 
-// model number is unique in production
-// NOTE this must be unique and not null
+// TODO: update model number to be unique/notnull in production
 export const ProductTable = pgTable("products", (table) => {
   return {
     id,
@@ -28,7 +21,7 @@ export const ProductTable = pgTable("products", (table) => {
       .references(() => ShopTable.id, { onDelete: "set null" }),
     title: table.varchar({ length: 500 }).notNull(),
     description: table.text().notNull(),
-    status: ProductStatusEnum().notNull().default("draft"),
+    status: ProductStatus().notNull().default("draft"),
     categoryId: table
       .uuid()
       .notNull()
@@ -43,10 +36,9 @@ export const ProductTable = pgTable("products", (table) => {
       .$type<{ key: string; value: string }[]>()
       .notNull(),
     initialPrice: table.real().notNull(),
-    asin: table.varchar({ length: 10 }).notNull().unique(),
+    asin: table.varchar({ length: 20 }).notNull().unique(),
     modelNumber: table.text().notNull(),
     upc: table.varchar({ length: 50 }),
-    vector: table.text(),
     createdAt,
     updatedAt,
   };
@@ -54,21 +46,6 @@ export const ProductTable = pgTable("products", (table) => {
 
 export type IProduct = typeof ProductTable.$inferSelect;
 export type IProductInsertForm = typeof ProductTable.$inferInsert;
-// Product record for search and similar product results,
-// excluding vector and initialPrice, and using only the primary image
-export type IProductRecord = Omit<IProduct, "vector" | "initialPrice"> & {
-  imageUrl: string;
-  price: number;
-};
-export type IProductView = Omit<IProduct, "vector" | "initialPrice"> & {
-  offers: IProductOfferView[];
-  priceHistory: IProductPriceHistory[];
-  views: number;
-  likes: number;
-  brand: IBrand;
-  category: ICategory;
-};
-export type IProductUpdateForm = Partial<IProduct>;
 
 export const ProductRelations = relations(ProductTable, ({ one, many }) => ({
   shop: one(ShopTable, {

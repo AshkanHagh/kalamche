@@ -1,53 +1,38 @@
+import "dotenv/config";
+import "./instrument";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
-import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
-import { KalamcheExceptionFilter } from "./filters/exception-filter";
 import cookieParser from "cookie-parser";
-import { patchNestJsSwagger } from "nestjs-zod";
-import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import compression from "compression";
+import { MicroserviceOptions, Transport } from "@nestjs/microservices";
 
 async function bootstrap() {
-  patchNestJsSwagger();
-
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors(<CorsOptions>{
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        brokers: process.env.KAFKA_BROKERS_URI!.split(","),
+      },
+      consumer: {
+        groupId: "meilisearch-indexer",
+      },
+    },
+  });
+
+  app.enableCors({
     credentials: true,
     origin: process.env.CORS_ORIGIN,
   });
-  app.useGlobalFilters(new KalamcheExceptionFilter());
+  app.enableShutdownHooks();
   app.setGlobalPrefix("/api/v1");
   app.use(cookieParser());
   app.use(compression());
   // enable on production(if you are using proxy)
   // app.use("trust proxy", true);
 
-  if (process.env.NODE !== "production") {
-    const config = new DocumentBuilder()
-      .setTitle("Kalamche api")
-      .setDescription("API with auto-generated documentation from Zod schemas")
-      .setVersion("1.0.0")
-      .addBearerAuth(
-        {
-          type: "http",
-          bearerFormat: "JWT",
-          scheme: "bearer",
-          in: "header",
-        },
-        "access-token",
-      )
-      .addSecurityRequirements("access-token")
-      .build();
-
-    const documentFactory = () => SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup("/docs", app, documentFactory, {
-      swaggerOptions: {
-        persistAuthorization: true,
-      },
-    });
-  }
-
+  await app.startAllMicroservices();
   await app.listen(process.env.PORT ?? 8399);
 }
 bootstrap();

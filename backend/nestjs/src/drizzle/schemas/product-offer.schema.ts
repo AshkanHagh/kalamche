@@ -19,7 +19,7 @@ export const ProductOfferTable = pgTable("product_offers", (table) => {
     productId: table
       .uuid()
       .notNull()
-      .references(() => ProductTable.id),
+      .references(() => ProductTable.id, { onDelete: "cascade" }),
     title: table.text().notNull(),
     finalPrice: table.real().notNull(),
     pageUrl: table.text().notNull(),

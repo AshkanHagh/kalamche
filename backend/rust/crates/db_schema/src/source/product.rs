@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
 use diesel::{
   pg,
-  prelude::{AsChangeset, Insertable, Queryable},
+  prelude::{AsChangeset, Insertable, Queryable, QueryableByName},
   Selectable,
 };
 use diesel_derive_enum::DbEnum;
@@ -9,7 +9,7 @@ use diesel_json::Json;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Selectable, Queryable)]
+#[derive(Debug, Clone, Serialize, Deserialize, Selectable, Queryable, QueryableByName)]
 #[diesel(table_name = crate::schema::products)]
 #[diesel(check_for_backend(pg::Pg))]
 #[serde(rename_all = "camelCase")]
@@ -38,7 +38,7 @@ pub struct ProductSpecification {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, DbEnum)]
 #[ExistingTypePath = "crate::schema::sql_types::ProductStatus"]
 pub enum ProductStatus {
-  Public,
+  Published,
   Draft,
 }
 

@@ -9,7 +9,7 @@ export const OAuthAccountTable = pgTable("oauth_accounts", (table) => {
     userId: table
       .uuid()
       .notNull()
-      .references(() => UserTable.id),
+      .references(() => UserTable.id, { onDelete: "cascade" }),
     provider: table.varchar({ length: 50 }).notNull(),
     providerId: table.varchar({ length: 255 }).notNull(),
     createdAt,

@@ -11,7 +11,7 @@ export const ProductPriceHistoryTable = pgTable(
       productId: table
         .uuid()
         .notNull()
-        .references(() => ProductTable.id),
+        .references(() => ProductTable.id, { onDelete: "cascade" }),
       price: table.real().notNull(),
       createdAt,
     };

@@ -12,7 +12,7 @@ import {
   WalletTable,
 } from "src/drizzle/schemas";
 import { Database } from "src/drizzle/types";
-import { ProductService } from "src/features/product/product.service";
+import { ProductService } from "src/modules/product/product.service";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import {
   createNestAppInstance,

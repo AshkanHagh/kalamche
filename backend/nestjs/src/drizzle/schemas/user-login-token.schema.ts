@@ -7,7 +7,7 @@ export const UserLoginTokenTable = pgTable("user_login_tokens", (table) => {
     userId: table
       .uuid()
       .primaryKey()
-      .references(() => UserTable.id),
+      .references(() => UserTable.id, { onDelete: "cascade" }),
     token: table.text().notNull(),
     userAgent: table.text(),
     ip: table.varchar({ length: 60 }),

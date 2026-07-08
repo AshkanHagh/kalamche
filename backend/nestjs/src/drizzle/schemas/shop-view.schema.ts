@@ -3,24 +3,29 @@ import { createdAt, id } from "./schema.helper";
 import { relations } from "drizzle-orm";
 import { ShopTable } from "./shop.schema";
 import { ProductTable } from "./product.schema";
+import { index } from "drizzle-orm/pg-core";
 
-export const ShopViewTable = pgTable("shop_views", (table) => {
-  return {
-    id,
-    shopId: table
-      .uuid()
-      .notNull()
-      .references(() => ShopTable.id, { onDelete: "cascade" }),
-    productId: table
-      .uuid()
-      .notNull()
-      .references(() => ProductTable.id, { onDelete: "cascade" }),
-    ip: table.varchar({ length: 46 }).notNull(),
-    userAgent: table.text().notNull(),
-    tokenCharged: table.integer().notNull(),
-    createdAt,
-  };
-});
+export const ShopViewTable = pgTable(
+  "shop_views",
+  (table) => {
+    return {
+      id,
+      shopId: table
+        .uuid()
+        .notNull()
+        .references(() => ShopTable.id, { onDelete: "cascade" }),
+      productId: table
+        .uuid()
+        .notNull()
+        .references(() => ProductTable.id, { onDelete: "cascade" }),
+      ip: table.varchar({ length: 46 }).notNull(),
+      userAgent: table.text().notNull(),
+      tokenCharged: table.integer().notNull(),
+      createdAt,
+    };
+  },
+  (table) => [index().on(table.productId)],
+);
 
 export type IShopView = typeof ShopViewTable.$inferSelect;
 export type IShopViewInsertForm = typeof ShopViewTable.$inferInsert;
