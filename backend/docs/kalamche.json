@@ -9,44 +9,7 @@
       "name": "auth",
       "item": [
         {
-          "name": "/auth/login",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/auth/login",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"email\": \"ashkanhaghdoost01@gmail.com\",\n    \"password\": \"Ashkan1386129\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/auth/oauth/:oauth",
-          "event": [],
+          "name": "/oauth/:oauth",
           "request": {
             "method": "GET",
             "header": [
@@ -83,8 +46,7 @@
           }
         },
         {
-          "name": "/auth/oauth/callback",
-          "event": [],
+          "name": "/oauth/callback",
           "request": {
             "method": "GET",
             "header": [],
@@ -93,7 +55,7 @@
             },
             "description": "",
             "url": {
-              "raw": "http://localhost:7319/api/v1/oauth/callback?code=2842d21bfd2391be538f&state=gb-FuwNS-d_UDcEPF4n-VYnCEyUPVzgyNT4QyYFJgnM&provider=github",
+              "raw": "http://localhost:7319/api/v1/oauth/callback?code=2e12a0af6d59546bf1aa&state=KL9kw88yxTuj9aoF271gtyvksXIHRK77RDVePS-WioM&provider=github",
               "protocol": "http",
               "host": [
                 "localhost:7319"
@@ -107,11 +69,11 @@
               "query": [
                 {
                   "key": "code",
-                  "value": "2842d21bfd2391be538f"
+                  "value": "2e12a0af6d59546bf1aa"
                 },
                 {
                   "key": "state",
-                  "value": "gb-FuwNS-d_UDcEPF4n-VYnCEyUPVzgyNT4QyYFJgnM"
+                  "value": "KL9kw88yxTuj9aoF271gtyvksXIHRK77RDVePS-WioM"
                 },
                 {
                   "key": "provider",
@@ -124,7 +86,6 @@
         },
         {
           "name": "/auth/refresh",
-          "event": [],
           "request": {
             "method": "GET",
             "header": [],
@@ -151,7 +112,6 @@
         },
         {
           "name": "/auth/register",
-          "event": [],
           "request": {
             "method": "POST",
             "header": [],
@@ -176,6 +136,41 @@
             },
             "body": {
               "mode": "raw",
+              "raw": "{\n    \"email\": \"ashkan3@gmail.com\",\n    \"password\": \"Ashkan1386129\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "/auth/login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "http://localhost:7319/api/v1/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost:7319"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
               "raw": "{\n    \"email\": \"ashkan@gmail.com\",\n    \"password\": \"Ashkan1386129\"\n}",
               "options": {
                 "raw": {
@@ -186,8 +181,42 @@
           }
         },
         {
+          "name": "/auth/verify",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "http://localhost:7319/api/v1/auth/verify",
+              "protocol": "http",
+              "host": [
+                "localhost:7319"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "verify"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"code\": 385718,\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlMzcxMzliNi0yN2VlLTQ2NWUtOTIzYi1iMmM3MWFjMDFiZDYiLCJjb2RlIjozODU3MTgsImlhdCI6MTc4MzQ3NjM1OCwiZXhwIjoxNzgzNDc2OTU4fQ.PDEdG01FwAYV5jBnS0IKUxaGMa7LfkBSVT0InuIU7bM\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
           "name": "/auth/verify/resend",
-          "event": [],
           "request": {
             "method": "POST",
             "header": [],
@@ -221,175 +250,6 @@
               }
             }
           }
-        },
-        {
-          "name": "/auth/verify",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/auth/verify",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "verify"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"code\": 330418,\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjEwNTMyNjUxNzM0NjUsInVzZXJJZCI6IjMyOGM5MzVkLWJlMjktNDMyYS1iNWQ2LTkzMTAxOWMwZGY5OSIsImNvZGUiOjMzMDQxOCwiaWF0IjoxNzU1NDQxOTU1fQ.4D7ROC1jYYU53gWUtvUo-hxIYdAIl4ncICMKq5cImQ0\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "images",
-      "item": [
-        {
-          "name": "images/progress",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "${{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "localhost:7319/api/v1/images/progress/1295574.png",
-              "protocol": "",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images",
-                "progress",
-                "1295574.png"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/images",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "${{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "localhost:7319/api/v1/images/e7e604054be28e3499c27daf44da56e8653273e11a5b7a28061e32f0a332046c",
-              "protocol": "",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "images",
-                "e7e604054be28e3499c27daf44da56e8653273e11a5b7a28061e32f0a332046c"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/images/:product_id",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/images/{{PRODUCT_ID}}?is-temp=false",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "images",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [
-                {
-                  "key": "is-temp",
-                  "value": "false"
-                }
-              ],
-              "variable": []
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "thumbnailImage",
-                  "value": [
-                    "/home/haghdoost/Pictures/basketball.png"
-                  ],
-                  "disabled": false,
-                  "type": "default"
-                },
-                {
-                  "key": "images",
-                  "value": [
-                    "/home/haghdoost/Pictures/_3.jpeg",
-                    "/home/haghdoost/Pictures/_ (1).jpeg",
-                    "/home/haghdoost/Pictures/_ (2).jpeg",
-                    "/home/haghdoost/Pictures/_ (3).jpeg",
-                    "/home/haghdoost/Pictures/_ (4).jpeg"
-                  ],
-                  "disabled": false,
-                  "type": "default"
-                }
-              ]
-            }
-          }
         }
       ]
     },
@@ -397,8 +257,7 @@
       "name": "payment",
       "item": [
         {
-          "name": "/fr-token/:plan_id",
-          "event": [],
+          "name": "/payments/:provider/:plan_id",
           "request": {
             "method": "GET",
             "header": [],
@@ -412,49 +271,15 @@
             },
             "description": "",
             "url": {
-              "raw": "http://localhost:7319/api/v1/fr-token/zarinpal/92cadb70-fcb0-4e1b-8c93-f3fae99fc9ad",
-              "protocol": "http",
+              "raw": "{{BASE_URL}}/payments/zarinpal/7862b3c3-d8a0-419a-9334-ec429202e9b1",
+              "protocol": "",
               "host": [
-                "localhost:7319"
+                "{{BASE_URL}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "fr-token",
+                "payments",
                 "zarinpal",
-                "92cadb70-fcb0-4e1b-8c93-f3fae99fc9ad"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/fr-token/",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/fr-token/",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "fr-token",
-                ""
+                "7862b3c3-d8a0-419a-9334-ec429202e9b1"
               ],
               "query": [],
               "variable": []
@@ -463,7 +288,6 @@
         },
         {
           "name": "/fr-token/plans",
-          "event": [],
           "request": {
             "method": "GET",
             "header": [],
@@ -477,15 +301,13 @@
             },
             "description": "",
             "url": {
-              "raw": "{{BASE_URL}}/api/v1/payment/plans",
+              "raw": "{{BASE_URL}}/fr-token/plans",
               "protocol": "",
               "host": [
                 "{{BASE_URL}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "payment",
+                "fr-token",
                 "plans"
               ],
               "query": [],
@@ -495,7 +317,6 @@
         },
         {
           "name": "/fr-token/verify",
-          "event": [],
           "request": {
             "method": "POST",
             "header": [],
@@ -509,15 +330,13 @@
             },
             "description": "",
             "url": {
-              "raw": "http://localhost:7319/api/v1/fr-token/verify",
-              "protocol": "http",
+              "raw": "{{BASE_URL}}/payments/verify",
+              "protocol": "",
               "host": [
-                "localhost:7319"
+                "{{BASE_URL}}"
               ],
               "path": [
-                "api",
-                "v1",
-                "fr-token",
+                "payments",
                 "verify"
               ],
               "query": [],
@@ -525,979 +344,12 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"referenceId\": \"S000000000000000000000000000000765el\",\n  \"stauts\": \"OK\",\n  \"paymentMethod\": \"zarinpal\"\n}",
+              "raw": "{\n  \"referenceId\": \"S00000000000000000000000000000p16jv2\",\n  \"paymentMethod\": \"zarinpal\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
               }
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "products",
-      "item": [
-        {
-          "name": "DELETE /products/:product_id",
-          "event": [],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "PATCH /products/:product_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Microsoft Surface Laptop Studio 2\",\n  \"specifications\": [\n    {\n      \"key\": \"Processor\",\n      \"value\": \"Intel Core i7-13800H\"\n    },\n    {\n      \"key\": \"Graphics Card\",\n      \"value\": \"NVIDIA GeForce RTX 4060 8GB\"\n    },\n    {\n      \"key\": \"RAM\",\n      \"value\": \"16GB LPDDR5x\"\n    },\n    {\n      \"key\": \"Storage\",\n      \"value\": \"1TB SSD NVMe\"\n    },\n    {\n      \"key\": \"Display\",\n      \"value\": \"14.4-inch PixelSense Flow 120Hz\"\n    },\n    {\n      \"key\": \"Weight\",\n      \"value\": \"1.98 kg\"\n    },\n    {\n      \"key\": \"Operating System\",\n      \"value\": \"Windows 11 Home\"\n    }\n  ],\n  \"initialPrice\": 2500\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/products/:product_id/image/:image_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/{{PRODUCT_ID}}/images/41279ffb-13de-4deb-8ba1-71c5aa3f5d45",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "{{PRODUCT_ID}}",
-                "images",
-                "41279ffb-13de-4deb-8ba1-71c5aa3f5d45"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "image",
-                  "value": [
-                    "/home/haghdoost/Pictures/0608d211-8849-4aec-8820-fcd16c9b898b.jpeg"
-                  ],
-                  "disabled": false,
-                  "type": "default"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "/products/:product_id",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/:shop_id",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/{{SHOP_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"upc\": \"190199503493\",\n    \"modelNumber\": \"Iphone 16\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/products/brands",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/brands",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "brands"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/categories/:slug",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/categories/laptop?limit=10&offset=0&sort=relevent",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "categories",
-                "laptop"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                },
-                {
-                  "key": "sort",
-                  "value": "relevent"
-                },
-                {
-                  "key": "brand",
-                  "value": ""
-                }
-              ],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/categories",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/categories",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "categories"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/complete/:product_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/complete/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "complete",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Microsoft Surface Laptop Studio 2\",\n  \"description\": \"The Microsoft Surface Laptop Studio 2 is designed for creators and gamers, featuring a powerful processor, versatile design, and a 120Hz PixelSense Flow touchscreen for seamless performance.\",\n  \"categoryId\": \"7674199f-daf7-41a2-82e7-d1c8af311f0d\",\n  \"brandId\": \"31ff7387-12d2-48f3-9c65-0fd13130a37a\",\n  \"specifications\": [\n    {\n      \"key\": \"Processor\",\n      \"value\": \"Intel Core i7-13800H\"\n    },\n    {\n      \"key\": \"Graphics Card\",\n      \"value\": \"NVIDIA GeForce RTX 4060 8GB\"\n    },\n    {\n      \"key\": \"RAM\",\n      \"value\": \"16GB LPDDR5x\"\n    },\n    {\n      \"key\": \"Storage\",\n      \"value\": \"1TB SSD NVMe\"\n    },\n    {\n      \"key\": \"Display\",\n      \"value\": \"14.4-inch PixelSense Flow 120Hz\"\n    },\n    {\n      \"key\": \"Weight\",\n      \"value\": \"1.98 kg\"\n    },\n    {\n      \"key\": \"Operating System\",\n      \"value\": \"Windows 11 Home\"\n    }\n  ],\n  \"websiteUrl\": \"https://www.microsoft.com/surface-laptop-studio-2\",\n  \"modelNumber\": \"Z1I-00001\",\n  \"initialPrice\": 2400,\n  \"finalPrice\": 2700\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/products/like/:product_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/like/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "like",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/offers/:offer_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/offers/dad770df-9ff2-4972-a5fc-67b783d22ec4",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "offers",
-                "dad770df-9ff2-4972-a5fc-67b783d22ec4"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"title\": \"Lenovo Legion 5 Pro\",\n    \"pageUrl\": \"https://www.lenovo.com/legion-5-pro\",\n    \"finalPrice\": 2200\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/products/offers/:product_id",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/offer/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "offer",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"title\": \"Lenovo Legion 5 Pro\",\n    \"pageUrl\": \"https://www.lenovo.com/legion-5-pro\",\n    \"finalPrice\": 2200\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/products/redirect-offer-page/:shop_id/:product_id",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/redirect-offer-page/{{SHOP_ID}}/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "redirect-offer-page",
-                "{{SHOP_ID}}",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/similar/:product_id",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/similar/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "similar",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products/temp/:product_id",
-          "event": [],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/temp/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                "temp",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/products",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "noauth"
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/products/?q=macbook&limit=10&offset=0&prMin=0&prMax=10000000000000&sort=relevent",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "products",
-                ""
-              ],
-              "query": [
-                {
-                  "key": "q",
-                  "value": "macbook"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                },
-                {
-                  "key": "prMin",
-                  "value": "0"
-                },
-                {
-                  "key": "prMax",
-                  "value": "10000000000000"
-                },
-                {
-                  "key": "sort",
-                  "value": "relevent"
-                },
-                {
-                  "key": "brand",
-                  "value": "apple"
-                }
-              ],
-              "variable": []
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "shops",
-      "item": [
-        {
-          "name": "/shops/:shop_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/{{SHOP_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Example Business 2\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/shops/:shop_id_1",
-          "event": [],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/{{SHOP_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/shops/:shop_id_2",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/{{SHOP_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/shops/",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/shops/complete/:shop_id",
-          "event": [],
-          "request": {
-            "method": "PATCH",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/complete/{{SHOP_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "complete",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Example Business\",\n  \"description\": \"A sample business description within 500 characters.\",\n  \"email\": \"contact11@example.com\",\n  \"phone\": \"+12345678901\",\n  \"website\": \"https://www.example.com\",\n  \"country\": \"United States\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"streetAddress\": \"123 Main St\",\n  \"zipCode\": \"10001\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "/shops/image/:shop_id",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "localhost:7319/api/v1/shops/image/{{SHOP_ID}}",
-              "protocol": "",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "image",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            },
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "image",
-                  "value": [
-                    ""
-                  ],
-                  "disabled": false,
-                  "type": "default"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "/shops/products/:shop_id/:product_id",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/products/{{SHOP_ID}}/{{PRODUCT_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "products",
-                "{{SHOP_ID}}",
-                "{{PRODUCT_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/shops/products/:shop_id",
-          "event": [],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/products/{{SHOP_ID}}?limit=10&offset=0",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "products",
-                "{{SHOP_ID}}"
-              ],
-              "query": [
-                {
-                  "key": "limit",
-                  "value": "10"
-                },
-                {
-                  "key": "offset",
-                  "value": "0"
-                }
-              ],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/shops/temp/:shop_id",
-          "event": [],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/temp/{{SHOP_ID}}",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                "temp",
-                "{{SHOP_ID}}"
-              ],
-              "query": [],
-              "variable": []
-            }
-          }
-        },
-        {
-          "name": "/shops",
-          "event": [],
-          "request": {
-            "method": "POST",
-            "header": [],
-            "auth": {
-              "type": "bearer",
-              "bearer": {
-                "key": "token",
-                "value": "{{ACCESS_TOKEN}}",
-                "type": "string"
-              }
-            },
-            "description": "",
-            "url": {
-              "raw": "http://localhost:7319/api/v1/shops/",
-              "protocol": "http",
-              "host": [
-                "localhost:7319"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "shops",
-                ""
-              ],
-              "query": [],
-              "variable": []
             }
           }
         }
@@ -1508,7 +360,6 @@
       "item": [
         {
           "name": "/user/me",
-          "event": [],
           "request": {
             "method": "GET",
             "header": [],
@@ -1522,14 +373,12 @@
             },
             "description": "",
             "url": {
-              "raw": "http://localhost:7319/api/v1/users/me",
-              "protocol": "http",
+              "raw": "{{BASE_URL}}/users/me",
+              "protocol": "",
               "host": [
-                "localhost:7319"
+                "{{BASE_URL}}"
               ],
               "path": [
-                "api",
-                "v1",
                 "users",
                 "me"
               ],
@@ -1540,7 +389,6 @@
         },
         {
           "name": "/user",
-          "event": [],
           "request": {
             "method": "PATCH",
             "header": [],
@@ -1581,7 +429,6 @@
         },
         {
           "name": "/users/products/:product_id/like-status",
-          "event": [],
           "request": {
             "method": "GET",
             "header": [],
@@ -1614,9 +461,579 @@
           }
         }
       ]
+    },
+    {
+      "name": "products",
+      "item": [
+        {
+          "name": "/products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/?q=laptop&limit=10&offset=0&sort=view",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "?q=laptop&limit=10&offset=0&sort=view"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "laptop"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "sort",
+                  "value": "view"
+                },
+                {
+                  "key": "brand",
+                  "value": "samsung"
+                },
+                {
+                  "key": "prMin",
+                  "value": "400"
+                },
+                {
+                  "key": "prMax",
+                  "value": "900"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/similar/:product_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/similar/{{PRODUCT_ID}}?limit=10&offset=0",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "similar",
+                "{{PRODUCT_ID}}?limit=10&offset=0"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/categories",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "categories"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/brands",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/brands",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "brands"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/products/:shop_id",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Microsoft Surface Laptop Studio 2\",\n  \"description\": \"The Microsoft Surface Laptop Studio 2 is designed for creators and gamers, featuring a powerful processor, versatile design, and a 120Hz PixelSense Flow touchscreen for seamless performance.\",\n  \"categoryId\": \"bf4336fe-07f1-4dff-bfa5-6299f4243319\",\n  \"brandId\": \"fa9394e4-39ea-457b-b5e9-0fab545e068b\",\n  \"specifications\": [\n    {\n      \"key\": \"Processor\",\n      \"value\": \"Intel Core i7-13800H\"\n    },\n    {\n      \"key\": \"Graphics Card\",\n      \"value\": \"NVIDIA GeForce RTX 4060 8GB\"\n    },\n    {\n      \"key\": \"RAM\",\n      \"value\": \"16GB LPDDR5x\"\n    },\n    {\n      \"key\": \"Storage\",\n      \"value\": \"1TB SSD NVMe\"\n    },\n    {\n      \"key\": \"Display\",\n      \"value\": \"14.4-inch PixelSense Flow 120Hz\"\n    },\n    {\n      \"key\": \"Weight\",\n      \"value\": \"1.98 kg\"\n    },\n    {\n      \"key\": \"Operating System\",\n      \"value\": \"Windows 11 Home\"\n    }\n  ],\n  \"websiteUrl\": \"https://www.microsoft.com/surface-laptop-studio-2\",\n  \"modelNumber\": \"Z1I-00001\",\n  \"initialPrice\": 2400,\n  \"finalPrice\": 2700,\n  \"upc\": \"190199503496\",\n  \"imageIds\": [\n    \"953e9fb8-fb8a-4ffa-b49f-cc80b07178d1\",\n    \"65a8e8a3-5f6d-4c10-a074-9d334d21a3d5\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "/offers/:product_id",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/offers/{{PRODUCT_ID}}",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "offers",
+                "{{PRODUCT_ID}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"title\": \"Microsoft Surface Laptop Studio 18\",\n    \"websiteUrl\": \"https://jobinja.ir/jobs/applied\",\n    \"finalPrice\": 3000.99\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "/:product_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/{{PRODUCT_ID}}",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "{{PRODUCT_ID}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/products/redirect-offer-page/:shop_id/:product_id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "description": "",
+            "url": {
+              "raw": "http://localhost:7319/api/v1/products/redirect-offer-page/{{SHOP_ID}}/{{PRODUCT_ID}}",
+              "protocol": "http",
+              "host": [
+                "localhost:7319"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "products",
+                "redirect-offer-page",
+                "{{SHOP_ID}}",
+                "{{PRODUCT_ID}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/like/:product_id",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/products/like/{{PRODUCT_ID}}",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "products",
+                "like",
+                "{{PRODUCT_ID}}"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "attachment",
+      "item": [
+        {
+          "name": "/products",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/attachments/products",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "attachments",
+                "products"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "thumbnailImage",
+                  "disabled": false,
+                  "type": "file",
+                  "src": "/home/haghdoost/Downloads/ChatGPT Image Jun 30, 2026, 01_00_15 PM.png",
+                  "contentType": "image/png"
+                },
+                {
+                  "key": "images",
+                  "disabled": false,
+                  "type": "file",
+                  "src": "/home/haghdoost/Downloads/ChatGPT Image Jun 30, 2026, 12_52_25 PM.png",
+                  "contentType": "image/png"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "/attachments/shops",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/attachments/shops",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "attachments",
+                "shops"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "image",
+                  "disabled": false,
+                  "type": "file",
+                  "src": "/home/haghdoost/Pictures/𝒚𝒐𝒖𝒓 𝒍𝒊𝒆 𝒊𝒏 𝒂𝒑𝒓𝒊𝒍.jpeg",
+                  "contentType": "image/jpeg"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "shops",
+      "item": [
+        {
+          "name": "C /shops",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/shops",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "shops"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Example Business\",\n  \"description\": \"A sample business description within 500 characters.\",\n  \"email\": \"contact11@example.com\",\n  \"phone\": \"+12345678901\",\n  \"website\": \"https://www.example.com\",\n  \"country\": \"United States\",\n  \"city\": \"New York\",\n  \"state\": \"NY\",\n  \"streetAddress\": \"123 Main St\",\n  \"zipCode\": \"10001\"\n//   \"imageId\": \"117b38dc-635a-4420-9b4c-7a189f1da424\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P /shops",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/shops",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "shops"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Example Business 2\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "D /shops",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/shops",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "shops"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "G /shops",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/shops",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "shops"
+              ],
+              "query": [],
+              "variable": []
+            }
+          }
+        },
+        {
+          "name": "/shops/products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "key": "token",
+                "value": "{{ACCESS_TOKEN}}",
+                "type": "string"
+              }
+            },
+            "description": "",
+            "url": {
+              "raw": "{{BASE_URL}}/shops/products?limit=10&offset=0",
+              "protocol": "",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "shops",
+                "products?limit=10&offset=0"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ],
+              "variable": []
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "",
+      "type": "default"
+    },
     {
       "key": "ACCESS_TOKEN",
       "value": "",
@@ -1624,11 +1041,6 @@
     },
     {
       "key": "PRODUCT_ID",
-      "value": "",
-      "type": "default"
-    },
-    {
-      "key": "BASE_URL",
       "value": "",
       "type": "default"
     },
