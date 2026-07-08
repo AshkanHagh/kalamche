@@ -1,4 +1,4 @@
-import { Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
 import {
   CreateOfferDto,
   CreateProductDto,
@@ -23,20 +23,23 @@ import ky from "ky";
 import { and, gte } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import { generateAsin } from "src/utils/asin";
-import {
-  MeilisearchService,
-  ProductSearchDocument,
-} from "./services/meilisearch.service";
+import { SearchService, ProductSearchDocument } from "./search/search.service";
 import { S3Service } from "../attachment/services/s3.service";
+import { ClientKafka } from "@nestjs/microservices";
 
 @Injectable()
-export class ProductService {
+export class ProductService implements OnModuleInit {
   constructor(
     @Inject(DATABASE) private db: Database,
+    @Inject("KAFKA_SERVICE") private kafka: ClientKafka,
     private s3Service: S3Service,
     private utilService: ProductUtilService,
-    private searchService: MeilisearchService,
+    private searchService: SearchService,
   ) {}
+
+  async onModuleInit() {
+    await this.kafka.connect();
+  }
 
   private async checkUserPermission(userId: string) {
     const shop = await this.db.query.ShopTable.findFirst({
@@ -102,6 +105,13 @@ export class ProductService {
         this.utilService.setProductImages(tx, payload.imageIds, product.id),
         this.utilService.createProductOffer(tx, product.id, shop.id, payload),
       ]);
+
+      this.kafka.emit("product-created", {
+        key: product.id,
+        value: {
+          id: product.id,
+        },
+      });
       return product;
     });
   }
@@ -133,6 +143,12 @@ export class ProductService {
       if (hasOffer) {
         throw new KalamcheError(KalamcheErrorType.OfferAlreadyExists);
       }
+      this.kafka.emit("product-offer-created", {
+        key: productId,
+        value: {
+          id: productId,
+        },
+      });
       return await this.utilService.createProductOffer(
         tx,
         productId,

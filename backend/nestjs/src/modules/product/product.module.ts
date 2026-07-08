@@ -4,8 +4,10 @@ import { ProductService } from "./product.service";
 import { ProductUtilService } from "./util.service";
 import { AttachmentModule } from "../attachment/attachment.module";
 import { RateLimitModule } from "../rate-limit/rate-limit.module";
-import { MeilisearchService } from "./services/meilisearch.service";
 import { FrTokenModule } from "../fr-token/fr-token.module";
+import { SearchService } from "./search/search.service";
+import { SearchController } from "./search/search.controller";
+import { ClientsModule, Transport } from "@nestjs/microservices";
 
 @Module({
   imports: [
@@ -17,8 +19,20 @@ import { FrTokenModule } from "../fr-token/fr-token.module";
       bucketSize: 100,
       refillRate: 1000 * 60,
     }),
+    ClientsModule.register([
+      {
+        name: "KAFKA_SERVICE",
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            brokers: process.env.KAFKA_BROKERS_URI!.split(","),
+          },
+          producerOnlyMode: true,
+        },
+      },
+    ]),
   ],
-  controllers: [ProductController],
-  providers: [ProductService, ProductUtilService, MeilisearchService],
+  controllers: [ProductController, SearchController],
+  providers: [ProductService, ProductUtilService, SearchService],
 })
 export class ProductModule {}

@@ -1,10 +1,11 @@
 allowBuilds:
-  '@scarf/scarf': true
-  '@sentry/node-cpu-profiler': true
-  '@swc/core': true
+  "@scarf/scarf": true
+  "@sentry/node-cpu-profiler": true
+  "@swc/core": true
   argon2: true
   cpu-features: true
   esbuild: true
+  msgpackr-extract: true
   protobufjs: true
   sharp: true
   ssh2: true

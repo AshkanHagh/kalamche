@@ -1,4 +1,4 @@
-import { MeilisearchService } from "../../modules/product/services/meilisearch.service";
+import { SearchService } from "../../modules/product/search/search.service";
 import { Database } from "../types";
 
 export async function indexProductsToSearch(db: Database) {
@@ -7,7 +7,7 @@ export async function indexProductsToSearch(db: Database) {
       id: true,
     },
   });
-  const meilisearchService = new MeilisearchService(
+  const meilisearchService = new SearchService(
     {
       postgres: {
         url: process.env.DATABASE_URL!,
@@ -23,7 +23,7 @@ export async function indexProductsToSearch(db: Database) {
   await meilisearchService.onModuleInit();
   await Promise.all(
     products.map(
-      async (product) => await meilisearchService.addNewDoc(product.id),
+      async (product) => await meilisearchService.indexProduct(product.id),
     ),
   );
 }

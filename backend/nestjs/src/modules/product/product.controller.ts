@@ -51,6 +51,20 @@ export class ProductController {
     return await this.productService.createOffer(userId, productId, payload);
   }
 
+  @Get("brands")
+  @SkipAuth()
+  @SkipPermission()
+  async getBrands() {
+    return await this.productService.getBrands();
+  }
+
+  @Get("categories")
+  @SkipAuth()
+  @SkipPermission()
+  async getCategories() {
+    return await this.productService.getCategories();
+  }
+
   @Get("/:id")
   @SkipAuth()
   @SkipPermission()
@@ -75,20 +89,6 @@ export class ProductController {
     @Param("product_id", new ParseUUIDPipe()) productId: string,
   ) {
     await this.productService.toggleLike(userId, productId);
-  }
-
-  @Get("brands")
-  @SkipAuth()
-  @SkipPermission()
-  async getBrands() {
-    return await this.productService.getBrands();
-  }
-
-  @Get("categories")
-  @SkipAuth()
-  @SkipPermission()
-  async getCategories() {
-    return await this.productService.getCategories();
   }
 
   @Get("/")

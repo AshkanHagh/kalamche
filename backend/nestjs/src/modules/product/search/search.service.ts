@@ -1,4 +1,5 @@
-import { Inject, Injectable, OnModuleInit } from "@nestjs/common";
+import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { KafkaRetriableException } from "@nestjs/microservices";
 import { eq } from "drizzle-orm";
 import { Index, Meilisearch } from "meilisearch";
 import { DbConfig, type IDbConfig } from "src/config/db.config";
@@ -9,7 +10,7 @@ import {
   ProductTable,
 } from "src/drizzle/schemas";
 import { type Database } from "src/drizzle/types";
-import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
+import { KalamcheErrorType } from "src/filters/exception";
 
 export type ProductSearchDocument = {
   id: string;
@@ -35,7 +36,8 @@ export type ProductSearchDocument = {
 };
 
 @Injectable()
-export class MeilisearchService implements OnModuleInit {
+export class SearchService implements OnModuleInit {
+  private logger = new Logger(SearchService.name);
   private client: Meilisearch;
   productIndex: Index;
 
@@ -77,7 +79,7 @@ export class MeilisearchService implements OnModuleInit {
     });
   }
 
-  async addNewDoc(productId: string) {
+  async indexProduct(productId: string) {
     const product = await this.db.query.ProductTable.findFirst({
       where: eq(ProductTable.id, productId),
       with: {
@@ -115,21 +117,44 @@ export class MeilisearchService implements OnModuleInit {
     };
     try {
       await this.productIndex.addDocuments([doc]);
-    } catch (error) {
-      throw new KalamcheError(KalamcheErrorType.ProductIndexFailed, error);
+    } catch (e) {
+      const error = e as Error;
+      this.logger.error({
+        type: "kafka",
+        errorType: KalamcheErrorType.ProductIndexFailed,
+        message: error.message,
+        cause: error.cause,
+      });
+      throw new KafkaRetriableException(KalamcheErrorType.ProductIndexFailed);
     }
   }
 
-  async updateDoc(productId: string, payload: Partial<ProductSearchDocument>) {
+  async updateProductOffer(productId: string) {
+    const product = await this.db.query.ProductTable.findFirst({
+      where: eq(ProductTable.id, productId),
+      with: {
+        offers: {
+          where: eq(ProductOfferTable.byboxWinner, true),
+        },
+      },
+      columns: {},
+    });
     try {
       await this.productIndex.updateDocuments([
         {
           id: productId,
-          ...payload,
+          finalPrice: product!.offers[0].finalPrice,
         },
       ]);
-    } catch (error) {
-      throw new KalamcheError(KalamcheErrorType.ProductIndexFailed, error);
+    } catch (e) {
+      const error = e as Error;
+      this.logger.error({
+        type: "kafka",
+        errorType: KalamcheErrorType.ProductIndexFailed,
+        message: error.message,
+        cause: error.cause,
+      });
+      throw new KafkaRetriableException(KalamcheErrorType.ProductIndexFailed);
     }
   }
 }

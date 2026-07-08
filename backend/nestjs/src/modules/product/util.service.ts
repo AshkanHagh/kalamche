@@ -13,6 +13,7 @@ import { CreateProductDto } from "./dto";
 import { MAX_PRODUCT_IMAGE_COUNT } from "../attachment/constants";
 import { KalamcheError, KalamcheErrorType } from "src/filters/exception";
 import { FrTokenService } from "../fr-token/fr-token.service";
+import { randomUUID } from "node:crypto";
 
 @Injectable()
 export class ProductUtilService {
@@ -72,7 +73,7 @@ export class ProductUtilService {
       ),
     });
     let isByboxWinner = false;
-    if (offer && payload.finalPrice <= offer.finalPrice) {
+    if (!offer || payload.finalPrice <= offer.finalPrice) {
       // if no offer is in range of new offer, set by box winner to true
       isByboxWinner = true;
       // removing anyone that is bybox winner to set new by box winner
@@ -82,11 +83,12 @@ export class ProductUtilService {
         .where(eq(ProductOfferTable.productId, productId));
     }
 
+    const offerId = randomUUID();
     await tx
       .insert(ProductOfferTable)
       .values({
-        // TODO: missing redirect url
-        redirectPageUrl: this.frTokenService.generateRedirectUrl(offer!.id),
+        id: offerId,
+        redirectPageUrl: this.frTokenService.generateRedirectUrl(offerId),
         finalPrice: payload.finalPrice,
         pageUrl: payload.websiteUrl,
         productId,
@@ -95,6 +97,6 @@ export class ProductUtilService {
         status: "active",
         byboxWinner: isByboxWinner,
       })
-      .returning();
+      .execute();
   }
 }
