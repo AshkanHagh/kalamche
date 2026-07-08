@@ -16,6 +16,10 @@ pub mod sql_types {
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "shop_status"))]
     pub struct ShopStatus;
+
+    #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "tsvector", schema = "pg_catalog"))]
+    pub struct Tsvector;
 }
 
 diesel::table! {
@@ -114,6 +118,7 @@ diesel::table! {
 diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::ProductStatus;
+    use super::sql_types::Tsvector;
 
     products (id) {
         id -> Uuid,
@@ -125,6 +130,7 @@ diesel::table! {
         categories -> Array<Nullable<Text>>,
         specifications -> Array<Nullable<Jsonb>>,
         website -> Text,
+        search_vector -> Tsvector,
         likes -> Int8,
         views -> Int8,
         created_at -> Timestamptz,

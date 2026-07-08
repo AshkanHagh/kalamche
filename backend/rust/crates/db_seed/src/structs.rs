@@ -1,7 +1,7 @@
 use super::deserialize::{deserialize_json_vec_specification, deserialize_json_vec_string};
 use core::time;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Deserialize)]
 pub struct ProductSpecification {
@@ -52,3 +52,6 @@ pub struct ImportStats {
   pub total_inserts: usize,
   pub elapsed_time: time::Duration,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Categories(pub Vec<String>);

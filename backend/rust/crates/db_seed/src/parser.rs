@@ -1,5 +1,3 @@
-use std::fs::File;
-
 use csv::{Reader, ReaderBuilder};
 use db_schema::{
   connection::{build_pool, DbPool},
@@ -8,8 +6,12 @@ use db_schema::{
     shop::Shop,
   },
 };
+use std::{collections::HashSet, fs::File};
 
-use crate::structs::{ImportStats, LazadaProduct};
+use crate::{
+  fs::write_string,
+  structs::{Categories, ImportStats, LazadaProduct},
+};
 
 pub async fn read_csv(path: &str) -> anyhow::Result<ImportStats> {
   let pool = build_pool().unwrap();
@@ -64,11 +66,11 @@ fn transform_csv_to_product_forms(
           .breadcrumb
           .clone()
           .into_iter()
-          .map(|i| Some(i))
+          .map(|i| Some(i.replace(' ', "-").to_lowercase()))
           .collect(),
         description: product.product_description.clone(),
         name: product.title.clone(),
-        status: ProductStatus::Public,
+        status: ProductStatus::Published,
         price: product.final_price.parse()?,
         specifications: product_specifications.clone(),
         website: product.domain.clone(),
@@ -83,6 +85,17 @@ fn transform_csv_to_product_forms(
   Ok(product_forms)
 }
 
+async fn insert_categories(products: &[ProductInsertForm]) -> anyhow::Result<()> {
+  let mut categories: HashSet<String> = HashSet::new();
+  for product in products.iter() {
+    for category in product.categories.iter() {
+      categories.insert(category.to_owned().unwrap());
+    }
+  }
+
+  write_string(Categories(categories.into_iter().collect())).await
+}
+
 async fn batch_insert_products(
   pool: &mut DbPool<'_>,
   product_forms: Vec<ProductInsertForm>,
@@ -93,7 +106,9 @@ async fn batch_insert_products(
   let mut inserted = 0;
 
   for chunk in product_forms.chunks(batch_size) {
-    let _ = Product::insert_many(pool, chunk.to_vec()).await?;
+    insert_categories(chunk).await?;
+
+    let _ = Product::insert_many(pool, chunk.to_vec()).await.unwrap();
     inserted += chunk.len();
     println!(
       "Progress: {}/{} products inserted",
